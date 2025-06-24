@@ -1,0 +1,41 @@
+# Python
+venv/
+*.pyc
+__pycache__/
+
+# Django
+*.sqlite3
+db.sqlite3
+
+# Environments
+.env
+.env.*
+
+# macOS
+.DS_Store
+
+# VSCode & PyCharm
+.vscode/
+.idea/
+
+# Migrations (по желанию, можно не добавлять, если нужны в репо)
+# */migrations/
+# !*/migrations/__init__.py
+
+# Logs
+*.log
+
+# Тестовые/кэш-файлы
+*.pot
+*.mo
+
+# Node (если когда-нибудь появится фронтенд)
+node_modules/
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+
+# Staticfiles (если будешь собирать)
+staticfiles/
