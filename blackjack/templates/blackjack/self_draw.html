@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<h2>Тренажёр “Набираю себе” (Blackjack)</h2>
+<div style="margin: 20px 0;">
+    {% for card in cards %}
+        <img src="{% static 'cards/'|add:card.img %}" width="80" height="120" style="margin-right:8px;">
+    {% endfor %}
+</div>
+<div>
+{% if not game_over %}
+  <form method="post">
+      {% csrf_token %}
+      <button type="submit" name="action" value="hit">Взять карту</button>
+      <button type="submit" name="action" value="stand">Стоп</button>
+  </form>
+{% else %}
+  <form method="get">
+      <button type="submit" name="new" value="1">Сыграть ещё раз</button>
+  </form>
+{% endif %}
+{% if message %}
+    <div style="color:#c00">{{ message }}</div>
+{% endif %}
+{% endblock %}
