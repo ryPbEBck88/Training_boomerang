@@ -9,20 +9,43 @@
 <form method="post" autocomplete="off">
     {% csrf_token %}
     <input type="number" name="user_payout" placeholder="Введите выплату" step="0.01" style="font-size:1.1em;" {% if success %}disabled{% endif %}>
-        <div style="margin:16px 0; display: flex; gap: 8px; align-items: center;">
-            <button type="submit" name="action" value="skip" formnovalidate {% if skipped or success %}disabled{% endif %}>Пропустить</button>
-            {% if skipped or success %}
-                <button type="submit" name="action" value="next">Дальше</button>
-            {% else %}
-                <button type="submit" name="action" value="check">Проверить</button>
-            {% endif %}
-        </div>
-
+    <div style="margin:16px 0; display: flex; gap: 8px;">
+        {% if success or skipped %}
+            <button type="submit" name="action" value="next">Дальше</button>
+        {% else %}
+            <button type="submit" name="action" value="check">Проверить</button>
+        {% endif %}
+        <button type="submit" name="action" value="skip" formnovalidate {% if success or skipped %}disabled{% endif %}>Пропустить</button>
+    </div>
+    
     {% if message %}
         <div style="margin:14px 0; color: #c00; font-size:1.15em;">
             {{ message }}
         </div>
     {% endif %}
+
+    {% if success or skipped %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const nextBtn = document.querySelector('button[name="action"][value="next"]');
+        const input = document.querySelector('input[name="user_payout"]');
+        if(nextBtn) {
+            nextBtn.focus();
+        }
+        // Ловим Enter на форме (на всём документе — если input заблокирован, игнорируем)
+        document.querySelector('form').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                // Если кнопка "Дальше" видима и не disabled
+                if(nextBtn && !nextBtn.disabled) {
+                    e.preventDefault();
+                    nextBtn.click();
+                }
+            }
+        });
+    });
+    </script>
+    {% endif %}
+    
 </form>
 
 {% endblock %}

@@ -4,7 +4,6 @@ from blackjack.utils.self_draw import update_hand_value, check_action
 from .utils.payout import get_random_bet, check_user_payout
 
 def payout_view(request):
-    # Жёстко заданные параметры
     min_bet = 1
     max_bet = 100
     step = 1
@@ -20,12 +19,14 @@ def payout_view(request):
             'message': '',
             'show_payout': False,
             'success': None,
+            'skipped': False,
         })
 
     # POST: "Проверить" или "Пропустить"
     message = ''
     show_payout = False
     success = None
+    skipped = False
 
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -36,6 +37,7 @@ def payout_view(request):
             message = f"Правильный ответ: {correct}"
             show_payout = True
             success = None
+            skipped = True   # <--- вот это добавлено!
         elif action == 'check':
             is_correct, correct = check_user_payout(user_payout, bet)
             if is_correct:
@@ -52,7 +54,9 @@ def payout_view(request):
         'message': message,
         'show_payout': show_payout,
         'success': success,
+        'skipped': skipped,    # <--- вот это добавлено!
     })
+
 
 
 def self_draw(request):
