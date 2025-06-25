@@ -45,7 +45,7 @@ def payout_view(request):
                 show_payout = True
                 success = True
             else:
-                message = f"Неправильно! Верный ответ: {correct}"
+                message = f"Неправильно!"
                 show_payout = True
                 success = False
 
@@ -56,8 +56,6 @@ def payout_view(request):
         'success': success,
         'skipped': skipped,    # <--- вот это добавлено!
     })
-
-
 
 def self_draw(request):
     if request.method == 'GET' and request.GET.get('new'):

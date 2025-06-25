@@ -5,5 +5,13 @@
 {% block content %}
    <h1>Добро пожаловать!</h1>
    <p>Это платформа для тренировки крупье</p>
-   <a href="/blackjack/">Перейти к разделу Black Jack</a>
+   <a href="/blackjack/">Black Jack</a>
+   <ul>
+      <li><a href="{% url 'blackjack_self_draw' %}">Набираю себе</a></li>
+      <li><a href="{% url 'blackjack_payout' %}">Выплата Black Jack</a></li>
+   </ul>
+   <a href="{% url 'poker_index' %}">Poker</a>
+   <ul>
+      <li><a href="{% url 'poker_combo' %}">Комбинации</a></li>
+   </ul>
 {% endblock %}

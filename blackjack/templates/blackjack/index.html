@@ -4,6 +4,11 @@
 
 {% block content %}
 	<h1>Black Jack</h1>
-	<a href="/">На главную</a>
-	<a href="self_draw/">Набор себе</a>
+	<p>Сюда бы добавить описание</p>
+	<a href="{% url 'homepage_index' %}">На главную</a>
+	<ul>
+		<li><a href="{% url 'blackjack_self_draw' %}">Набор себе</a></li>
+		<li><a href="{% url 'blackjack_payout' %}">Выплата</a></li>
+	</ul>
+
 {% endblock %}

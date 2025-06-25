@@ -19,7 +19,7 @@
     </div>
     
     {% if message %}
-        <div style="margin:14px 0; color: #c00; font-size:1.15em;">
+        <div style="margin:14px 0; color: {% if success %}#080{% else %}#c00{% endif %}; font-size:1.15em;">
             {{ message }}
         </div>
     {% endif %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<h2>Покер: Определи комбинацию</h2>
+<div style="display: flex; gap: 8px; margin-bottom:18px;">
+    {% for card in hand %}
+        <img src="{% static 'cards/'|add:card.img %}" width="75" height="110" style="border:1px solid #888; border-radius:10px;">
+    {% endfor %}
+</div>
+<form method="post" autocomplete="off">
+    {% csrf_token %}
+    <select name="user_combo" style="font-size:1.15em;" {% if success %}disabled{% endif %}>
+        {% for combo in combo_choices %}
+            <option value="{{ combo }}">{{ combo }}</option>
+        {% endfor %}
+    </select>
+    <div style="margin:14px 0; display: flex; gap:8px;">
+        {% if success is not None %}
+            <button type="submit" name="action" value="next">Дальше</button>
+        {% else %}
+            <button type="submit" name="action" value="check">Проверить</button>
+        {% endif %}
+    </div>
+    {% if message %}
+        <div style="margin:14px 0; font-size:1.1em; color: {% if success %}#080{% else %}#c00{% endif %};">{{ message }}</div>
+    {% endif %}
+</form>
+{% endblock %}

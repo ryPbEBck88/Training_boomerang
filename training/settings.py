@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'poker.apps.PokerConfig',
     'homepage.apps.HomepageConfig',
     'blackjack.apps.BlackjackConfig',
     'django.contrib.admin',
