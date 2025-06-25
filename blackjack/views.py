@@ -1,6 +1,59 @@
 from django.shortcuts import render
 from data.cards import get_shuffled_shoe, draw_card
 from blackjack.utils.self_draw import update_hand_value, check_action
+from .utils.payout import get_random_bet, check_user_payout
+
+def payout_view(request):
+    # Жёстко заданные параметры
+    min_bet = 1
+    max_bet = 100
+    step = 1
+
+    bet = request.session.get('current_bet')
+
+    # Новая ставка (GET или "Дальше")
+    if request.method == 'GET' or (request.method == 'POST' and request.POST.get('action') == 'next'):
+        bet = get_random_bet(min_bet, max_bet, step)
+        request.session['current_bet'] = bet
+        return render(request, 'blackjack/payout.html', {
+            'bet': bet,
+            'message': '',
+            'show_payout': False,
+            'success': None,
+        })
+
+    # POST: "Проверить" или "Пропустить"
+    message = ''
+    show_payout = False
+    success = None
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        user_payout = request.POST.get('user_payout')
+
+        if action == 'skip':
+            _, correct = check_user_payout(0, bet)
+            message = f"Правильный ответ: {correct}"
+            show_payout = True
+            success = None
+        elif action == 'check':
+            is_correct, correct = check_user_payout(user_payout, bet)
+            if is_correct:
+                message = "Правильно!"
+                show_payout = True
+                success = True
+            else:
+                message = f"Неправильно! Верный ответ: {correct}"
+                show_payout = True
+                success = False
+
+    return render(request, 'blackjack/payout.html', {
+        'bet': bet,
+        'message': message,
+        'show_payout': show_payout,
+        'success': success,
+    })
+
 
 def self_draw(request):
     if request.method == 'GET' and request.GET.get('new'):

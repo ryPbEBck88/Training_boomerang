@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Выплата Black Jack</h2>
+
+<div style="font-size:2em; margin-bottom:10px;">
+    Ставка: <b>{{ bet }}</b>
+</div>
+
+<form method="post" autocomplete="off">
+    {% csrf_token %}
+    <input type="number" name="user_payout" placeholder="Введите выплату" step="0.01" style="font-size:1.1em;" {% if success %}disabled{% endif %}>
+        <div style="margin:16px 0; display: flex; gap: 8px; align-items: center;">
+            <button type="submit" name="action" value="skip" formnovalidate {% if skipped or success %}disabled{% endif %}>Пропустить</button>
+            {% if skipped or success %}
+                <button type="submit" name="action" value="next">Дальше</button>
+            {% else %}
+                <button type="submit" name="action" value="check">Проверить</button>
+            {% endif %}
+        </div>
+
+    {% if message %}
+        <div style="margin:14px 0; color: #c00; font-size:1.15em;">
+            {{ message }}
+        </div>
+    {% endif %}
+</form>
+
+{% endblock %}

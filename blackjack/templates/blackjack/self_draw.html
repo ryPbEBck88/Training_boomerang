@@ -5,7 +5,9 @@
 <h2>Тренажёр “Набираю себе” (Blackjack)</h2>
 <div style="margin: 20px 0;">
     {% for card in cards %}
-        <img src="{% static 'cards/'|add:card.img %}" width="80" height="120" style="margin-right:8px;">
+        <img src="{% static 'cards/'|add:card.img %}" width="80" height="120" class="card-img" style="margin-right:8px;">
+        {% comment %} <img src="{% static 'cards/'|add:card.img %}" width="80" height="120" style="margin-right:8px; border: 2px solid Black;"> {% endcomment %}
+
     {% endfor %}
 </div>
 <div>

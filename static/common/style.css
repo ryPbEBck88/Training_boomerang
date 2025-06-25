@@ -2,3 +2,9 @@ body { font-family: sans-serif; background: #fafafa; margin: 0; padding: 0;}
 header { background: #222; color: #fff; padding: 12px;}
 nav a { color: #fff; text-decoration: none; margin-right: 10px; }
 main { max-width: 900px; margin: 40px auto; background: #fff; border-radius: 10px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);}
+.card-img {
+    border: 3px solid #222;  /* Чёрная рамка, можно изменить цвет и толщину */
+    border-radius: 8px;      /* Скруглённые уголки, по желанию */
+    box-shadow: 1px 2px 3px #bbb2; /* Лёгкая тень для объёма, по желанию */
+    /* margin-left: -40px; */
+}
