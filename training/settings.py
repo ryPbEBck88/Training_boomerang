@@ -102,3 +102,8 @@ X_FRAME_OPTIONS = 'DENY'
 SECURE_HSTS_SECONDS = 3600  # После тестов можно увеличить
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://i-croupier.ru",
+    "https://www.i-croupier.ru",
+]
