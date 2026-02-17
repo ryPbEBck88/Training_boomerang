@@ -4,7 +4,9 @@
 <h2>Покер: Определи комбинацию</h2>
 <div style="display: flex; gap: 8px; margin-bottom:18px;">
     {% for card in hand %}
-        <img src="{% static 'cards/'|add:card.img %}" width="75" height="110" style="border:1px solid #888; border-radius:10px;">
+        {% with card_path='cards/'|add:card.img %}
+        <img src="{% static card_path %}" width="75" height="110" style="border:1px solid #888; border-radius:10px;" alt="{{ card.name }}">
+        {% endwith %}
     {% endfor %}
 </div>
 <form method="post" autocomplete="off">
