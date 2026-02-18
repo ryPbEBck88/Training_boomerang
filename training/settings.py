@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'poker.apps.PokerConfig',
     'homepage.apps.HomepageConfig',
     'blackjack.apps.BlackjackConfig',
+    'ar.apps.ArConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

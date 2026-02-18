@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>Poker</h2>
-<a href="{% url 'combo'}">Комбинации</a>
+<div class="page-links">
+    <a href="{% url 'poker_combo' %}">Комбинации</a>
+</div>
 {% endblock %}

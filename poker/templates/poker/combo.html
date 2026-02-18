@@ -2,29 +2,29 @@
 {% load static %}
 {% block content %}
 <h2>Покер: Определи комбинацию</h2>
-<div style="display: flex; gap: 8px; margin-bottom:18px;">
+<div class="hand">
     {% for card in hand %}
         {% with card_path='cards/'|add:card.img %}
-        <img src="{% static card_path %}" width="75" height="110" style="border:1px solid #888; border-radius:10px;" alt="{{ card.name }}">
+        <img src="{% static card_path %}" class="card-img" alt="{{ card.name }}">
         {% endwith %}
     {% endfor %}
 </div>
-<form method="post" autocomplete="off">
+<form method="post" autocomplete="off" class="combo-form">
     {% csrf_token %}
-    <select name="user_combo" style="font-size:1.15em;" {% if success %}disabled{% endif %}>
-        {% for combo in combo_choices %}
-            <option value="{{ combo }}">{{ combo }}</option>
-        {% endfor %}
-    </select>
-    <div style="margin:14px 0; display: flex; gap:8px;">
-        {% if success is not None %}
-            <button type="submit" name="action" value="next">Дальше</button>
-        {% else %}
-            <button type="submit" name="action" value="check">Проверить</button>
+    {% if success is None %}
+        <input type="hidden" name="action" value="check">
+        <div class="combo-buttons">
+            {% for combo in combo_choices %}
+                <button type="submit" name="user_combo" value="{{ combo }}" class="btn btn-combo">{{ combo }}</button>
+            {% endfor %}
+        </div>
+    {% else %}
+        {% if message %}
+            <div class="message {% if success %}success{% else %}error{% endif %}">{{ message }}</div>
         {% endif %}
-    </div>
-    {% if message %}
-        <div style="margin:14px 0; font-size:1.1em; color: {% if success %}#080{% else %}#c00{% endif %};">{{ message }}</div>
+        <div class="form-actions">
+            <button type="submit" name="action" value="next" class="btn btn-primary">Дальше</button>
+        </div>
     {% endif %}
 </form>
 {% endblock %}

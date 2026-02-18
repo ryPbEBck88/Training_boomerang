@@ -3,19 +3,23 @@
 <html lang="ru">
 <head>
 	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>{% block title %}Тренажёр крупье{% endblock %}</title>
 	<link rel="stylesheet" href="{% static 'common/style.css' %}">
 </head>
 <body>
 	<header>
 		<nav>
-			<a href="/">Главная</a>
-			<a href="/blackjack">Black Jack</a>
+			<a href="{% url 'homepage_index' %}">Главная</a>
+			<a href="{% url 'blackjack_index' %}">Black Jack</a>
 			<a href="{% url 'poker_index' %}">Poker</a>
+			<a href="{% url 'ar_index' %}">AR</a>
 		</nav>
 	</header>
 	<main>
-		{% block content %}{% endblock %}
+		<div class="main-card">
+			{% block content %}{% endblock %}
+		</div>
 	</main>
 </body>
 </html>
