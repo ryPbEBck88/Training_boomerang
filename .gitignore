@@ -18,6 +18,9 @@ local_settings.py
 media/
 staticfiles/
 
+# Deploy (локальные конфиги)
+deploy/
+
 # Environments
 .env
 .env.*
