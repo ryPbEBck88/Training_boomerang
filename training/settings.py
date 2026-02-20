@@ -25,7 +25,12 @@ SECRET_KEY = 'django-insecure-7-w20()bd^0@mypm7b%*f=)f9!1juy#yn%b-+l-pzluf*%%75=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,i-croupier.ru,www.i-croupier.ru').split(',')
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://i-croupier.ru',
+    'https://www.i-croupier.ru',
+]
 
 
 # Application definition
