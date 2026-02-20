@@ -200,9 +200,11 @@ vertX.forEach(function (x) {
 });
 
 const spawnZ = 0.175;
-const spawnZ2 = spawnZ + 0.35;
-const spawnZ3 = spawnZ + 0.7;
-const spawnZ4 = spawnZ + 1.05;
+const chipStep = 0.35;
+const spawnZ2 = spawnZ + chipStep;
+const spawnZ3 = spawnZ + chipStep * 2;
+const spawnZ4 = spawnZ + chipStep * 3;
+const spawnZ5 = spawnZ + chipStep * 4;
 const spawnPoints = [
 	[centerCell[0], centerCell[1]],
 	[cx1 - halfW - splitCenter, cy1],
@@ -255,22 +257,24 @@ document.getElementById('btn-spawn').addEventListener('click', function () {
 		const chipCounts = new Array(12).fill(0);
 		for (let i = 0; i < 12; i++) {
 			const r = Math.random();
-			const count = r < 0.25 ? 1 : r < 0.5 ? 2 : r < 0.75 ? 3 : 4;
+			const count = r < 0.2 ? 1 : r < 0.4 ? 2 : r < 0.6 ? 3 : r < 0.8 ? 4 : 5;
 			chipCounts[i] = count;
 			const x = spawnPoints[i][0], y = spawnPoints[i][1];
+			const isColumn = count === 5;
 			addCylinder(material, x, y, spawnZ);
 			if (count >= 2) {
-				const rotZ = (Math.random() - 0.5) * 0.4;
-				addCylinder(material, x, y + 0.6, spawnZ2, rotZ);
+				if (isColumn) addCylinder(material, x, y, spawnZ2);
+				else addCylinder(material, x, y + 0.6, spawnZ2, (Math.random() - 0.5) * 0.4);
 			}
 			if (count >= 3) {
-				const rotZ = (Math.random() - 0.5) * 0.4;
-				addCylinder(material, x, y + 1.2, spawnZ3, rotZ);
+				if (isColumn) addCylinder(material, x, y, spawnZ3);
+				else addCylinder(material, x, y + 1.2, spawnZ3, (Math.random() - 0.5) * 0.4);
 			}
 			if (count >= 4) {
-				const rotZ = (Math.random() - 0.5) * 0.4;
-				addCylinder(material, x, y + 1.8, spawnZ4, rotZ);
+				if (isColumn) addCylinder(material, x, y, spawnZ4);
+				else addCylinder(material, x, y + 1.8, spawnZ4, (Math.random() - 0.5) * 0.4);
 			}
+			if (count >= 5) addCylinder(material, x, y, spawnZ5);
 		}
 		const numChips = chipCounts[0];
 		const splitChips = chipCounts[1] + chipCounts[2] + chipCounts[3] + chipCounts[4];
