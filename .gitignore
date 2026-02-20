@@ -1,41 +1,63 @@
 # Python
 venv/
+.venv/
+env/
 *.pyc
+*.pyo
 __pycache__/
+*.egg-info/
+*.egg
+dist/
+build/
+.Python
 
 # Django
 *.sqlite3
 db.sqlite3
+local_settings.py
+media/
+staticfiles/
 
 # Environments
 .env
 .env.*
+*.local
 
 # macOS
 .DS_Store
 
-# VSCode & PyCharm
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
-# Migrations (по желанию, можно не добавлять, если нужны в репо)
+# Migrations (раскомментируй, если не хранить в репо)
 # */migrations/
 # !*/migrations/__init__.py
 
-# Logs
+# Logs & cache
 *.log
-
-# Тестовые/кэш-файлы
 *.pot
 *.mo
+.pytest_cache/
+.mypy_cache/
 
-# Node (если когда-нибудь появится фронтенд)
+# Node
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Coverage reports
+# Coverage & tests
 htmlcov/
 .coverage
 .coverage.*
-
-# Staticfiles (если будешь собирать)
-staticfiles/
+.tox/
+.nox/
