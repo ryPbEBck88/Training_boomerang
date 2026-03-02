@@ -3,19 +3,34 @@
 {% block title %}Главная{% endblock %}
 
 {% block content %}
-   <h1>Добро пожаловать!</h1>
-   <p>Это платформа для тренировки крупье</p>
-   <a href="/blackjack/">Black Jack</a>
-   <ul>
-      <li><a href="{% url 'blackjack_self_draw' %}">Набираю себе</a></li>
-      <li><a href="{% url 'blackjack_payout' %}">Выплата Black Jack</a></li>
-   </ul>
-   <a href="{% url 'poker_index' %}">Poker</a>
-   <ul>
-      <li><a href="{% url 'poker_combo' %}">Комбинации</a></li>
-   </ul>
-   <a href="{% url 'ar_index' %}">AR</a>
-   <ul>
-      <li><a href="{% url 'ar_bets' %}">Заставка</a></li>
-   </ul>
+<div class="home-hero">
+   <h1 class="home-title">Добро пожаловать!</h1>
+   <p class="home-subtitle">Тренируйся так, чтобы игроки забыли моргать.</p>
+</div>
+
+<div class="home-section">
+   <h2 class="home-section-title">Black Jack</h2>
+   <div class="home-links">
+      <a href="{% url 'blackjack_self_draw' %}" class="home-link">Набираю себе</a>
+      <a href="{% url 'blackjack_payout' %}" class="home-link">Выплата Black Jack</a>
+   </div>
+</div>
+
+<div class="home-section">
+   <h2 class="home-section-title">Poker</h2>
+   <div class="home-links">
+      <a href="{% url 'poker_combo' %}" class="home-link">Комбинации</a>
+   </div>
+</div>
+
+<div class="home-section">
+   <h2 class="home-section-title">AR</h2>
+   <div class="home-links">
+      <a href="{% url 'ar_bets' %}" class="home-link">Заставка</a>
+   </div>
+</div>
+
+<div class="home-footer">
+   <p>Также советуем посетить <a href="https://kabunda.github.io/Saite/" target="_blank" rel="noopener noreferrer">Сайт Кулагина Владимира</a>.</p>
+</div>
 {% endblock %}
