@@ -1,26 +1,29 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div style="font-size:2em; margin-bottom:10px;">
-    <b>{{ bet }}</b>
-</div>
-
-<form method="post" autocomplete="off">
+<form method="post" autocomplete="off" class="payout-form">
     {% csrf_token %}
-    <input type="number" name="user_payout" placeholder="Введите выплату" step="0.01" style="font-size:1.1em;" {% if success %}disabled{% endif %}>
-    <div style="margin:16px 0; display: flex; gap: 8px;">
-        {% if success or skipped %}
-            <button type="submit" name="action" value="next">Дальше</button>
-        {% else %}
-            <button type="submit" name="action" value="check">Проверить</button>
-        {% endif %}
-        <button type="submit" name="action" value="skip" formnovalidate {% if success or skipped %}disabled{% endif %}>Пропустить</button>
+    <div class="payout-params">
+        <label>min: <input type="number" name="min_bet" value="{{ min_bet }}" min="1" max="10000"></label>
+        <label>max: <input type="number" name="max_bet" value="{{ max_bet }}" min="1" max="10000"></label>
+        <label>step: <input type="number" name="step" value="{{ step }}" min="1" max="1000"></label>
     </div>
-    
+
+    <div class="payout-bet">{{ bet }}</div>
+
+    <input type="number" name="user_payout" class="payout-input" placeholder="Введите выплату" step="0.01" {% if success or skipped %}disabled{% endif %}>
+
+    <div class="payout-buttons">
+        {% if success or skipped %}
+            <button type="submit" name="action" value="next" class="btn btn-primary">Дальше</button>
+        {% else %}
+            <button type="submit" name="action" value="check" class="btn btn-primary">Проверить</button>
+        {% endif %}
+        <button type="submit" name="action" value="skip" formnovalidate class="btn btn-secondary" {% if success or skipped %}disabled{% endif %}>Пропустить</button>
+    </div>
+
     {% if message %}
-        <div style="margin:14px 0; color: {% if success %}#080{% else %}#c00{% endif %}; font-size:1.15em;">
-            {{ message }}
-        </div>
+        <div class="payout-message {% if success %}success{% else %}error{% endif %}">{{ message }}</div>
     {% endif %}
 
     {% if success or skipped %}

@@ -1,7 +1,21 @@
 {% extends "base.html" %}
+
+{% block title %}Poker{% endblock %}
+
 {% block content %}
-<h2>Poker</h2>
-<div class="page-links">
-    <a href="{% url 'poker_combo' %}">Комбинации</a>
+<div class="home-hero">
+	<h1 class="home-title">Poker</h1>
+	<p class="home-subtitle">Тренажёры по покеру</p>
+</div>
+
+<div class="home-section">
+	<h2 class="home-section-title">Oasic poker</h2>
+	<div class="home-links">
+		<a href="{% url 'poker_combo' %}" class="home-link">Комбинации</a>
+	</div>
+</div>
+
+<div class="home-footer">
+	<p><a href="{% url 'homepage_index' %}">← На главную</a></p>
 </div>
 {% endblock %}

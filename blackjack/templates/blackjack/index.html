@@ -3,12 +3,20 @@
 {% block title %}Black Jack{% endblock %}
 
 {% block content %}
-	<h1>Black Jack</h1>
-	<p>Сюда бы добавить описание</p>
-	<a href="{% url 'homepage_index' %}">На главную</a>
-	<ul>
-		<li><a href="{% url 'blackjack_self_draw' %}">Набор себе</a></li>
-		<li><a href="{% url 'blackjack_payout' %}">Выплата</a></li>
-	</ul>
+<div class="home-hero">
+	<h1 class="home-title">Black Jack</h1>
+	<p class="home-subtitle">Тренажёры по блэкджеку</p>
+</div>
 
+<div class="home-section">
+	<h2 class="home-section-title">Упражнения</h2>
+	<div class="home-links">
+		<a href="{% url 'blackjack_self_draw' %}" class="home-link">Набираю себе</a>
+		<a href="{% url 'blackjack_payout' %}" class="home-link">Выплата Black Jack</a>
+	</div>
+</div>
+
+<div class="home-footer">
+	<p><a href="{% url 'homepage_index' %}">← На главную</a></p>
+</div>
 {% endblock %}

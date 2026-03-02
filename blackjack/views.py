@@ -3,10 +3,36 @@ from data.cards import get_shuffled_shoe, draw_card
 from blackjack.utils.self_draw import update_hand_value, check_action
 from .utils.payout import get_random_bet, check_user_payout
 
+def _parse_int(val, default, min_val=None, max_val=None):
+    try:
+        n = int(float(val))
+        if min_val is not None and n < min_val:
+            n = min_val
+        if max_val is not None and n > max_val:
+            n = max_val
+        return n
+    except (TypeError, ValueError):
+        return default
+
+
 def payout_view(request):
-    min_bet = 1
-    max_bet = 100
-    step = 1
+    min_bet = request.session.get('payout_min_bet', 1)
+    max_bet = request.session.get('payout_max_bet', 100)
+    step = request.session.get('payout_step', 1)
+
+    if request.method == 'POST':
+        min_bet = _parse_int(request.POST.get('min_bet'), min_bet, 1, 10000)
+        max_bet = _parse_int(request.POST.get('max_bet'), max_bet, 1, 10000)
+        step = _parse_int(request.POST.get('step'), step, 1, 1000)
+        if min_bet >= max_bet:
+            max_bet = min_bet + step
+        if step > min_bet:
+            min_bet = step
+        if step > max_bet - min_bet + 1:
+            step = max(1, max_bet - min_bet)
+        request.session['payout_min_bet'] = min_bet
+        request.session['payout_max_bet'] = max_bet
+        request.session['payout_step'] = step
 
     bet = request.session.get('current_bet')
 
@@ -16,6 +42,9 @@ def payout_view(request):
         request.session['current_bet'] = bet
         return render(request, 'blackjack/payout.html', {
             'bet': bet,
+            'min_bet': min_bet,
+            'max_bet': max_bet,
+            'step': step,
             'message': '',
             'show_payout': False,
             'success': None,
@@ -51,10 +80,13 @@ def payout_view(request):
 
     return render(request, 'blackjack/payout.html', {
         'bet': bet,
+        'min_bet': min_bet,
+        'max_bet': max_bet,
+        'step': step,
         'message': message,
         'show_payout': show_payout,
         'success': success,
-        'skipped': skipped,    # <--- вот это добавлено!
+        'skipped': skipped,
     })
 
 def self_draw(request):
