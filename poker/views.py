@@ -1,6 +1,20 @@
 from django.shortcuts import render
 from data.cards import get_shuffled_shoe
+from blackjack.utils.payout import get_random_bet
 from .utils.combo import make_combo_queue, make_holdem_combo_queue, hand_to_combo, best_combo_from_7, COMBO_CHOICES, COMBO_CHOICES_HOLDEM
+from .utils.payout import check_user_payout
+
+
+def _parse_int(val, default, min_val=None, max_val=None):
+    try:
+        n = int(float(val))
+        if min_val is not None and n < min_val:
+            n = min_val
+        if max_val is not None and n > max_val:
+            n = max_val
+        return n
+    except (TypeError, ValueError):
+        return default
 
 
 def texas_holdem(request):
@@ -94,6 +108,87 @@ def combo_holdem(request):
         'combo_choices': COMBO_CHOICES_HOLDEM,
         'message': message,
         'success': success,
+    })
+
+
+def payout_view(request):
+    """Oasis Poker: считаем выплату. min/max/step, ставка, комбинация, ответ пользователя."""
+    min_bet = request.session.get('poker_payout_min_bet', 1)
+    max_bet = request.session.get('poker_payout_max_bet', 100)
+    step = request.session.get('poker_payout_step', 1)
+
+    if request.method == 'POST':
+        min_bet = _parse_int(request.POST.get('min_bet'), min_bet, 1, 10000)
+        max_bet = _parse_int(request.POST.get('max_bet'), max_bet, 1, 10000)
+        step = _parse_int(request.POST.get('step'), step, 1, 1000)
+        if min_bet >= max_bet:
+            max_bet = min_bet + step
+        if step > max_bet - min_bet:
+            step = max(1, max_bet - min_bet)
+        request.session['poker_payout_min_bet'] = min_bet
+        request.session['poker_payout_max_bet'] = max_bet
+        request.session['poker_payout_step'] = step
+
+    queue = request.session.get('poker_payout_queue')
+    if not queue:
+        queue = make_combo_queue()
+        request.session['poker_payout_queue'] = queue
+
+    bet = request.session.get('poker_current_bet')
+    hand = request.session.get('poker_current_hand')
+
+    if request.method == 'GET' or (request.method == 'POST' and request.POST.get('action') == 'next'):
+        if not queue:
+            queue = make_combo_queue()
+            request.session['poker_payout_queue'] = queue
+        hand = queue.pop(0)
+        request.session['poker_payout_queue'] = queue
+        request.session['poker_current_hand'] = hand
+        bet = get_random_bet(min_bet, max_bet, step)
+        request.session['poker_current_bet'] = bet
+        return render(request, 'poker/payout.html', {
+            'bet': bet,
+            'hand': hand,
+            'combo': hand_to_combo(hand),
+            'min_bet': min_bet,
+            'max_bet': max_bet,
+            'step': step,
+            'message': '',
+            'success': None,
+            'skipped': False,
+        })
+
+    message = ''
+    success = None
+    skipped = False
+    action = request.POST.get('action')
+    user_payout = request.POST.get('user_payout', '')
+    combo = hand_to_combo(hand)
+
+    if action == 'skip':
+        _, correct = check_user_payout(0, bet, combo)
+        message = f"Правильный ответ: {correct}"
+        success = None
+        skipped = True
+    elif action == 'check':
+        is_correct, correct = check_user_payout(user_payout, bet, combo)
+        if is_correct:
+            message = "Правильно!"
+            success = True
+        else:
+            message = f"Неправильно! Правильный ответ: {correct}"
+            success = False
+
+    return render(request, 'poker/payout.html', {
+        'bet': bet,
+        'hand': hand,
+        'combo': combo,
+        'min_bet': min_bet,
+        'max_bet': max_bet,
+        'step': step,
+        'message': message,
+        'success': success,
+        'skipped': skipped,
     })
 
 

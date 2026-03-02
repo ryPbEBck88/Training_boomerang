@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<h2>Oasis Poker: Считаем выплату</h2>
+
+<form method="post" autocomplete="off" class="payout-form">
+    {% csrf_token %}
+    <div class="payout-params">
+        <label>min: <input type="number" name="min_bet" value="{{ min_bet }}" min="1" max="10000"></label>
+        <label>max: <input type="number" name="max_bet" value="{{ max_bet }}" min="1" max="10000"></label>
+        <label>step: <input type="number" name="step" value="{{ step }}" min="1" max="1000"></label>
+    </div>
+
+    <div class="payout-bet">{{ bet }}</div>
+
+    <div class="hand">
+        {% for card in hand %}
+            {% with card_path='cards/'|add:card.img %}
+            <img src="{% static card_path %}" class="card-img" alt="{{ card.name }}">
+            {% endwith %}
+        {% endfor %}
+    </div>
+
+    <div class="payout-combo">{{ combo }}</div>
+
+    <input type="number" name="user_payout" class="payout-input" placeholder="Введите выплату" step="0.01" {% if success or skipped %}disabled{% endif %}>
+
+    <div class="payout-buttons">
+        {% if success or skipped %}
+            <button type="submit" name="action" value="next" class="btn btn-primary">Дальше</button>
+        {% else %}
+            <button type="submit" name="action" value="check" class="btn btn-primary">Проверить</button>
+        {% endif %}
+        <button type="submit" name="action" value="skip" formnovalidate class="btn btn-secondary" {% if success or skipped %}disabled{% endif %}>Пропустить</button>
+    </div>
+
+    {% if message %}
+        <div class="payout-message {% if success %}success{% else %}error{% endif %}">{{ message }}</div>
+    {% endif %}
+
+    {% if success or skipped %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const nextBtn = document.querySelector('button[name="action"][value="next"]');
+        if(nextBtn) nextBtn.focus();
+        document.querySelector('form').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && nextBtn && !nextBtn.disabled) {
+                e.preventDefault();
+                nextBtn.click();
+            }
+        });
+    });
+    </script>
+    {% endif %}
+</form>
+
+<p style="margin-top: 16px;"><a href="{% url 'poker_index' %}">← К списку игр</a></p>
+{% endblock %}

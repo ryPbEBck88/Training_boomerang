@@ -381,6 +381,15 @@ main h2 {
   font-weight: 700;
   color: var(--bg-header);
   margin: 20px 0 16px;
+  text-align: center;
+}
+
+.payout-combo {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin: 12px 0 16px;
+  text-align: center;
 }
 
 .payout-input {
