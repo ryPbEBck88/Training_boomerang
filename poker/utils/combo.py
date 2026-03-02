@@ -1,4 +1,5 @@
 import random
+from itertools import combinations
 from data.cards import get_deck, RANKS as RANK_TUPLES, SUITS as SUIT_TUPLES
 
 RANKS = [r[0] for r in RANK_TUPLES]
@@ -9,6 +10,14 @@ COMBO_CHOICES = [
     "Нет игры", "Туз и король", "Пара", "Две пары", "Сет",
     "Стрит", "Флеш", "Фул-хаус", "Каре", "Стрит-флеш", "Роял-флеш"
 ]
+
+COMBO_CHOICES_HOLDEM = [
+    "Нет игры", "Пара", "Две пары", "Сет",
+    "Стрит", "Флеш", "Фул-хаус", "Каре", "Стрит-флеш", "Роял-флеш"
+]
+
+COMBO_RANK = {c: i for i, c in enumerate(COMBO_CHOICES)}
+COMBO_RANK_HOLDEM = {c: i for i, c in enumerate(COMBO_CHOICES_HOLDEM)}
 
 def get_hand_no_combo():
     while True:
@@ -177,6 +186,41 @@ def hand_to_combo(hand):
     if 'A' in ranks and 'K' in ranks and len(set(ranks)) == 5:
         return "Туз и король"
     return "Нет игры"
+
+
+def hand_to_combo_holdem(hand):
+    """Комбинация для Hold'em: без Туз-король, пара 2/3 = Нет игры."""
+    combo = hand_to_combo(hand)
+    if combo == "Туз и король":
+        return "Нет игры"
+    if combo == "Пара":
+        ranks = [card['rank'] for card in hand]
+        rank_counts = {r: ranks.count(r) for r in set(ranks)}
+        pair_rank = [r for r, c in rank_counts.items() if c == 2][0]
+        if pair_rank in ('2', '3'):
+            return "Нет игры"
+    return combo
+
+
+def best_combo_from_7(hand):
+    """Лучшая комбинация из 7 карт (Hold'em)."""
+    best = "Нет игры"
+    for five in combinations(hand, 5):
+        combo = hand_to_combo_holdem(list(five))
+        if COMBO_RANK_HOLDEM[combo] > COMBO_RANK_HOLDEM[best]:
+            best = combo
+    return best
+
+
+def make_holdem_combo_queue():
+    """Очередь из 7-карточных рук для Hold'em."""
+    queue = []
+    for _ in range(25):
+        hand = random.sample(get_deck(), 7)
+        queue.append(hand)
+    random.shuffle(queue)
+    return queue
+
 
 def make_combo_queue():
     queue = []

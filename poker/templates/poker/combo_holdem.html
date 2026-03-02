@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<h2>Texas Hold'em: Определи комбинацию (7 карт)</h2>
+<div class="texas-layout">
+    <div class="texas-board">
+        {% for card in board %}
+            {% with card_path='cards/'|add:card.img %}
+            <img src="{% static card_path %}" class="card-img" alt="{{ card.name }}">
+            {% endwith %}
+        {% endfor %}
+    </div>
+    <div class="texas-hole">
+        {% for card in hole %}
+            {% with card_path='cards/'|add:card.img %}
+            <img src="{% static card_path %}" class="card-img" alt="{{ card.name }}">
+            {% endwith %}
+        {% endfor %}
+    </div>
+</div>
+<form method="post" autocomplete="off" class="combo-form">
+    {% csrf_token %}
+    {% if success is None %}
+        <input type="hidden" name="action" value="check">
+        <div class="combo-buttons">
+            {% for combo in combo_choices %}
+                <button type="submit" name="user_combo" value="{{ combo }}" class="btn btn-combo">{{ combo }}</button>
+            {% endfor %}
+        </div>
+    {% else %}
+        {% if message %}
+            <div class="message {% if success %}success{% else %}error{% endif %}">{{ message }}</div>
+        {% endif %}
+        <div class="form-actions">
+            <button type="submit" name="action" value="next" class="btn btn-primary">Дальше</button>
+        </div>
+    {% endif %}
+</form>
+<p style="margin-top: 16px;"><a href="{% url 'poker_index' %}">← К списку игр</a></p>
+{% endblock %}

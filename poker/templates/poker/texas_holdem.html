@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Texas Hold'em{% endblock %}
+
+{% block content %}
+<h2>Texas Hold'em Poker</h2>
+
+<div class="texas-layout">
+    <div class="texas-board">
+        {% for card in board %}
+            {% with card_path='cards/'|add:card.img %}
+            <img src="{% static card_path %}" class="card-img" alt="{{ card.name }}">
+            {% endwith %}
+        {% endfor %}
+    </div>
+    <div class="texas-hole">
+        {% for card in hole %}
+            {% with card_path='cards/'|add:card.img %}
+            <img src="{% static card_path %}" class="card-img" alt="{{ card.name }}">
+            {% endwith %}
+        {% endfor %}
+    </div>
+</div>
+
+<a href="{% url 'poker_texas' %}" class="btn btn-primary" style="margin-top: 20px;">Раздать заново</a>
+<p style="margin-top: 16px;"><a href="{% url 'poker_index' %}">← К списку игр</a></p>
+{% endblock %}

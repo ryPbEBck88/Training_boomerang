@@ -247,6 +247,39 @@ main h2 {
   }
 }
 
+/* --- Texas Hold'em layout --- */
+.texas-layout {
+  margin: 24px 0;
+}
+
+.texas-board {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 32px;
+}
+
+.texas-hole {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.texas-board .card-img,
+.texas-hole .card-img {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 600px) {
+  .texas-board .card-img {
+    width: calc((100% - 32px) / 5);
+  }
+  .texas-hole .card-img {
+    width: 56px;
+  }
+}
+
 /* --- Форма (комбо) --- */
 .combo-form {
   margin-top: 8px;
