@@ -43,6 +43,9 @@ const controls = new OrbitControls(camera, canvas);
 controls.target.set(12.281, 17.126, 1.613);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
+controls.maxPolarAngle = Math.PI * 0.95;
+controls.minAzimuthAngle = -Math.PI / 2;
+controls.maxAzimuthAngle = Math.PI / 2;
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setSize(w, h);
