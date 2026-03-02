@@ -96,6 +96,7 @@ def get_hand_straight():
             hand.append(card)
             used.add(card['img'])
         if len(hand) == 5:
+            random.shuffle(hand)
             return hand
 
 def get_hand_flush():
@@ -132,14 +133,18 @@ def get_hand_straight_flush():
             continue
         deck = [c for c in get_deck() if c['rank'] in ranks and c['suit'] == suit_code]
         if len(deck) >= 5:
-            return random.sample(deck, 5)
+            hand = random.sample(deck, 5)
+            random.shuffle(hand)
+            return hand
 
 def get_hand_royal_flush():
     suit_code = random.choice(list(SUIT_NAME_TO_CODE.keys()))
     ranks = ['10', 'J', 'Q', 'K', 'A']
     deck = [c for c in get_deck() if c['rank'] in ranks and c['suit'] == suit_code]
     if len(deck) >= 5:
-        return random.sample(deck, 5)
+        hand = random.sample(deck, 5)
+        random.shuffle(hand)
+        return hand
 
 def hand_to_combo(hand):
     ranks = [card['rank'] for card in hand]

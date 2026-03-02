@@ -10,14 +10,14 @@
 </div>
 <div>
 {% if not game_over %}
-  <form method="post">
+  <form method="post" class="self-draw-actions">
       {% csrf_token %}
-      <button type="submit" name="action" value="hit">Взять карту</button>
-      <button type="submit" name="action" value="stand">Стоп</button>
+      <button type="submit" name="action" value="hit" class="btn-circle btn-hit">Взять карту</button>
+      <button type="submit" name="action" value="stand" class="btn-circle btn-stand">Стоп</button>
   </form>
 {% else %}
   <form method="get">
-      <button type="submit" name="new" value="1">Сыграть ещё раз</button>
+      <button type="submit" name="new" value="1" class="btn btn-primary">Сыграть ещё раз</button>
   </form>
 {% endif %}
 {% if message %}
