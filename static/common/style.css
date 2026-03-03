@@ -64,6 +64,21 @@ nav a:hover {
   border-bottom-color: rgba(255, 255, 255, 0.5);
 }
 
+nav a.nav-home {
+  display: flex;
+  align-items: center;
+  padding: 2px 0;
+}
+
+nav a.nav-home img {
+  display: block;
+}
+
+nav a.nav-home:hover {
+  border-bottom-color: transparent;
+  opacity: 0.95;
+}
+
 /* --- Основной контент --- */
 main {
   max-width: 900px;
@@ -534,13 +549,13 @@ main h2 {
 
 .payout-keyboard {
   display: grid;
-  grid-template-columns: repeat(3, 52px);
+  grid-template-columns: repeat(4, 52px);
   gap: 8px;
 }
 
 @media (min-width: 480px) {
   .payout-keyboard {
-    grid-template-columns: repeat(3, 56px);
+    grid-template-columns: repeat(4, 56px);
     gap: 10px;
   }
 }
@@ -594,27 +609,36 @@ main h2 {
   background: rgba(220, 38, 38, 0.08);
 }
 
-.payout-key--clear {
-  grid-column: span 3;
-  width: auto;
-  height: 44px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--text-muted);
+
+.payout-key--enter {
+  grid-column: 4;
+  grid-row: 2 / span 2;
+  height: auto;
+  min-height: 100%;
+  align-self: stretch;
+  background: linear-gradient(180deg, var(--accent) 0%, #1d4ed8 100%);
+  color: #fff;
+  font-size: 1.2rem;
 }
 
-.payout-key--clear:hover:not(:disabled) {
-  color: var(--error);
-  background: rgba(220, 38, 38, 0.1);
+.payout-key--enter:hover:not(:disabled) {
+  background: linear-gradient(180deg, var(--accent-hover) 0%, var(--accent) 100%);
+}
+
+.payout-pass-row {
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
+}
+
+.payout-pass-btn {
+  min-width: 140px;
 }
 
 @media (min-width: 480px) {
   .payout-key {
     width: 56px;
     height: 56px;
-  }
-  .payout-key--clear {
-    height: 48px;
   }
 }
 

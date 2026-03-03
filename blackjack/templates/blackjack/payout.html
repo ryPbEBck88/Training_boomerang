@@ -38,27 +38,28 @@
 
 		<div class="payout-row">
 			<div class="payout-entry">
-				<input type="text" inputmode="decimal" name="user_payout" class="payout-input" placeholder="ответ" autocomplete="off" {% if success or skipped %}disabled{% endif %} id="payoutInput">
+				<input type="text" name="user_payout" class="payout-input" placeholder="ответ" autocomplete="off" readonly inputmode="none" {% if success or skipped %}disabled{% endif %} id="payoutInput">
 				<div class="payout-keyboard">
 					<button type="button" class="payout-key" data-val="7">7</button>
 					<button type="button" class="payout-key" data-val="8">8</button>
 					<button type="button" class="payout-key" data-val="9">9</button>
+					<button type="button" class="payout-key payout-key--backspace" data-action="backspace" title="Удалить одно число">⌫</button>
 					<button type="button" class="payout-key" data-val="4">4</button>
 					<button type="button" class="payout-key" data-val="5">5</button>
 					<button type="button" class="payout-key" data-val="6">6</button>
+					{% if not success and not skipped %}
+					<button type="submit" name="action" value="check" class="payout-key payout-key--enter" title="Проверить">↵</button>
+					{% endif %}
 					<button type="button" class="payout-key" data-val="1">1</button>
 					<button type="button" class="payout-key" data-val="2">2</button>
 					<button type="button" class="payout-key" data-val="3">3</button>
 					<button type="button" class="payout-key payout-key--special" data-val=".5">.5</button>
 					<button type="button" class="payout-key" data-val="0">0</button>
-					<button type="button" class="payout-key payout-key--backspace" data-action="backspace" title="Символ назад">⌫</button>
-					<button type="button" class="payout-key payout-key--clear" data-action="clear" title="Удалить всё">Удалить</button>
 				</div>
-			</div>
-			<div class="payout-buttons">
 				{% if not success and not skipped %}
-				<button type="submit" name="action" value="check" class="btn btn-primary" title="Проверить">↵</button>
-				<button type="submit" name="action" value="skip" formnovalidate class="btn btn-secondary">Pass</button>
+				<div class="payout-pass-row">
+					<button type="submit" name="action" value="skip" formnovalidate class="btn btn-secondary payout-pass-btn">Pass</button>
+				</div>
 				{% endif %}
 			</div>
 		</div>
@@ -88,19 +89,23 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
 	const input = document.getElementById('payoutInput');
+	if (input) {
+		input.addEventListener('mousedown', function(e) { if (!this.disabled) e.preventDefault(); });
+		input.addEventListener('touchstart', function(e) { if (!this.disabled) e.preventDefault(); }, { passive: false });
+		input.addEventListener('focus', function() { if (!this.disabled) this.blur(); });
+	}
 	const keys = document.querySelectorAll('.payout-key');
 	keys.forEach(function(k) {
-		k.addEventListener('click', function() {
+		k.addEventListener('click', function(e) {
+			if (this.type === 'submit') return;
 			if (!input || input.disabled) return;
+			e.preventDefault();
 			const action = this.getAttribute('data-action');
 			if (action === 'backspace') {
 				input.value = input.value.slice(0, -1);
-			} else if (action === 'clear') {
-				input.value = '';
 			} else {
 				input.value += this.getAttribute('data-val');
 			}
-			input.focus();
 		});
 	});
 
