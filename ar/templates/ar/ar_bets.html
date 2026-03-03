@@ -7,13 +7,30 @@
 <div class="ar-canvas-wrap">
 	<canvas id="ar-canvas"></canvas>
 </div>
-<button type="button" id="btn-spawn" class="btn btn-primary" style="margin-top: 12px;">Ставка</button>
-<div style="margin-top: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-	<label for="user-answer">Ваш ответ:</label>
-	<input type="number" id="user-answer" min="0" step="1" placeholder="Число" style="width: 100px; padding: 6px 8px;">
-	<button type="button" id="btn-check" class="btn btn-secondary">Проверить</button>
+<div style="margin-top: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+	<button type="button" id="btn-spawn" class="btn btn-primary">Ставка</button>
+	<input type="number" id="user-answer" min="0" step="1" placeholder="ответ" style="width: 100px; padding: 8px 12px;">
+	<button type="button" id="btn-check" class="btn btn-secondary" title="Проверить">↵</button>
+	<button type="button" id="btn-pass" class="btn btn-secondary">Pass</button>
 </div>
 <p id="answer-display" style="margin-top: 10px; font-size: 1.1rem; font-weight: 600;"></p>
+
+<div id="ar-success-overlay" class="payout-success-overlay" style="display: none;">
+	<button type="button" class="payout-success-tap" id="ar-success-close" style="position:absolute;inset:0;border:none;background:transparent;cursor:pointer;"></button>
+	<div class="payout-fireworks" aria-hidden="true">
+		<span></span><span></span><span></span><span></span><span></span><span></span>
+		<span></span><span></span><span></span><span></span><span></span><span></span>
+	</div>
+	<div class="payout-success-text">Правильно!<br><small>Нажмите для новой заставки</small></div>
+</div>
+<div id="ar-error-overlay" class="payout-success-overlay self-draw-error-overlay" style="display: none;">
+	<button type="button" class="payout-success-tap" id="ar-error-close" style="position:absolute;inset:0;border:none;background:transparent;cursor:pointer;"></button>
+	<div class="self-draw-error-content" id="ar-error-content">
+		<span class="self-draw-error-hand" id="ar-error-hand" aria-hidden="true">✋</span>
+		<div class="payout-success-text self-draw-error-text" id="ar-error-text"></div>
+		<small class="self-draw-error-hint">Нажмите для продолжения</small>
+	</div>
+</div>
 <script>window.CYLINDER_TEXTURE_URL = "{% static 'CHIP_Test_2024/chip.png' %}";</script>
 <script type="importmap">
 {"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}
@@ -283,7 +300,7 @@ document.getElementById('btn-spawn').addEventListener('click', function () {
 		const streetChips = chipCounts[9];
 		const sixlineChips = chipCounts[10] + chipCounts[11];
 		correctAnswer = numChips * 35 + splitChips * 17 + cornerChips * 8 + streetChips * 11 + sixlineChips * 5;
-		document.getElementById('answer-display').textContent = 'Введите ответ и нажмите «Проверить».';
+		document.getElementById('answer-display').textContent = 'Введите ответ и нажмите ↵';
 	}
 	if (texUrl) {
 		loader.load(texUrl, function (tex) {
@@ -313,16 +330,43 @@ function doCheck() {
 		return;
 	}
 	if (userVal === correctAnswer) {
+		document.getElementById('ar-success-overlay').style.display = 'flex';
 		el.textContent = 'Верно!';
 		el.style.color = 'green';
 	} else {
-		el.textContent = 'Правильный ответ: ' + correctAnswer;
-		el.style.color = 'crimson';
+		showErrorOverlay(false);
+		el.textContent = '';
 	}
 }
+function showErrorOverlay(isPass) {
+	const hand = document.getElementById('ar-error-hand');
+	const text = document.getElementById('ar-error-text');
+	if (isPass && correctAnswer !== null) {
+		hand.style.display = 'none';
+		text.innerHTML = 'Правильный ответ: ' + correctAnswer + '<br>';
+	} else {
+		hand.style.display = '';
+		text.textContent = 'Стоп!';
+	}
+	document.getElementById('ar-error-overlay').style.display = 'flex';
+}
 document.getElementById('btn-check').addEventListener('click', doCheck);
+document.getElementById('btn-pass').addEventListener('click', function () {
+	if (correctAnswer === null) {
+		document.getElementById('answer-display').textContent = 'Сначала нажмите «Ставка».';
+		return;
+	}
+	document.getElementById('btn-spawn').click();
+});
 document.getElementById('user-answer').addEventListener('keydown', function (e) {
 	if (e.key === 'Enter') doCheck();
+});
+document.getElementById('ar-success-close').addEventListener('click', function () {
+	document.getElementById('ar-success-overlay').style.display = 'none';
+	document.getElementById('btn-spawn').click();
+});
+document.getElementById('ar-error-close').addEventListener('click', function () {
+	document.getElementById('ar-error-overlay').style.display = 'none';
 });
 
 function animate() {

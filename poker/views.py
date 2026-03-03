@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from data.cards import get_shuffled_shoe
 from blackjack.utils.payout import get_random_bet
 from .utils.combo import make_combo_queue, make_holdem_combo_queue, hand_to_combo, best_combo_from_7, COMBO_CHOICES, COMBO_CHOICES_HOLDEM
@@ -112,12 +112,12 @@ def combo_holdem(request):
 
 
 def payout_view(request):
-    """Oasis Poker: считаем выплату. min/max/step, ставка, комбинация, ответ пользователя."""
-    min_bet = request.session.get('poker_payout_min_bet', 1)
-    max_bet = request.session.get('poker_payout_max_bet', 100)
-    step = request.session.get('poker_payout_step', 1)
+    """Oasis Poker: считаем выплату. min/max/step в настройках (шестерёнка), ставка, комбинация, ответ пользователя."""
+    min_bet = request.session.get('poker_payout_min_bet', 25)
+    max_bet = request.session.get('poker_payout_max_bet', 500)
+    step = request.session.get('poker_payout_step', 5)
 
-    if request.method == 'POST':
+    if request.method == 'POST' and request.POST.get('action') == 'settings':
         min_bet = _parse_int(request.POST.get('min_bet'), min_bet, 1, 10000)
         max_bet = _parse_int(request.POST.get('max_bet'), max_bet, 1, 10000)
         step = _parse_int(request.POST.get('step'), step, 1, 1000)
@@ -128,6 +128,7 @@ def payout_view(request):
         request.session['poker_payout_min_bet'] = min_bet
         request.session['poker_payout_max_bet'] = max_bet
         request.session['poker_payout_step'] = step
+        return redirect('poker_payout')
 
     queue = request.session.get('poker_payout_queue')
     if not queue:

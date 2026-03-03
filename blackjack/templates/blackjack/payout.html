@@ -1,53 +1,130 @@
 {% extends "base.html" %}
+{% block main_class %}payout-main{% endblock %}
 {% block content %}
 
-<form method="post" autocomplete="off" class="payout-form">
-    {% csrf_token %}
-    <div class="payout-params">
-        <label>min: <input type="number" name="min_bet" value="{{ min_bet }}" min="1" max="10000"></label>
-        <label>max: <input type="number" name="max_bet" value="{{ max_bet }}" min="1" max="10000"></label>
-        <label>step: <input type="number" name="step" value="{{ step }}" min="1" max="1000"></label>
-    </div>
+<div class="payout-screen">
+<div class="payout-page">
+	<div class="payout-header payout-header--right">
+		<button type="button" class="payout-settings-btn" id="payoutSettingsBtn" title="Настройки" aria-label="Настройки">
+			<svg class="payout-settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+				<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
+			</svg>
+		</button>
+	</div>
 
-    <div class="payout-bet">{{ bet }}</div>
+	<div class="payout-settings-overlay" id="payoutSettingsOverlay">
+		<div class="payout-settings-modal">
+			<h3 class="payout-settings-title">Настройки</h3>
+			<form method="post" autocomplete="off">
+				{% csrf_token %}
+				<input type="hidden" name="action" value="settings">
+				<div class="payout-settings-fields">
+					<label>min: <input type="number" name="min_bet" value="{{ min_bet }}" min="1" max="10000"></label>
+					<label>max: <input type="number" name="max_bet" value="{{ max_bet }}" min="1" max="10000"></label>
+					<label>step: <input type="number" name="step" value="{{ step }}" min="1" max="1000"></label>
+				</div>
+				<div class="payout-settings-actions">
+					<button type="submit" class="btn btn-primary">Сохранить</button>
+					<button type="button" class="btn btn-secondary" id="payoutSettingsClose">Отмена</button>
+				</div>
+			</form>
+		</div>
+	</div>
 
-    <input type="number" name="user_payout" class="payout-input" placeholder="Введите выплату" step="0.01" {% if success or skipped %}disabled{% endif %}>
+	<form method="post" autocomplete="off" class="payout-form">
+		{% csrf_token %}
+		<div class="payout-bet">{{ bet }}</div>
 
-    <div class="payout-buttons">
-        {% if success or skipped %}
-            <button type="submit" name="action" value="next" class="btn btn-primary">Дальше</button>
-        {% else %}
-            <button type="submit" name="action" value="check" class="btn btn-primary">Проверить</button>
-        {% endif %}
-        <button type="submit" name="action" value="skip" formnovalidate class="btn btn-secondary" {% if success or skipped %}disabled{% endif %}>Пропустить</button>
-    </div>
+		<div class="payout-row">
+			<div class="payout-entry">
+				<input type="text" inputmode="decimal" name="user_payout" class="payout-input" placeholder="ответ" autocomplete="off" {% if success or skipped %}disabled{% endif %} id="payoutInput">
+				<div class="payout-keyboard">
+					<button type="button" class="payout-key" data-val="7">7</button>
+					<button type="button" class="payout-key" data-val="8">8</button>
+					<button type="button" class="payout-key" data-val="9">9</button>
+					<button type="button" class="payout-key" data-val="4">4</button>
+					<button type="button" class="payout-key" data-val="5">5</button>
+					<button type="button" class="payout-key" data-val="6">6</button>
+					<button type="button" class="payout-key" data-val="1">1</button>
+					<button type="button" class="payout-key" data-val="2">2</button>
+					<button type="button" class="payout-key" data-val="3">3</button>
+					<button type="button" class="payout-key payout-key--special" data-val=".5">.5</button>
+					<button type="button" class="payout-key" data-val="0">0</button>
+					<button type="button" class="payout-key payout-key--backspace" data-action="backspace" title="Символ назад">⌫</button>
+					<button type="button" class="payout-key payout-key--clear" data-action="clear" title="Удалить всё">Удалить</button>
+				</div>
+			</div>
+			<div class="payout-buttons">
+				{% if not success and not skipped %}
+				<button type="submit" name="action" value="check" class="btn btn-primary" title="Проверить">↵</button>
+				<button type="submit" name="action" value="skip" formnovalidate class="btn btn-secondary">Pass</button>
+				{% endif %}
+			</div>
+		</div>
 
-    {% if message %}
-        <div class="payout-message {% if success %}success{% else %}error{% endif %}">{{ message }}</div>
-    {% endif %}
+		{% if message and not success and not skipped %}
+			<div class="payout-message error">{{ message }}</div>
+		{% endif %}
+	</form>
 
-    {% if success or skipped %}
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const nextBtn = document.querySelector('button[name="action"][value="next"]');
-        const input = document.querySelector('input[name="user_payout"]');
-        if(nextBtn) {
-            nextBtn.focus();
-        }
-        // Ловим Enter на форме (на всём документе — если input заблокирован, игнорируем)
-        document.querySelector('form').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                // Если кнопка "Дальше" видима и не disabled
-                if(nextBtn && !nextBtn.disabled) {
-                    e.preventDefault();
-                    nextBtn.click();
-                }
-            }
-        });
-    });
-    </script>
-    {% endif %}
-    
-</form>
+	{% if success or skipped %}
+	<form method="post" class="payout-success-overlay" id="payoutSuccessOverlay">
+		{% csrf_token %}
+		<input type="hidden" name="action" value="next">
+		<button type="submit" class="payout-success-tap"></button>
+		{% if success %}
+		<div class="payout-fireworks" aria-hidden="true">
+			<span></span><span></span><span></span><span></span><span></span><span></span>
+			<span></span><span></span><span></span><span></span><span></span><span></span>
+		</div>
+		{% endif %}
+		<div class="payout-success-text">{% if success %}Правильно!{% else %}{{ message }}{% endif %}<br><small>Нажмите для продолжения</small></div>
+	</form>
+	{% endif %}
+</div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+	const input = document.getElementById('payoutInput');
+	const keys = document.querySelectorAll('.payout-key');
+	keys.forEach(function(k) {
+		k.addEventListener('click', function() {
+			if (!input || input.disabled) return;
+			const action = this.getAttribute('data-action');
+			if (action === 'backspace') {
+				input.value = input.value.slice(0, -1);
+			} else if (action === 'clear') {
+				input.value = '';
+			} else {
+				input.value += this.getAttribute('data-val');
+			}
+			input.focus();
+		});
+	});
+
+	const successOverlay = document.getElementById('payoutSuccessOverlay');
+	if (successOverlay) {
+		document.addEventListener('keydown', function(e) {
+			if (e.key === 'Enter') {
+				e.preventDefault();
+				successOverlay.submit();
+			}
+		});
+	}
+
+	const btn = document.getElementById('payoutSettingsBtn');
+	const overlay = document.getElementById('payoutSettingsOverlay');
+	const closeBtn = document.getElementById('payoutSettingsClose');
+	if (btn && overlay) {
+		btn.addEventListener('click', function() { overlay.classList.add('is-open'); });
+		overlay.addEventListener('click', function(e) {
+			if (e.target === overlay) overlay.classList.remove('is-open');
+		});
+		if (closeBtn) closeBtn.addEventListener('click', function() { overlay.classList.remove('is-open'); });
+	}
+});
+</script>
 
 {% endblock %}

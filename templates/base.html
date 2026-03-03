@@ -16,7 +16,7 @@
 			<a href="{% url 'ar_index' %}">AR</a>
 		</nav>
 	</header>
-	<main>
+	<main class="{% block main_class %}{% endblock %}">
 		<div class="main-card">
 			{% block content %}{% endblock %}
 		</div>

@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from data.cards import get_shuffled_shoe, draw_card
 from blackjack.utils.self_draw import update_hand_value, check_action
 from .utils.payout import get_random_bet, check_user_payout
@@ -16,23 +16,22 @@ def _parse_int(val, default, min_val=None, max_val=None):
 
 
 def payout_view(request):
-    min_bet = request.session.get('payout_min_bet', 1)
-    max_bet = request.session.get('payout_max_bet', 100)
-    step = request.session.get('payout_step', 1)
+    min_bet = request.session.get('payout_min_bet', 25)
+    max_bet = request.session.get('payout_max_bet', 500)
+    step = request.session.get('payout_step', 5)
 
-    if request.method == 'POST':
+    if request.method == 'POST' and request.POST.get('action') == 'settings':
         min_bet = _parse_int(request.POST.get('min_bet'), min_bet, 1, 10000)
         max_bet = _parse_int(request.POST.get('max_bet'), max_bet, 1, 10000)
         step = _parse_int(request.POST.get('step'), step, 1, 1000)
         if min_bet >= max_bet:
             max_bet = min_bet + step
-        if step > min_bet:
-            min_bet = step
-        if step > max_bet - min_bet + 1:
+        if step > max_bet - min_bet:
             step = max(1, max_bet - min_bet)
         request.session['payout_min_bet'] = min_bet
         request.session['payout_max_bet'] = max_bet
         request.session['payout_step'] = step
+        return redirect('blackjack_payout')
 
     bet = request.session.get('current_bet')
 
@@ -121,7 +120,8 @@ def self_draw(request):
     message = ''
     game_over = False
 
-    is_correct, message = check_action(value, action)
+    is_correct, msg = check_action(value, action)
+    message = msg if not is_correct else ''
     if not is_correct:
         game_over = True
     else:
@@ -136,11 +136,13 @@ def self_draw(request):
     request.session['hand_value'] = value
     request.session['shoe'] = shoe
 
+    success = game_over and is_correct
     context = {
         'cards': hand,
         'value': value,
         'message': message,
         'game_over': game_over,
+        'success': success,
     }
     return render(request, 'blackjack/self_draw.html', context)
 

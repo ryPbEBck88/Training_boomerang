@@ -1,14 +1,15 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block main_class %}self-draw-main{% endblock %}
 {% block content %}
-<h2>Тренажёр “Набираю себе” (Blackjack)</h2>
-<div style="margin: 20px 0;">
-    {% for card in cards %}
-        <img src="{% static 'cards/'|add:card.img %}" width="80" height="120" class="card-img" style="margin-right:8px;">
-    {% endfor %}
-</div>
-<div>
+<div class="self-draw-screen">
+	<h2>Тренажёр “Набираю себе” (Blackjack)</h2>
+<div class="self-draw-cards">
+		{% for card in cards %}
+			<img src="{% static 'cards/'|add:card.img %}" width="80" height="120" class="card-img" alt="">
+		{% endfor %}
+	</div>
 {% if not game_over %}
   <form method="post" class="self-draw-actions">
       {% csrf_token %}
@@ -16,11 +17,29 @@
       <button type="submit" name="action" value="stand" class="btn-circle btn-stand">Стоп</button>
   </form>
 {% else %}
-  <form method="get">
+  <form method="get" class="self-draw-actions">
       <button type="submit" name="new" value="1" class="btn btn-primary">Сыграть ещё раз</button>
   </form>
 {% endif %}
-{% if message %}
-    <div style="color:#c00">{{ message }}</div>
-{% endif %}
+	{% if success %}
+	<div class="payout-success-overlay self-draw-success-overlay">
+		<a href="?new=1" class="payout-success-tap" style="display:block;position:absolute;inset:0;"></a>
+		<div class="payout-fireworks" aria-hidden="true">
+			<span></span><span></span><span></span><span></span><span></span><span></span>
+			<span></span><span></span><span></span><span></span><span></span><span></span>
+		</div>
+		<div class="payout-success-text">Правильно!<br><small>Нажмите для новой раздачи</small></div>
+	</div>
+	{% endif %}
+
+	{% if game_over and not success %}
+	<div class="payout-success-overlay self-draw-error-overlay">
+		<a href="?new=1" class="payout-success-tap" style="display:block;position:absolute;inset:0;"></a>
+		<div class="self-draw-error-content">
+			<span class="self-draw-error-hand" aria-hidden="true">✋</span>
+			<div class="payout-success-text self-draw-error-text">Стоп!<br><small>{{ message }}</small><br><small>Нажмите для новой раздачи</small></div>
+		</div>
+	</div>
+	{% endif %}
+</div>
 {% endblock %}
