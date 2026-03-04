@@ -167,8 +167,8 @@ def payout_view(request):
     combo = hand_to_combo(hand)
 
     if action == 'skip':
-        check_user_payout(0, bet, combo)
-        message = "Пропущено"
+        _, correct = check_user_payout(0, bet, combo)
+        message = f"Пропущено. Правильный ответ: {correct}"
         success = None
         skipped = True
     elif action == 'check':

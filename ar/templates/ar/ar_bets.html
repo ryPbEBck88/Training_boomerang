@@ -12,6 +12,12 @@
 			<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
 		</svg>
 	</button>
+	<button type="button" class="payout-settings-btn ar-settings-btn ar-camera-reset-btn" id="arCameraResetBtn" title="Сбросить камеру" aria-label="Сбросить камеру">
+		<svg class="payout-settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+			<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+			<circle cx="12" cy="13" r="4"/>
+		</svg>
+	</button>
 </div>
 <div id="ar-settings-overlay" class="payout-settings-overlay">
 	<div class="payout-settings-modal">
@@ -19,6 +25,15 @@
 		<div class="payout-settings-fields">
 			<label>min: <input type="number" id="ar-min-chips" min="0" max="10" value="0"></label>
 			<label>max: <input type="number" id="ar-max-chips" min="0" max="10" value="10"></label>
+			<label class="ar-stacks-row">
+				<input type="checkbox" id="ar-use-stacks">
+				<span>Стеки</span>
+				<select id="ar-stacks-select">
+					<option value="1">1</option>
+					<option value="2">2</option>
+					<option value="3">3</option>
+				</select>
+			</label>
 		</div>
 		<div class="payout-settings-actions">
 			<button type="button" class="btn btn-primary" id="arSettingsSave">Сохранить</button>
@@ -63,6 +78,8 @@ if (!canvas) throw new Error('canvas not found');
 
 let arMinChips = 0;
 let arMaxChips = 10;
+let arUseStacks = false;
+let arStacksCount = 1;
 try {
 	const stored = localStorage.getItem('ar_chips_range');
 	if (stored) {
@@ -71,6 +88,13 @@ try {
 		const vmax = parseInt(p.max, 10);
 		if (!isNaN(vmin)) arMinChips = Math.max(0, Math.min(10, vmin));
 		if (!isNaN(vmax)) arMaxChips = Math.max(0, Math.min(10, vmax));
+	}
+	const stacksStored = localStorage.getItem('ar_stacks_mode');
+	if (stacksStored) {
+		const q = JSON.parse(stacksStored);
+		arUseStacks = !!q.enabled;
+		const sc = parseInt(q.stacks, 10);
+		if (!isNaN(sc) && sc >= 1 && sc <= 3) arStacksCount = sc;
 	}
 } catch (_) {}
 
@@ -90,6 +114,8 @@ camera.lookAt(12.281, 17.126, 1.613);
 
 const controls = new OrbitControls(camera, canvas);
 controls.target.set(12.281, 17.126, 1.613);
+const cameraHomePos = { x: 12.095, y: 2.566, z: 18.105 };
+const cameraHomeTarget = { x: 12.281, y: 17.126, z: 1.613 };
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 controls.maxPolarAngle = Math.PI * 0.95;
@@ -311,13 +337,30 @@ document.getElementById('btn-spawn').addEventListener('click', function () {
 		}
 	}
 	function runSpawns(material) {
-		const minChips = Math.min(arMinChips, arMaxChips);
-		const maxChips = Math.max(arMinChips, arMaxChips);
-		const range = maxChips - minChips + 1;
 		const chipCounts = new Array(12).fill(0);
+		if (arUseStacks) {
+			let chips = 20 * arStacksCount;
+			let available = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+			while (chips > 0 && available.length > 0) {
+				const idx = Math.floor(Math.random() * available.length);
+				const spawnIdx = available[idx];
+				chipCounts[spawnIdx] += 1;
+				chips -= 1;
+				if (chipCounts[spawnIdx] === 10) {
+					available.splice(idx, 1);
+				}
+			}
+		} else {
+			const minChips = Math.min(arMinChips, arMaxChips);
+			const maxChips = Math.max(arMinChips, arMaxChips);
+			const range = maxChips - minChips + 1;
+			for (let i = 0; i < 12; i++) {
+				const count = range > 0 ? minChips + Math.floor(Math.random() * range) : minChips;
+				chipCounts[i] = count;
+			}
+		}
 		for (let i = 0; i < 12; i++) {
-			const count = range > 0 ? minChips + Math.floor(Math.random() * range) : minChips;
-			chipCounts[i] = count;
+			const count = chipCounts[i];
 			if (count === 0) continue;
 			const x = spawnPoints[i][0], y = spawnPoints[i][1];
 			const firstStackColumn = count >= 5;
@@ -399,20 +442,23 @@ function showErrorOverlay(isPass) {
 	const text = document.getElementById('ar-error-text');
 	if (isPass && correctAnswer !== null) {
 		hand.style.display = 'none';
-		text.textContent = 'Пропущено';
+		text.innerHTML = 'Пропущено.<br>Правильный ответ: ' + correctAnswer;
 	} else {
+		arErrorWasPass = false;
 		hand.style.display = '';
 		text.textContent = 'Стоп!';
 	}
 	document.getElementById('ar-error-overlay').style.display = 'flex';
 }
 document.getElementById('btn-check').addEventListener('click', doCheck);
+var arErrorWasPass = false;
 document.getElementById('btn-pass').addEventListener('click', function () {
 	if (correctAnswer === null) {
 		document.getElementById('answer-display').textContent = 'Сначала нажмите «Ставка».';
 		return;
 	}
-	document.getElementById('btn-spawn').click();
+	arErrorWasPass = true;
+	showErrorOverlay(true);
 });
 document.getElementById('user-answer').addEventListener('keydown', function (e) {
 	if (e.key === 'Enter') doCheck();
@@ -423,22 +469,46 @@ document.getElementById('ar-success-close').addEventListener('click', function (
 });
 document.getElementById('ar-error-close').addEventListener('click', function () {
 	document.getElementById('ar-error-overlay').style.display = 'none';
+	if (arErrorWasPass) {
+		arErrorWasPass = false;
+		document.getElementById('btn-spawn').click();
+	}
 });
 
+function updateStacksUI() {
+	const useStacks = document.getElementById('ar-use-stacks').checked;
+	const minEl = document.getElementById('ar-min-chips');
+	const maxEl = document.getElementById('ar-max-chips');
+	minEl.disabled = useStacks;
+	maxEl.disabled = useStacks;
+}
 function loadArSettings() {
 	document.getElementById('ar-min-chips').value = arMinChips;
 	document.getElementById('ar-max-chips').value = arMaxChips;
+	document.getElementById('ar-use-stacks').checked = arUseStacks;
+	document.getElementById('ar-stacks-select').value = String(arStacksCount);
+	updateStacksUI();
 }
 function saveArSettings() {
 	const minEl = document.getElementById('ar-min-chips');
 	const maxEl = document.getElementById('ar-max-chips');
-	if (minEl && maxEl) {
+	const useStacks = document.getElementById('ar-use-stacks').checked;
+	const stacksVal = document.getElementById('ar-stacks-select').value;
+	arUseStacks = useStacks;
+	arStacksCount = Math.max(1, Math.min(3, parseInt(stacksVal, 10) || 1));
+	if (minEl && maxEl && !useStacks) {
 		arMinChips = Math.max(0, Math.min(10, parseInt(minEl.value, 10) || 0));
 		arMaxChips = Math.max(0, Math.min(10, parseInt(maxEl.value, 10) || 0));
 		localStorage.setItem('ar_chips_range', JSON.stringify({ min: arMinChips, max: arMaxChips }));
 	}
+	localStorage.setItem('ar_stacks_mode', JSON.stringify({ enabled: arUseStacks, stacks: arStacksCount }));
 }
 loadArSettings();
+document.getElementById('ar-use-stacks').addEventListener('change', updateStacksUI);
+document.getElementById('arCameraResetBtn').addEventListener('click', function () {
+	camera.position.set(cameraHomePos.x, cameraHomePos.y, cameraHomePos.z);
+	controls.target.set(cameraHomeTarget.x, cameraHomeTarget.y, cameraHomeTarget.z);
+});
 document.getElementById('arSettingsBtn').addEventListener('click', function () {
 	loadArSettings();
 	document.getElementById('ar-settings-overlay').classList.add('is-open');

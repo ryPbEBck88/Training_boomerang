@@ -70,19 +70,17 @@
 	</form>
 
 	{% if success is False %}
-	<form method="post" class="payout-success-overlay self-draw-error-overlay" id="payoutErrorOverlay">
-		{% csrf_token %}
-		<input type="hidden" name="action" value="next">
-		<button type="submit" class="payout-success-tap"></button>
+	<div class="payout-success-overlay self-draw-error-overlay" id="payoutErrorOverlay">
+		<button type="button" class="payout-success-tap" id="payoutErrorClose"></button>
 		<div class="payout-fireworks payout-fireworks--stop" aria-hidden="true">
 			<span></span><span></span><span></span><span></span><span></span><span></span>
 			<span></span><span></span><span></span><span></span><span></span><span></span>
 		</div>
 		<div class="self-draw-error-content">
 			<span class="self-draw-error-hand" aria-hidden="true">✋</span>
-			<div class="payout-success-text self-draw-error-text">Стоп!<br><small>{{ message }}</small><br><small>Нажмите для следующего вопроса</small></div>
+			<div class="payout-success-text self-draw-error-text">Стоп!<br><small>{{ message }}</small><br><small>Нажмите, чтобы попробовать снова</small></div>
 		</div>
-	</form>
+	</div>
 	{% endif %}
 
 	{% if success or skipped %}
@@ -127,16 +125,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	const successOverlay = document.getElementById('payoutSuccessOverlay');
 	const errorOverlay = document.getElementById('payoutErrorOverlay');
-	[successOverlay, errorOverlay].forEach(function(ov) {
-		if (ov) {
-			document.addEventListener('keydown', function(e) {
-				if (e.key === 'Enter') {
-					e.preventDefault();
-					ov.submit();
-				}
-			});
-		}
-	});
+	const errorCloseBtn = document.getElementById('payoutErrorClose');
+	if (errorOverlay && errorCloseBtn) {
+		errorCloseBtn.addEventListener('click', function() { errorOverlay.style.display = 'none'; });
+		document.addEventListener('keydown', function(e) {
+			if (e.key === 'Enter') {
+				e.preventDefault();
+				errorOverlay.style.display = 'none';
+			}
+		});
+	}
+	if (successOverlay) {
+		document.addEventListener('keydown', function(e) {
+			if (e.key === 'Enter') {
+				e.preventDefault();
+				successOverlay.submit();
+			}
+		});
+	}
 
 	const btn = document.getElementById('payoutSettingsBtn');
 	const overlay = document.getElementById('payoutSettingsOverlay');

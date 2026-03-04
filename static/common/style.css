@@ -496,6 +496,24 @@ main h2 {
   border-color: var(--accent);
 }
 
+.payout-settings-fields input:disabled {
+  background: #f1f5f9;
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.payout-settings-fields select {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  min-width: 120px;
+}
+
+.ar-stacks-row {
+  cursor: pointer;
+}
+
 .payout-settings-actions {
   display: flex;
   gap: 12px;
@@ -1096,6 +1114,11 @@ main h2 {
 .ar-settings-btn:hover {
   background: rgba(0, 0, 0, 0.7) !important;
   color: #fff !important;
+}
+
+.ar-camera-reset-btn {
+  right: auto;
+  left: 12px;
 }
 
 .ar-canvas-wrap canvas {

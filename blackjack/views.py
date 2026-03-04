@@ -16,8 +16,8 @@ def _parse_int(val, default, min_val=None, max_val=None):
 
 
 def payout_view(request):
-    min_bet = request.session.get('payout_min_bet', 25)
-    max_bet = request.session.get('payout_max_bet', 500)
+    min_bet = request.session.get('payout_min_bet', 10)
+    max_bet = request.session.get('payout_max_bet', 200)
     step = request.session.get('payout_step', 5)
 
     if request.method == 'POST' and request.POST.get('action') == 'settings':
@@ -61,8 +61,8 @@ def payout_view(request):
         user_payout = request.POST.get('user_payout')
 
         if action == 'skip':
-            check_user_payout(0, bet)
-            message = "Пропущено"
+            _, correct = check_user_payout(0, bet)
+            message = f"Пропущено. Правильный ответ: {correct}"
             show_payout = True
             success = None
             skipped = True   # <--- вот это добавлено!
