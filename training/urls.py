@@ -15,10 +15,15 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.http import JsonResponse
 from django.urls import path, include
 from django.views.generic import TemplateView
 
+def chrome_devtools_json(request):
+    return JsonResponse({})  # Chrome DevTools probe — убирает 404 из логов
+
 urlpatterns = [
+    path('.well-known/appspecific/com.chrome.devtools.json', chrome_devtools_json),
     path('yandex_70c1c5ce1a91d4b2.html', TemplateView.as_view(template_name='yandex_70c1c5ce1a91d4b2.html', content_type='text/html')),
     path('admin/', admin.site.urls),
     path('', include('homepage.urls')),

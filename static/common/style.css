@@ -1111,6 +1111,29 @@ main h2 {
   text-decoration: none;
 }
 
+.ar-description {
+  margin-top: 24px;
+  padding: 0 8px;
+  text-align: left;
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.ar-description p {
+  margin: 0 0 12px;
+  color: var(--text-muted);
+}
+
+.ar-description__list {
+  margin: 0;
+  padding-left: 1.25em;
+}
+
+.ar-description__list li {
+  margin-bottom: 10px;
+}
+
 .ar-content {
   padding-top: 0;
 }
