@@ -357,8 +357,11 @@ document.getElementById('btn-spawn').addEventListener('click', function () {
 	}
 	if (texUrl) {
 		loader.load(texUrl, function (tex) {
-			tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
 			tex.colorSpace = THREE.SRGBColorSpace;
+			/* настройки текстуры — можно менять: */
+			tex.wrapS = tex.wrapT = THREE.RepeatWrapping;  /* или ClampToEdgeWrapping */
+			tex.repeat.set(1, 0.96);   /* масштаб: 1 = как есть, <1 растягивает, >1 сжимает */
+		tex.offset.set(0 , 1);  /* смещение в долях (0..1) */
 			runSpawns(new THREE.MeshBasicMaterial({ map: tex }));
 		}, undefined, function () {
 			runSpawns(new THREE.MeshStandardMaterial({ color: 0xdc2626 }));
