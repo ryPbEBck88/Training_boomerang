@@ -6,6 +6,25 @@
 {% block content %}
 <div class="ar-canvas-wrap">
 	<canvas id="ar-canvas"></canvas>
+	<button type="button" class="payout-settings-btn ar-settings-btn" id="arSettingsBtn" title="Настройки" aria-label="Настройки">
+		<svg class="payout-settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+			<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+			<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
+		</svg>
+	</button>
+</div>
+<div id="ar-settings-overlay" class="payout-settings-overlay">
+	<div class="payout-settings-modal">
+		<h3 class="payout-settings-title">Настройки заставок</h3>
+		<div class="payout-settings-fields">
+			<label>min: <input type="number" id="ar-min-chips" min="0" max="10" value="0"></label>
+			<label>max: <input type="number" id="ar-max-chips" min="0" max="10" value="10"></label>
+		</div>
+		<div class="payout-settings-actions">
+			<button type="button" class="btn btn-primary" id="arSettingsSave">Сохранить</button>
+			<button type="button" class="btn btn-secondary" id="arSettingsClose">Отмена</button>
+		</div>
+	</div>
 </div>
 <div style="margin-top: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
 	<button type="button" id="btn-spawn" class="btn btn-primary">Ставка</button>
@@ -41,6 +60,19 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const canvas = document.getElementById('ar-canvas');
 if (!canvas) throw new Error('canvas not found');
+
+let arMinChips = 0;
+let arMaxChips = 10;
+try {
+	const stored = localStorage.getItem('ar_chips_range');
+	if (stored) {
+		const p = JSON.parse(stored);
+		const vmin = parseInt(p.min, 10);
+		const vmax = parseInt(p.max, 10);
+		if (!isNaN(vmin)) arMinChips = Math.max(0, Math.min(10, vmin));
+		if (!isNaN(vmax)) arMaxChips = Math.max(0, Math.min(10, vmax));
+	}
+} catch (_) {}
 
 var containerW = canvas.parentElement.clientWidth || 480;
 var containerH = canvas.parentElement.clientHeight || Math.min(640, Math.floor(containerW * 0.75));
@@ -224,6 +256,13 @@ const spawnZ2 = spawnZ + chipStep;
 const spawnZ3 = spawnZ + chipStep * 2;
 const spawnZ4 = spawnZ + chipStep * 3;
 const spawnZ5 = spawnZ + chipStep * 4;
+const spawnZ6 = spawnZ + chipStep * 5;
+const spawnZ7 = spawnZ + chipStep * 6;
+const spawnZ8 = spawnZ + chipStep * 7;
+const spawnZ9 = spawnZ + chipStep * 8;
+const spawnZ10 = spawnZ + chipStep * 9;
+const firstLadderOffset = 0.6; /* стопка -> первая фишка лесенки */
+const ladderStep = 0.3;       /* шаг между фишками лесенки */
 const spawnPoints = [
 	[centerCell[0], centerCell[1]],
 	[cx1 - halfW - splitCenter, cy1],
@@ -272,27 +311,41 @@ document.getElementById('btn-spawn').addEventListener('click', function () {
 		}
 	}
 	function runSpawns(material) {
+		const minChips = Math.min(arMinChips, arMaxChips);
+		const maxChips = Math.max(arMinChips, arMaxChips);
+		const range = maxChips - minChips + 1;
 		const chipCounts = new Array(12).fill(0);
 		for (let i = 0; i < 12; i++) {
-			const r = Math.random();
-			const count = r < 0.2 ? 1 : r < 0.4 ? 2 : r < 0.6 ? 3 : r < 0.8 ? 4 : 5;
+			const count = range > 0 ? minChips + Math.floor(Math.random() * range) : minChips;
 			chipCounts[i] = count;
+			if (count === 0) continue;
 			const x = spawnPoints[i][0], y = spawnPoints[i][1];
-			const isColumn = count === 5;
+			const firstStackColumn = count >= 5;
+			const firstStackLadder = count >= 2 && count <= 4;
 			addCylinder(material, x, y, spawnZ);
-			if (count >= 2) {
-				if (isColumn) addCylinder(material, x, y, spawnZ2);
-				else addCylinder(material, x, y + 0.6, spawnZ2, (Math.random() - 0.5) * 0.4);
+			if (count >= 2 && (firstStackColumn || firstStackLadder)) {
+				if (firstStackColumn) addCylinder(material, x, y, spawnZ2);
+				else addCylinder(material, x, y + ladderStep, spawnZ2, (Math.random() - 0.5) * 0.4);
 			}
-			if (count >= 3) {
-				if (isColumn) addCylinder(material, x, y, spawnZ3);
-				else addCylinder(material, x, y + 1.2, spawnZ3, (Math.random() - 0.5) * 0.4);
+			if (count >= 3 && (firstStackColumn || firstStackLadder)) {
+				if (firstStackColumn) addCylinder(material, x, y, spawnZ3);
+				else addCylinder(material, x, y + ladderStep * 2, spawnZ3, (Math.random() - 0.5) * 0.4);
 			}
-			if (count >= 4) {
-				if (isColumn) addCylinder(material, x, y, spawnZ4);
-				else addCylinder(material, x, y + 1.8, spawnZ4, (Math.random() - 0.5) * 0.4);
+			if (count >= 4 && (firstStackColumn || firstStackLadder)) {
+				if (firstStackColumn) addCylinder(material, x, y, spawnZ4);
+				else addCylinder(material, x, y + ladderStep * 3, spawnZ4, (Math.random() - 0.5) * 0.4);
 			}
 			if (count >= 5) addCylinder(material, x, y, spawnZ5);
+			if (count >= 6 && count < 10) addCylinder(material, x, y + firstLadderOffset, spawnZ6, (Math.random() - 0.5) * 0.4);
+			if (count >= 7 && count < 10) addCylinder(material, x, y + firstLadderOffset + ladderStep, spawnZ7, (Math.random() - 0.5) * 0.4);
+			if (count >= 8 && count < 10) addCylinder(material, x, y + firstLadderOffset + ladderStep * 2, spawnZ8, (Math.random() - 0.5) * 0.4);
+			if (count >= 9 && count < 10) addCylinder(material, x, y + firstLadderOffset + ladderStep * 3, spawnZ9, (Math.random() - 0.5) * 0.4);
+			if (count === 10) {
+				const zLevels = [spawnZ6, spawnZ7, spawnZ8, spawnZ9, spawnZ10];
+				for (let k = 0; k < 5; k++) {
+					addCylinder(material, x, y + firstLadderOffset, zLevels[k]);
+				}
+			}
 		}
 		const numChips = chipCounts[0];
 		const splitChips = chipCounts[1] + chipCounts[2] + chipCounts[3] + chipCounts[4];
@@ -367,6 +420,35 @@ document.getElementById('ar-success-close').addEventListener('click', function (
 });
 document.getElementById('ar-error-close').addEventListener('click', function () {
 	document.getElementById('ar-error-overlay').style.display = 'none';
+});
+
+function loadArSettings() {
+	document.getElementById('ar-min-chips').value = arMinChips;
+	document.getElementById('ar-max-chips').value = arMaxChips;
+}
+function saveArSettings() {
+	const minEl = document.getElementById('ar-min-chips');
+	const maxEl = document.getElementById('ar-max-chips');
+	if (minEl && maxEl) {
+		arMinChips = Math.max(0, Math.min(10, parseInt(minEl.value, 10) || 0));
+		arMaxChips = Math.max(0, Math.min(10, parseInt(maxEl.value, 10) || 0));
+		localStorage.setItem('ar_chips_range', JSON.stringify({ min: arMinChips, max: arMaxChips }));
+	}
+}
+loadArSettings();
+document.getElementById('arSettingsBtn').addEventListener('click', function () {
+	loadArSettings();
+	document.getElementById('ar-settings-overlay').classList.add('is-open');
+});
+document.getElementById('arSettingsClose').addEventListener('click', function () {
+	document.getElementById('ar-settings-overlay').classList.remove('is-open');
+});
+document.getElementById('arSettingsSave').addEventListener('click', function () {
+	saveArSettings();
+	document.getElementById('ar-settings-overlay').classList.remove('is-open');
+});
+document.getElementById('ar-settings-overlay').addEventListener('click', function (e) {
+	if (e.target === this) this.classList.remove('is-open');
 });
 
 function animate() {
