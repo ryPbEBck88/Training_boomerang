@@ -282,8 +282,13 @@ main h2 {
     margin-bottom: 20px;
   }
 
-  .card-img {
-    width: calc((100% - 16px) / 5);
+  .hand .hand-card {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .hand .hand-card .card-img {
+    width: 100%;
   }
 }
 
