@@ -37,10 +37,12 @@
 		{% csrf_token %}
 		<div class="payout-bet">{{ bet }}</div>
 
-		<div class="hand">
+		<div class="hand" id="pokerHand">
 			{% for card in hand %}
 				{% with card_path='cards/'|add:card.img %}
-				<img src="{% static card_path %}" class="card-img" alt="{{ card.name }}">
+				<div class="hand-card" data-index="{{ forloop.counter0 }}" title="Клик 1-ю карту, затем 2-ю — поменяются только они">
+					<img src="{% static card_path %}" class="card-img" alt="{{ card.name }}">
+				</div>
 				{% endwith %}
 			{% endfor %}
 		</div>
@@ -152,6 +154,35 @@ document.addEventListener('DOMContentLoaded', function() {
 				e.preventDefault();
 				successOverlay.submit();
 			}
+		});
+	}
+
+	const hand = document.getElementById('pokerHand');
+	if (hand) {
+		const cards = hand.querySelectorAll('.hand-card');
+		let selectedEl = null;
+		cards.forEach(function(card) {
+			card.addEventListener('click', function(e) {
+				e.preventDefault();
+				if (selectedEl === null) {
+					selectedEl = this;
+					this.classList.add('selected');
+				} else if (selectedEl === this) {
+					selectedEl.classList.remove('selected');
+					selectedEl = null;
+				} else {
+					// Обменять только эти 2 карты местами (независимо от порядка клика)
+					const a = selectedEl;
+					const b = this;
+					const parent = a.parentNode;
+					const aNext = a.nextSibling;
+					const bNext = b.nextSibling;
+					parent.insertBefore(a, bNext);
+					parent.insertBefore(b, aNext);
+					a.classList.remove('selected');
+					selectedEl = null;
+				}
+			});
 		});
 	}
 
