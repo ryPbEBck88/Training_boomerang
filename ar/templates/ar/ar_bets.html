@@ -42,7 +42,6 @@
 	</div>
 </div>
 <div style="margin-top: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-	<button type="button" id="btn-spawn" class="btn btn-primary">Ставка</button>
 	<input type="number" id="user-answer" min="0" step="1" placeholder="ответ" style="width: 100px; padding: 8px 12px;">
 	<button type="button" id="btn-check" class="btn btn-secondary" title="Проверить">↵</button>
 	<button type="button" id="btn-pass" class="btn btn-secondary">Pass</button>
@@ -310,7 +309,7 @@ scene.add(chipsGroup);
 
 let correctAnswer = null;
 
-document.getElementById('btn-spawn').addEventListener('click', function () {
+function doSpawn() {
 	correctAnswer = null;
 	document.getElementById('answer-display').textContent = '';
 	document.getElementById('user-answer').value = '';
@@ -412,14 +411,15 @@ document.getElementById('btn-spawn').addEventListener('click', function () {
 	} else {
 		runSpawns(new THREE.MeshStandardMaterial({ color: 0xdc2626 }));
 	}
-});
+}
+doSpawn();
 
 function doCheck() {
 	const el = document.getElementById('answer-display');
 	const input = document.getElementById('user-answer');
 	const userVal = input.value.trim() === '' ? NaN : parseInt(input.value, 10);
 	if (correctAnswer === null) {
-		el.textContent = 'Сначала нажмите «Ставка».';
+		el.textContent = 'Подождите загрузки фишек…';
 		el.style.color = '';
 		return;
 	}
@@ -454,7 +454,7 @@ document.getElementById('btn-check').addEventListener('click', doCheck);
 var arErrorWasPass = false;
 document.getElementById('btn-pass').addEventListener('click', function () {
 	if (correctAnswer === null) {
-		document.getElementById('answer-display').textContent = 'Сначала нажмите «Ставка».';
+		document.getElementById('answer-display').textContent = 'Подождите загрузки фишек…';
 		return;
 	}
 	arErrorWasPass = true;
@@ -465,13 +465,13 @@ document.getElementById('user-answer').addEventListener('keydown', function (e) 
 });
 document.getElementById('ar-success-close').addEventListener('click', function () {
 	document.getElementById('ar-success-overlay').style.display = 'none';
-	document.getElementById('btn-spawn').click();
+	doSpawn();
 });
 document.getElementById('ar-error-close').addEventListener('click', function () {
 	document.getElementById('ar-error-overlay').style.display = 'none';
 	if (arErrorWasPass) {
 		arErrorWasPass = false;
-		document.getElementById('btn-spawn').click();
+		doSpawn();
 	}
 });
 
