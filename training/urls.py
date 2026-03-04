@@ -15,7 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.urls import path, include
 from django.views.generic import TemplateView
 
@@ -24,7 +24,20 @@ from .sitemaps import sitemap_view
 def chrome_devtools_json(request):
     return JsonResponse({})  # Chrome DevTools probe — убирает 404 из логов
 
+def robots_txt(request):
+    sitemap_url = request.build_absolute_uri('/sitemap.xml')
+    return HttpResponse(
+        f'''User-agent: *
+Allow: /
+Disallow: /admin/
+
+Sitemap: {sitemap_url}
+''',
+        content_type='text/plain'
+    )
+
 urlpatterns = [
+    path('robots.txt', robots_txt),
     path('sitemap.xml', sitemap_view),
     path('.well-known/appspecific/com.chrome.devtools.json', chrome_devtools_json),
     path('yandex_70c1c5ce1a91d4b2.html', TemplateView.as_view(template_name='yandex_70c1c5ce1a91d4b2.html', content_type='text/html')),

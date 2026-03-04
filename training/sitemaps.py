@@ -2,6 +2,8 @@
 Sitemap для поисковых систем.
 """
 import xml.etree.ElementTree as ET
+from datetime import datetime
+
 from django.http import HttpResponse
 from django.urls import reverse
 
@@ -18,6 +20,8 @@ SITEMAP_URLS = [
     'poker_texas',
     'ar_index',
     'ar_bets',
+    'ar_roulette',
+    'ar_mix',
 ]
 
 
@@ -36,6 +40,7 @@ def sitemap_view(request):
         loc = base + path
         url_el = ET.SubElement(urlset, 'url')
         ET.SubElement(url_el, 'loc').text = loc
+        ET.SubElement(url_el, 'lastmod').text = datetime.utcnow().strftime('%Y-%m-%d')
         ET.SubElement(url_el, 'changefreq').text = 'weekly'
         ET.SubElement(url_el, 'priority').text = '0.8'
     response = HttpResponse(

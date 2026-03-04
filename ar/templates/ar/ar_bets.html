@@ -54,7 +54,7 @@
 		<span></span><span></span><span></span><span></span><span></span><span></span>
 		<span></span><span></span><span></span><span></span><span></span><span></span>
 	</div>
-	<div class="payout-success-text">Правильно!<br><small>Нажмите для новой заставки</small></div>
+	<div class="payout-success-text">Правильно!<br><small>{% if mix_mode %}Нажмите для «Цвет в cash»{% else %}Нажмите для новой заставки{% endif %}</small></div>
 </div>
 <div id="ar-error-overlay" class="payout-success-overlay self-draw-error-overlay" style="display: none;">
 	<button type="button" class="payout-success-tap" id="ar-error-close" style="position:absolute;inset:0;border:none;background:transparent;cursor:pointer;"></button>
@@ -65,6 +65,7 @@
 	</div>
 </div>
 <script>window.CYLINDER_TEXTURE_URL = "{% static 'CHIP_Test_2024/chip.png' %}";</script>
+{% if mix_mode %}<script>window.AR_MIX_ROULETTE_URL = "{% url 'ar_roulette' %}";</script>{% endif %}
 <script type="importmap">
 {"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}
 </script>
@@ -464,6 +465,10 @@ document.getElementById('user-answer').addEventListener('keydown', function (e) 
 	if (e.key === 'Enter') doCheck();
 });
 document.getElementById('ar-success-close').addEventListener('click', function () {
+	if (window.AR_MIX_ROULETTE_URL && correctAnswer !== null) {
+		window.location = window.AR_MIX_ROULETTE_URL + '?mode=mix&mix_number=' + correctAnswer;
+		return;
+	}
 	document.getElementById('ar-success-overlay').style.display = 'none';
 	doSpawn();
 });

@@ -546,6 +546,32 @@ main h2 {
   cursor: pointer;
 }
 
+.roulette-multipliers {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.roulette-multipliers-label {
+  font-weight: 500;
+  flex-basis: 100%;
+}
+
+.roulette-multiplier-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.roulette-multiplier-check input {
+  margin: 0;
+  width: 18px;
+  height: 18px;
+}
+
 .payout-settings-actions {
   display: flex;
   gap: 12px;
