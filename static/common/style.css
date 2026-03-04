@@ -431,8 +431,10 @@ main h2 {
   right: 0;
 }
 
-.payout-header h2 {
+.payout-header .payout-bet {
   margin: 0;
+  text-align: left;
+  font-size: 2rem;
 }
 
 .payout-header--right {

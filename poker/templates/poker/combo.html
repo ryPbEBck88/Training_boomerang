@@ -2,29 +2,88 @@
 {% load static %}
 {% block content %}
 <h2>Покер: Определи комбинацию</h2>
-<div class="hand">
+<div class="hand" id="comboHand">
     {% for card in hand %}
         {% with card_path='cards/'|add:card.img %}
-        <img src="{% static card_path %}" class="card-img" alt="{{ card.name }}">
+        <div class="hand-card" data-index="{{ forloop.counter0 }}" title="Клик 1-ю карту, затем 2-ю — поменяются местами">
+            <img src="{% static card_path %}" class="card-img" alt="{{ card.name }}">
+        </div>
         {% endwith %}
     {% endfor %}
 </div>
+{% if success is None %}
 <form method="post" autocomplete="off" class="combo-form">
     {% csrf_token %}
-    {% if success is None %}
-        <input type="hidden" name="action" value="check">
-        <div class="combo-buttons">
-            {% for combo in combo_choices %}
-                <button type="submit" name="user_combo" value="{{ combo }}" class="btn btn-combo">{{ combo }}</button>
-            {% endfor %}
-        </div>
-    {% else %}
-        {% if message %}
-            <div class="message {% if success %}success{% else %}error{% endif %}">{{ message }}</div>
-        {% endif %}
-        <div class="form-actions">
-            <button type="submit" name="action" value="next" class="btn btn-primary">Дальше</button>
-        </div>
-    {% endif %}
+    <input type="hidden" name="action" value="check">
+    <div class="combo-buttons">
+        {% for combo in combo_choices %}
+            <button type="submit" name="user_combo" value="{{ combo }}" class="btn btn-combo">{{ combo }}</button>
+        {% endfor %}
+    </div>
 </form>
+{% else %}
+<form method="post" class="payout-success-overlay" id="comboResultOverlay">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="{% if success %}next{% else %}retry{% endif %}">
+    <button type="submit" class="payout-success-tap"></button>
+    {% if success %}
+    <div class="payout-fireworks" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    {% else %}
+    <div class="payout-fireworks payout-fireworks--stop" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    {% endif %}
+    <div class="payout-success-text">{% if success %}Правильно!{% else %}Стоп!<br><small>{{ message }}</small>{% endif %}<br><small>{% if success %}Нажмите для продолжения{% else %}Нажмите, чтобы попробовать снова{% endif %}</small></div>
+</form>
+{% endif %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+	var overlay = document.getElementById('comboResultOverlay');
+	if (overlay) {
+		document.addEventListener('keydown', function(e) {
+			if (e.key === 'Enter') {
+				e.preventDefault();
+				overlay.submit();
+			}
+		});
+	}
+	var hand = document.getElementById('comboHand');
+	if (hand) {
+		var selectedEl = null;
+		hand.addEventListener('click', function(e) {
+			var card = e.target && e.target.closest && e.target.closest('.hand-card');
+			if (!card || !hand.contains(card)) return;
+			e.preventDefault();
+			e.stopPropagation();
+			if (selectedEl === null) {
+				selectedEl = card;
+				card.classList.add('selected');
+			} else if (selectedEl === card) {
+				selectedEl.classList.remove('selected');
+				selectedEl = null;
+			} else {
+				var a = selectedEl;
+				var b = card;
+				var parent = a.parentNode;
+				var aNext = a.nextElementSibling;
+				var bNext = b.nextElementSibling;
+				if (aNext === b) {
+					parent.insertBefore(b, a);
+				} else if (bNext === a) {
+					parent.insertBefore(a, b);
+				} else {
+					parent.insertBefore(a, bNext);
+					parent.insertBefore(b, aNext);
+				}
+				a.classList.remove('selected');
+				selectedEl = null;
+			}
+		});
+	}
+});
+</script>
 {% endblock %}
