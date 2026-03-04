@@ -61,7 +61,7 @@ def combo(request):
             message = "Верно!"
             success = True
         else:
-            message = f"Неправильно! Правильный ответ: {correct_combo}"
+            message = "Неправильно!"
             success = False
 
     return render(request, 'poker/combo.html', {
@@ -98,7 +98,7 @@ def combo_holdem(request):
             message = "Верно!"
             success = True
         else:
-            message = f"Неправильно! Правильный ответ: {correct_combo}"
+            message = "Неправильно!"
             success = False
 
     return render(request, 'poker/combo_holdem.html', {
@@ -167,8 +167,8 @@ def payout_view(request):
     combo = hand_to_combo(hand)
 
     if action == 'skip':
-        _, correct = check_user_payout(0, bet, combo)
-        message = f"Правильный ответ: {correct}"
+        check_user_payout(0, bet, combo)
+        message = "Пропущено"
         success = None
         skipped = True
     elif action == 'check':
@@ -177,7 +177,7 @@ def payout_view(request):
             message = "Правильно!"
             success = True
         else:
-            message = f"Неправильно! Правильный ответ: {correct}"
+            message = "Неправильно!"
             success = False
 
     return render(request, 'poker/payout.html', {

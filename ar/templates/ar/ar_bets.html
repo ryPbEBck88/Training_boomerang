@@ -399,7 +399,7 @@ function showErrorOverlay(isPass) {
 	const text = document.getElementById('ar-error-text');
 	if (isPass && correctAnswer !== null) {
 		hand.style.display = 'none';
-		text.innerHTML = 'Правильный ответ: ' + correctAnswer + '<br>';
+		text.textContent = 'Пропущено';
 	} else {
 		hand.style.display = '';
 		text.textContent = 'Стоп!';

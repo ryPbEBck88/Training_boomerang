@@ -61,8 +61,8 @@ def payout_view(request):
         user_payout = request.POST.get('user_payout')
 
         if action == 'skip':
-            _, correct = check_user_payout(0, bet)
-            message = f"Правильный ответ: {correct}"
+            check_user_payout(0, bet)
+            message = "Пропущено"
             show_payout = True
             success = None
             skipped = True   # <--- вот это добавлено!

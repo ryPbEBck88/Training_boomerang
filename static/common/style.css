@@ -781,6 +781,19 @@ main h2 {
 .payout-fireworks span:nth-child(11) { --a: 300deg; --c: #22c55e; }
 .payout-fireworks span:nth-child(12) { --a: 330deg; --c: #eab308; }
 
+.payout-fireworks--stop span:nth-child(1) { --c: #ef4444; }
+.payout-fireworks--stop span:nth-child(2) { --c: #dc2626; }
+.payout-fireworks--stop span:nth-child(3) { --c: #f97316; }
+.payout-fireworks--stop span:nth-child(4) { --c: #b91c1c; }
+.payout-fireworks--stop span:nth-child(5) { --c: #ea580c; }
+.payout-fireworks--stop span:nth-child(6) { --c: #ef4444; }
+.payout-fireworks--stop span:nth-child(7) { --c: #dc2626; }
+.payout-fireworks--stop span:nth-child(8) { --c: #f97316; }
+.payout-fireworks--stop span:nth-child(9) { --c: #b91c1c; }
+.payout-fireworks--stop span:nth-child(10) { --c: #ea580c; }
+.payout-fireworks--stop span:nth-child(11) { --c: #ef4444; }
+.payout-fireworks--stop span:nth-child(12) { --c: #dc2626; }
+
 .payout-fireworks span:nth-child(1) { animation-delay: 0s; }
 .payout-fireworks span:nth-child(2) { animation-delay: 0.05s; }
 .payout-fireworks span:nth-child(3) { animation-delay: 0.1s; }

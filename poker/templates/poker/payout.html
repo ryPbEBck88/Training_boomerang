@@ -80,6 +80,22 @@
 		{% endif %}
 	</form>
 
+	{% if success is False %}
+	<form method="post" class="payout-success-overlay self-draw-error-overlay" id="payoutErrorOverlay">
+		{% csrf_token %}
+		<input type="hidden" name="action" value="next">
+		<button type="submit" class="payout-success-tap"></button>
+		<div class="payout-fireworks payout-fireworks--stop" aria-hidden="true">
+			<span></span><span></span><span></span><span></span><span></span><span></span>
+			<span></span><span></span><span></span><span></span><span></span><span></span>
+		</div>
+		<div class="self-draw-error-content">
+			<span class="self-draw-error-hand" aria-hidden="true">✋</span>
+			<div class="payout-success-text self-draw-error-text">Стоп!<br><small>{{ message }}</small><br><small>Нажмите для следующего вопроса</small></div>
+		</div>
+	</form>
+	{% endif %}
+
 	{% if success or skipped %}
 	<form method="post" class="payout-success-overlay" id="payoutSuccessOverlay">
 		{% csrf_token %}
@@ -121,14 +137,17 @@ document.addEventListener('DOMContentLoaded', function() {
 	});
 
 	const successOverlay = document.getElementById('payoutSuccessOverlay');
-	if (successOverlay) {
-		document.addEventListener('keydown', function(e) {
-			if (e.key === 'Enter') {
-				e.preventDefault();
-				successOverlay.submit();
-			}
-		});
-	}
+	const errorOverlay = document.getElementById('payoutErrorOverlay');
+	[successOverlay, errorOverlay].forEach(function(ov) {
+		if (ov) {
+			document.addEventListener('keydown', function(e) {
+				if (e.key === 'Enter') {
+					e.preventDefault();
+					ov.submit();
+				}
+			});
+		}
+	});
 
 	const btn = document.getElementById('payoutSettingsBtn');
 	const overlay = document.getElementById('payoutSettingsOverlay');
