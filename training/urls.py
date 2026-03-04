@@ -19,10 +19,13 @@ from django.http import JsonResponse
 from django.urls import path, include
 from django.views.generic import TemplateView
 
+from .sitemaps import sitemap_view
+
 def chrome_devtools_json(request):
     return JsonResponse({})  # Chrome DevTools probe — убирает 404 из логов
 
 urlpatterns = [
+    path('sitemap.xml', sitemap_view),
     path('.well-known/appspecific/com.chrome.devtools.json', chrome_devtools_json),
     path('yandex_70c1c5ce1a91d4b2.html', TemplateView.as_view(template_name='yandex_70c1c5ce1a91d4b2.html', content_type='text/html')),
     path('admin/', admin.site.urls),
