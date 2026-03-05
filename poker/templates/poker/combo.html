@@ -37,7 +37,8 @@
         <span></span><span></span><span></span><span></span><span></span><span></span>
     </div>
     {% endif %}
-    <div class="payout-success-text">{% if success %}Правильно!{% else %}Стоп!<br><small>{{ message }}</small>{% endif %}<br><small>{% if success %}Нажмите для продолжения{% else %}Нажмите, чтобы попробовать снова{% endif %}</small></div>
+    {% if not success %}<span class="self-draw-error-hand" aria-hidden="true">✋</span>{% endif %}
+    <div class="payout-success-text">{% if success %}{% include "partials/payout_check_text.html" %}{% else %}{% include "partials/payout_stop_text.html" %}{% endif %}</div>
 </form>
 {% endif %}
 <script>

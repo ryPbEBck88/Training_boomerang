@@ -28,7 +28,7 @@
 			<span></span><span></span><span></span><span></span><span></span><span></span>
 			<span></span><span></span><span></span><span></span><span></span><span></span>
 		</div>
-		<div class="payout-success-text">Правильно!<br><small>Нажмите для новой раздачи</small></div>
+		<div class="payout-success-text">{% include "partials/payout_check_text.html" %}</div>
 	</div>
 	{% endif %}
 
@@ -37,7 +37,7 @@
 		<a href="?new=1" class="payout-success-tap" style="display:block;position:absolute;inset:0;"></a>
 		<div class="self-draw-error-content">
 			<span class="self-draw-error-hand" aria-hidden="true">✋</span>
-			<div class="payout-success-text self-draw-error-text">Стоп!<br><small>{{ message }}</small><br><small>Нажмите для новой раздачи</small></div>
+			<div class="payout-success-text self-draw-error-text">Стоп!<br><small>Нажмите, чтобы попробовать снова</small></div>
 		</div>
 	</div>
 	{% endif %}

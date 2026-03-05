@@ -82,7 +82,7 @@
 		</div>
 		<div class="self-draw-error-content">
 			<span class="self-draw-error-hand" aria-hidden="true">✋</span>
-			<div class="payout-success-text self-draw-error-text">Стоп!<br><small>{{ message }}</small><br><small>Нажмите, чтобы попробовать снова</small></div>
+			<div class="payout-success-text self-draw-error-text">Стоп!<br><small>Нажмите, чтобы попробовать снова</small></div>
 		</div>
 	</div>
 	{% endif %}
@@ -98,7 +98,7 @@
 			<span></span><span></span><span></span><span></span><span></span><span></span>
 		</div>
 		{% endif %}
-		<div class="payout-success-text">{% if success %}Правильно!{% else %}{{ message }}{% endif %}<br><small>Нажмите для {% if mix_mode %}новой заставки{% else %}продолжения{% endif %}</small></div>
+		<div class="payout-success-text">{% if success %}{% include "partials/payout_check_text.html" %}{% else %}{{ message }}{% endif %}</div>
 	</form>
 	{% endif %}
 </div>

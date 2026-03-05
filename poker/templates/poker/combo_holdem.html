@@ -28,12 +28,25 @@
             {% endfor %}
         </div>
     {% else %}
-        {% if message %}
-            <div class="message {% if success %}success{% else %}error{% endif %}">{{ message }}</div>
-        {% endif %}
-        <div class="form-actions">
-            <button type="submit" name="action" value="next" class="btn btn-primary">Дальше</button>
+    <div class="payout-success-overlay {% if not success %}self-draw-error-overlay{% endif %}">
+        <input type="hidden" name="action" value="{% if success %}next{% else %}retry{% endif %}">
+        <button type="submit" class="payout-success-tap"></button>
+        {% if success %}
+        <div class="payout-fireworks" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span><span></span>
         </div>
+        {% else %}
+        <div class="payout-fireworks payout-fireworks--stop" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+        {% endif %}
+        <div class="self-draw-error-content">
+            {% if not success %}<span class="self-draw-error-hand" aria-hidden="true">✋</span>{% endif %}
+            <div class="payout-success-text self-draw-error-text">{% if success %}{% include "partials/payout_check_text.html" %}{% else %}{% include "partials/payout_stop_text.html" %}{% endif %}</div>
+        </div>
+    </div>
     {% endif %}
 </form>
 <p style="margin-top: 16px;"><a href="{% url 'poker_index' %}">← К списку игр</a></p>
