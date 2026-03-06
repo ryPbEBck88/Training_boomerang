@@ -49,10 +49,12 @@
 		</div>
 	</div>
 </div>
-<div style="margin-top: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-	<input type="number" id="user-answer" min="0" step="1" placeholder="ответ" style="width: 100px; padding: 8px 12px;">
-	<button type="button" id="btn-check" class="btn btn-secondary" title="Проверить">↵</button>
-	<button type="button" id="btn-pass" class="btn btn-secondary">Pass</button>
+<div class="ar-answer-row" style="margin-top: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+	<div class="ar-answer-left" style="display: flex; align-items: center; gap: 12px;">
+		<input type="number" id="user-answer" min="0" step="1" placeholder="ответ" style="width: 100px; padding: 8px 12px;">
+		<button type="button" id="btn-check" class="btn btn-secondary" title="Проверить">↵</button>
+	</div>
+	<button type="button" id="btn-pass" class="btn btn-secondary" style="margin-left: auto;">Pass</button>
 </div>
 <p id="answer-display" style="margin-top: 10px; font-size: 1.1rem; font-weight: 600;"></p>
 
@@ -73,7 +75,7 @@
 	</div>
 </div>
 <script>window.CYLINDER_TEXTURE_URL = "{% static 'CHIP_Test_2024/chip.png' %}";</script>
-{% if mix_mode %}<script>window.AR_MIX_ROULETTE_URL = "{% url 'ar_roulette' %}";</script>{% endif %}
+{% if mix_mode %}<script>window.AR_MIX_ROULETTE_URL = "{% url 'ar_color_in_cash' %}";</script>{% endif %}
 <script type="importmap">
 {"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}
 </script>

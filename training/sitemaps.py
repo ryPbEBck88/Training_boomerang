@@ -20,7 +20,8 @@ SITEMAP_URLS = [
     'poker_texas',
     'ar_index',
     'ar_bets',
-    'ar_roulette',
+    'ar_color_in_cash',
+    'ar_payout_through_cash',
     'ar_mix',
 ]
 

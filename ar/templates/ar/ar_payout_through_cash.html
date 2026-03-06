@@ -5,8 +5,23 @@
 <div class="payout-screen">
 <div class="payout-page">
 	<div class="payout-header payout-header--center">
-		<div class="payout-bet">{{ number }} × {{ multiplier }} =</div>
-		<button type="button" class="payout-settings-btn" id="arRouletteSettingsBtn" title="Настройки" aria-label="Настройки">
+		<table class="payout-ptc-table">
+			<thead>
+				<tr>
+					<th>цвет</th>
+					<th>цвет по</th>
+					<th>cash</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>{{ color }}</td>
+					<td>{{ color_per }}</td>
+					<td>{{ cash }}</td>
+				</tr>
+			</tbody>
+		</table>
+		<button type="button" class="payout-settings-btn" id="arPtcSettingsBtn" title="Настройки" aria-label="Настройки">
 		<svg class="payout-settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 			<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
 			<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
@@ -14,36 +29,39 @@
 		</button>
 	</div>
 
-	<div class="payout-settings-overlay" id="arRouletteSettingsOverlay">
+	<div class="payout-settings-overlay" id="arPtcSettingsOverlay">
 		<div class="payout-settings-modal">
 			<h3 class="payout-settings-title">Настройки</h3>
 			<form method="post" autocomplete="off">
 				{% csrf_token %}
 				<input type="hidden" name="action" value="settings">
 				<div class="payout-settings-fields">
-					<label>min: <input type="number" name="min_val" value="{{ min_val }}" min="1" max="100000"></label>
-					<label>max: <input type="number" name="max_val" value="{{ max_val }}" min="1" max="100000"></label>
-					<label>step: <input type="number" name="step" value="{{ step }}" min="1" max="10000"></label>
+					<p class="payout-ptc-settings-hint">цвет (диапазон):</p>
+					<label>min: <input type="number" name="min_val" value="{{ min_val }}" min="1" max="10000"></label>
+					<label>max: <input type="number" name="max_val" value="{{ max_val }}" min="1" max="10000"></label>
+					<label>step: <input type="number" name="step" value="{{ step }}" min="1" max="1000"></label>
 				</div>
 				<div class="roulette-multipliers">
-					<span class="roulette-multipliers-label">Множители:</span>
-					{% for m in multiplier_options %}
-					<label class="roulette-multiplier-check"><input type="checkbox" name="mult_{{ m }}" value="on" {% if m in selected_multipliers %}checked{% endif %}>{{ m }}</label>
+					<span class="roulette-multipliers-label">цвет по (варианты):</span>
+					{% for c in color_per_options %}
+					<label class="roulette-multiplier-check"><input type="checkbox" name="color_per_{{ c }}" value="on" {% if c in selected_color_per %}checked{% endif %}>{{ c }}</label>
 					{% endfor %}
 				</div>
 				<div class="payout-settings-actions">
 					<button type="submit" class="btn btn-primary">Сохранить</button>
-					<button type="button" class="btn btn-secondary" id="arRouletteSettingsClose">Отмена</button>
+					<button type="button" class="btn btn-secondary" id="arPtcSettingsClose">Отмена</button>
 				</div>
 			</form>
 		</div>
 	</div>
 
+	<p class="payout-ptc-question">Сколько цветных фишек осталось?</p>
+
 	<form method="post" autocomplete="off" class="payout-form">
 		{% csrf_token %}
 		<div class="payout-row">
 			<div class="payout-entry">
-				<input type="text" name="user_answer" class="payout-input" placeholder="ответ" autocomplete="off" inputmode="numeric" {% if success or skipped %}disabled{% endif %} id="arRouletteInput">
+				<input type="text" name="user_answer" class="payout-input" placeholder="ответ" autocomplete="off" inputmode="numeric" {% if success or skipped %}disabled{% endif %} id="arPtcInput">
 				<div class="payout-keyboard">
 					<button type="button" class="payout-key" data-val="7">7</button>
 					<button type="button" class="payout-key" data-val="8">8</button>
@@ -74,8 +92,8 @@
 	</form>
 
 	{% if success is False %}
-	<div class="payout-success-overlay self-draw-error-overlay" id="arRouletteErrorOverlay">
-		<button type="button" class="payout-success-tap" id="arRouletteErrorClose"></button>
+	<div class="payout-success-overlay self-draw-error-overlay" id="arPtcErrorOverlay">
+		<button type="button" class="payout-success-tap" id="arPtcErrorClose"></button>
 		<div class="payout-fireworks payout-fireworks--stop" aria-hidden="true">
 			<span></span><span></span><span></span><span></span><span></span><span></span>
 			<span></span><span></span><span></span><span></span><span></span><span></span>
@@ -88,9 +106,9 @@
 	{% endif %}
 
 	{% if success or skipped %}
-	<form method="post" action="{% if mix_mode %}{% url 'ar_mix_continue' %}{% endif %}" class="payout-success-overlay" id="arRouletteSuccessOverlay">
+	<form method="post" class="payout-success-overlay" id="arPtcSuccessOverlay">
 		{% csrf_token %}
-		{% if not mix_mode %}<input type="hidden" name="action" value="next">{% endif %}
+		<input type="hidden" name="action" value="next">
 		<button type="submit" class="payout-success-tap"></button>
 		{% if success %}
 		<div class="payout-fireworks" aria-hidden="true">
@@ -106,11 +124,12 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-	const input = document.getElementById('arRouletteInput');
+	const input = document.getElementById('arPtcInput');
 	if (input) {
 		input.addEventListener('mousedown', function(e) { if (!this.disabled) e.preventDefault(); });
 		input.addEventListener('touchstart', function(e) { if (!this.disabled) e.preventDefault(); }, { passive: false });
 		input.addEventListener('focus', function() { if (!this.disabled) this.blur(); });
+		input.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); this.form.querySelector('[name=action][value=check]')?.click(); } });
 	}
 	const keys = document.querySelectorAll('.payout-form .payout-key');
 	keys.forEach(function(k) {
@@ -127,9 +146,9 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 	});
 
-	const successOverlay = document.getElementById('arRouletteSuccessOverlay');
-	const errorOverlay = document.getElementById('arRouletteErrorOverlay');
-	const errorCloseBtn = document.getElementById('arRouletteErrorClose');
+	const successOverlay = document.getElementById('arPtcSuccessOverlay');
+	const errorOverlay = document.getElementById('arPtcErrorOverlay');
+	const errorCloseBtn = document.getElementById('arPtcErrorClose');
 	if (errorOverlay && errorCloseBtn) {
 		errorCloseBtn.addEventListener('click', function() { errorOverlay.style.display = 'none'; });
 		document.addEventListener('keydown', function(e) {
@@ -148,9 +167,9 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 	}
 
-	const btn = document.getElementById('arRouletteSettingsBtn');
-	const overlay = document.getElementById('arRouletteSettingsOverlay');
-	const closeBtn = document.getElementById('arRouletteSettingsClose');
+	const btn = document.getElementById('arPtcSettingsBtn');
+	const overlay = document.getElementById('arPtcSettingsOverlay');
+	const closeBtn = document.getElementById('arPtcSettingsClose');
 	if (btn && overlay) {
 		btn.addEventListener('click', function() { overlay.classList.add('is-open'); });
 		overlay.addEventListener('click', function(e) {

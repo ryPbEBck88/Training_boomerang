@@ -3,24 +3,47 @@
 
 {% block title %}AR{% endblock %}
 
+{% block extra_head %}
+<style>
+.ar-splash__card--bets .ar-splash__card-img { background-image: url('{% static "images/ar/zastavki.png" %}'); }
+.ar-splash__card--color .ar-splash__card-img { background-image: url('{% static "images/ar/color_in_cash.png" %}'); }
+.ar-splash__card--payout .ar-splash__card-img { background-image: url('{% static "images/ar/payout_through_cash.png" %}'); }
+.ar-splash__card--mix .ar-splash__card-img { background-image: url('{% static "images/ar/mix.png" %}'); }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="ar-splash">
 	<h1 class="ar-splash__title">AR</h1>
 	<p class="ar-splash__tagline">Тренажёры по AR</p>
-	<div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;">
-		<a href="{% url 'ar_bets' %}" class="btn btn-primary ar-splash__btn">Заставки</a>
-		<a href="{% url 'ar_roulette' %}" class="btn btn-primary ar-splash__btn">Цвет в cash</a>
-		<a href="{% url 'ar_mix' %}" class="btn btn-primary ar-splash__btn">Mix</a>
+	<div class="ar-splash__grid">
+		<a href="{% url 'ar_bets' %}" class="ar-splash__card ar-splash__card--bets">
+			<span class="ar-splash__card-img"></span>
+			<span class="ar-splash__card-label">Заставки</span>
+		</a>
+		<a href="{% url 'ar_color_in_cash' %}" class="ar-splash__card ar-splash__card--color">
+			<span class="ar-splash__card-img"></span>
+			<span class="ar-splash__card-label">Цвет в cash</span>
+		</a>
+		<a href="{% url 'ar_payout_through_cash' %}" class="ar-splash__card ar-splash__card--payout">
+			<span class="ar-splash__card-img"></span>
+			<span class="ar-splash__card-label">Выплата через кеш</span>
+		</a>
+		<a href="{% url 'ar_mix' %}" class="ar-splash__card ar-splash__card--mix">
+			<span class="ar-splash__card-img"></span>
+			<span class="ar-splash__card-label">Mix</span>
+		</a>
 	</div>
 </div>
 <div class="ar-description">
-	<p><strong>Заставки</strong> — считайте фишки на рулеточном столе. Режим задаётся в настройках (⚙️):</p>
+	<p><strong>Заставки</strong> — считайте фишки на рулеточном столе. Чтобы изменить количество фишек и режим, нажмите на настройки (⚙️):</p>
 	<ol class="ar-description__list">
-		<li><strong>Минимум–максимум на позицию</strong> — от 0 до 10 фишек на каждую позицию. Укажите min и max, фишки появятся случайным образом в этом диапазоне.</li>
-		<li><strong>Стеки</strong> — поставьте галочку «Стеки» и выберите 1, 2 или 3 стека. Будет 20, 40 или 60 фишек, распределённых случайно по позициям (до 10 на позицию).</li>
+		<li><strong>Стеки</strong> — поставьте галочку «Заставка из … стек(ов)а» и выберите 1, 2 или 3 стека. Будет 20, 40 или 60 фишек, распределённых случайно по позициям (до 10 на позицию).</li>
+		<li><strong>Минимум–максимум на позицию</strong> — снимите галочку «Стеки», укажите min и max (0–10). Фишки появятся случайным образом в этом диапазоне на каждую позицию.</li>
 		<li><strong>Картинки</strong> — снимите галочку «Стеки», укажите min = 0 и max = 1.</li>
 	</ol>
 	<p><strong>Цвет в cash</strong> — генерируется число (min 100, max 1000, step 1) и случайный множитель из выбранных (1, 2, 5, 10, 25, 50, 125). Введите произведение.</p>
+	<p><strong>Выплата через кеш</strong> — даны: цвет (число), цвет по (номинал фишки), cash (выплачено). Сколько цветных фишек осталось? Формула: цвет − (cash ÷ цвет по). Диапазон ответа: 1–200.</p>
 	<p><strong>Mix</strong> — заставка (считайте фишки) → правильный ответ → «Цвет в cash» с этим числом → правильный ответ → новая заставка → по кругу.</p>
 </div>
 {% endblock %}
