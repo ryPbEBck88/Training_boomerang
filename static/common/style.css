@@ -488,6 +488,58 @@ main h2 {
   color: var(--text-muted);
 }
 
+.payout-ptc-stacks-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.payout-ptc-stacks-row .ar-stacks-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.payout-ptc-stacks-input input {
+  width: 70px;
+}
+
+.payout-ptc-answer-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.payout-ptc-answer-cell {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.payout-ptc-answer-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.payout-ptc-input {
+  padding: 4px 6px;
+  box-sizing: border-box;
+  font-size: 0.95rem;
+}
+.payout-ptc-answer-cell:first-child .payout-ptc-input {
+  width: 36px;  /* стеков: 3–4 знака */
+}
+.payout-ptc-answer-cell:last-child .payout-ptc-input {
+  width: 28px;  /* в неполном: до 19 */
+}
+
 .payout-settings-btn {
   flex-shrink: 0;
   width: 40px;

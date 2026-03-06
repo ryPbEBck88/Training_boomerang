@@ -88,9 +88,14 @@
 	{% endif %}
 
 	{% if success or skipped %}
-	<form method="post" action="{% if mix_mode %}{% url 'ar_mix_continue' %}{% endif %}" class="payout-success-overlay" id="arRouletteSuccessOverlay">
+	<form method="post" action="{% if mix_mode %}{% url 'ar_mix_to_ptc' %}{% endif %}" class="payout-success-overlay" id="arRouletteSuccessOverlay">
 		{% csrf_token %}
-		{% if not mix_mode %}<input type="hidden" name="action" value="next">{% endif %}
+		{% if mix_mode %}
+		<input type="hidden" name="mix_number" value="{{ number }}">
+		<input type="hidden" name="mix_multiplier" value="{{ multiplier }}">
+		{% elif not mix_mode %}
+		<input type="hidden" name="action" value="next">
+		{% endif %}
 		<button type="submit" class="payout-success-tap"></button>
 		{% if success %}
 		<div class="payout-fireworks" aria-hidden="true">

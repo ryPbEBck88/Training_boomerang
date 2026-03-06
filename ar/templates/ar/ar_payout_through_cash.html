@@ -34,6 +34,12 @@
 			<h3 class="payout-settings-title">Настройки</h3>
 			<form method="post" autocomplete="off">
 				{% csrf_token %}
+				<div class="payout-settings-fields payout-ptc-stacks-row">
+					<label class="ar-stacks-row">
+						<input type="checkbox" name="ar_ptc_use_stacks" {% if use_stacks %}checked{% endif %}>
+						<span>Стеки</span>
+					</label>
+				</div>
 				<input type="hidden" name="action" value="settings">
 				<div class="payout-settings-fields">
 					<p class="payout-ptc-settings-hint">цвет (диапазон):</p>
@@ -61,7 +67,18 @@
 		{% csrf_token %}
 		<div class="payout-row">
 			<div class="payout-entry">
+				{% if use_stacks %}
+				<div class="payout-ptc-answer-row">
+					<label class="payout-ptc-answer-cell">
+						<input type="text" name="user_answer_stacks" class="payout-input payout-ptc-input" placeholder="стеки" autocomplete="off" inputmode="numeric" {% if success or skipped %}disabled{% endif %} id="arPtcInputStacks">
+					</label>
+					<label class="payout-ptc-answer-cell">
+						<input type="text" name="user_answer_remainder" class="payout-input payout-ptc-input" placeholder="остаток" autocomplete="off" inputmode="numeric" {% if success or skipped %}disabled{% endif %} id="arPtcInputRemainder">
+					</label>
+				</div>
+				{% else %}
 				<input type="text" name="user_answer" class="payout-input" placeholder="ответ" autocomplete="off" inputmode="numeric" {% if success or skipped %}disabled{% endif %} id="arPtcInput">
+				{% endif %}
 				<div class="payout-keyboard">
 					<button type="button" class="payout-key" data-val="7">7</button>
 					<button type="button" class="payout-key" data-val="8">8</button>
@@ -106,9 +123,9 @@
 	{% endif %}
 
 	{% if success or skipped %}
-	<form method="post" class="payout-success-overlay" id="arPtcSuccessOverlay">
+	<form method="post" action="{% if mix_mode %}{% url 'ar_mix_continue' %}{% endif %}" class="payout-success-overlay" id="arPtcSuccessOverlay">
 		{% csrf_token %}
-		<input type="hidden" name="action" value="next">
+		{% if not mix_mode %}<input type="hidden" name="action" value="next">{% endif %}
 		<button type="submit" class="payout-success-tap"></button>
 		{% if success %}
 		<div class="payout-fireworks" aria-hidden="true">
@@ -125,23 +142,34 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
 	const input = document.getElementById('arPtcInput');
-	if (input) {
-		input.addEventListener('mousedown', function(e) { if (!this.disabled) e.preventDefault(); });
-		input.addEventListener('touchstart', function(e) { if (!this.disabled) e.preventDefault(); }, { passive: false });
-		input.addEventListener('focus', function() { if (!this.disabled) this.blur(); });
-		input.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); this.form.querySelector('[name=action][value=check]')?.click(); } });
-	}
+	const inputStacks = document.getElementById('arPtcInputStacks');
+	const inputRemainder = document.getElementById('arPtcInputRemainder');
+	let lastTappedInput = input || inputStacks;
+	const inputs = input ? [input] : (inputStacks && inputRemainder ? [inputStacks, inputRemainder] : []);
+	function getActiveInput() { return lastTappedInput; }
+	inputs.forEach(function(inp) {
+		if (!inp) return;
+		inp.addEventListener('mousedown', function(e) {
+			if (!this.disabled) { e.preventDefault(); lastTappedInput = this; }
+		});
+		inp.addEventListener('touchstart', function(e) {
+			if (!this.disabled) { lastTappedInput = this; }
+		}, { passive: true });
+		inp.addEventListener('focus', function() { if (!this.disabled) this.blur(); });
+		inp.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); this.form.querySelector('[name=action][value=check]')?.click(); } });
+	});
 	const keys = document.querySelectorAll('.payout-form .payout-key');
 	keys.forEach(function(k) {
 		k.addEventListener('click', function(e) {
 			if (this.type === 'submit') return;
-			if (!input || input.disabled) return;
+			const active = getActiveInput();
+			if (!active || active.disabled) return;
 			e.preventDefault();
 			const action = this.getAttribute('data-action');
 			if (action === 'backspace') {
-				input.value = input.value.slice(0, -1);
+				active.value = active.value.slice(0, -1);
 			} else {
-				input.value += this.getAttribute('data-val');
+				active.value += this.getAttribute('data-val');
 			}
 		});
 	});
