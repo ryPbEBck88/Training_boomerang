@@ -37,8 +37,19 @@
 			{% block content %}{% endblock %}
 		</div>
 	</main>
+	<button type="button" class="back-to-top" id="back-to-top" title="В начало страницы" aria-label="В начало страницы">↑</button>
 	<script src="{% static 'common/payout-keyboard.js' %}"></script>
 	<script src="{% static 'common/fuse_timer.js' %}"></script>
+	<script>
+	(function() {
+		var btn = document.getElementById('back-to-top');
+		if (!btn) return;
+		function toggle() { btn.classList.toggle('visible', window.scrollY > 100); }
+		window.addEventListener('scroll', toggle, { passive: true });
+		toggle();
+		btn.addEventListener('click', function() { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+	})();
+	</script>
 	{% block extra_scripts %}{% endblock %}
 </body>
 </html>

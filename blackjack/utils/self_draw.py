@@ -1,14 +1,20 @@
 def update_hand_value(prev_value, card):
     """
     Прибавляет значение карты к прошлому значению руки.
-    prev_value: список из двух чисел [сумма_без_туза, сумма_с_одним_тузом_как_11]
+    prev_value: список из двух чисел [v0, v1]
+      v0 = сумма, считая все тузы как 1
+      v1 = сумма с одним тузом как 11 (остальные тузы как 1)
     card: словарь с ключами 'rank' и 'value'
 
     Возвращает новый список из двух чисел — новое значение руки после добавления карты.
     """
-
-    if card['rank'] == 'A' and prev_value[0] == prev_value[1]:
-        return [prev_value[0] + 1, prev_value[1] + 11]
+    if card['rank'] == 'A':
+        if prev_value[0] == prev_value[1]:
+            # Первый туз: v0+1 (туз как 1), v1+11 (туз как 11)
+            return [prev_value[0] + 1, prev_value[1] + 11]
+        else:
+            # Второй и последующие тузы: оба считаем как 1 (иначе перебор)
+            return [prev_value[0] + 1, prev_value[1] + 1]
     else:
         return [prev_value[0] + card['value'], prev_value[1] + card['value']]
 

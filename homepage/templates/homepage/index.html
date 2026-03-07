@@ -20,7 +20,12 @@
 {% endblock %}
 
 {% block content %}
-<div class="home-splash">
+<nav class="home-page-nav">
+	<a href="#games">Игры</a>
+	<a href="#poems">Стихи</a>
+</nav>
+
+<div class="home-splash" id="games">
 	<h1 class="home-splash__title">Добро пожаловать!</h1>
 	<p class="home-splash__tagline">Профессионалами не рождаются — ими становятся.</p>
 
@@ -161,13 +166,8 @@
 	</div>
 </div>
 
-<section class="home-poems">
+<section class="home-poems" id="poems">
 	<h2 class="home-poems__title">Стихи о крупье</h2>
-	<nav class="home-poems__nav">
-		<a href="#poem-1">Глотая едкий дым от сигареты</a>
-		<a href="#poem-2">После смены</a>
-		<a href="#poem-3">Баллада о неполном стеке</a>
-	</nav>
 	<div class="home-poems__list">
 		<details class="home-poem-details" id="poem-1">
 			<summary class="home-poem-details__summary">Глотая едкий дым от сигареты</summary>
@@ -188,7 +188,7 @@
 			<summary class="home-poem-details__summary">После смены</summary>
 			<article class="home-poem">
 				<div class="home-poem__body">
-				<p>После смены под тёплым душем<br>Смоем грязь с себя, матерясь.<br>Только как нам отчистить души,<br>Чем с сердец смыть людскую грязь?</p>
+				<p>После смены под тёплым душем<br>Смоем пот с себя, матерясь.<br>Только как нам отчистить души,<br>Чем с сердец смыть людскую грязь?</p>
 				<p>Ничего для других не значим,<br>Отражения без стекла<br>Мы – охотники за удачей<br>Или попросту – дилера́.</p>
 				<p>Если ночью в Москве туманы,<br>То шумит до зари игра.<br>Будут утром шуршать стаканы,<br>Потому что – не из стекла.</p>
 				<p>И когда предательский тонок<br>Голос твой под потоком лжи,<br>Знаешь ты – век крупье недолог,<br>А удачи – лишь миражи.</p>
