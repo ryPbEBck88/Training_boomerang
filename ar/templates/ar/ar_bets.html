@@ -649,6 +649,10 @@ let correctAnswer = null;
 function doSpawn() {
 	focusCameraOnNumber();
 	correctAnswer = null;
+	var answerRow = document.querySelector('.ar-answer-row');
+	var answerDisplay = document.getElementById('answer-display');
+	if (answerRow) answerRow.style.display = 'flex';
+	if (answerDisplay) answerDisplay.style.display = '';
 	document.getElementById('answer-display').textContent = '';
 	document.getElementById('user-answer').value = '';
 	while (chipsGroup.children.length) {
@@ -786,6 +790,11 @@ function doCheck() {
 		return;
 	}
 	if (userVal === correctAnswer) {
+		input.blur();
+		var answerRow = document.querySelector('.ar-answer-row');
+		var answerDisplay = document.getElementById('answer-display');
+		if (answerRow) answerRow.style.display = 'none';
+		if (answerDisplay) answerDisplay.style.display = 'none';
 		document.getElementById('ar-success-overlay').style.display = 'flex';
 		el.textContent = 'Верно!';
 		el.style.color = 'green';

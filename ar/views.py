@@ -285,9 +285,10 @@ def ar_payout_through_cash(request):
             user_stacks = request.POST.get('user_answer_stacks', '').strip()
             user_remainder = request.POST.get('user_answer_remainder', '').strip()
             try:
-                stacks_val = int(user_stacks) if user_stacks else None
-                rem_val = int(user_remainder) if user_remainder else None
-                if stacks_val is not None and rem_val is not None and rem_val >= 0 and rem_val < stack_size:
+                # пустое поле = 0 (ноль писать не обязательно)
+                stacks_val = int(user_stacks) if user_stacks else 0
+                rem_val = int(user_remainder) if user_remainder else 0
+                if rem_val >= 0 and rem_val < stack_size:
                     user_total = stacks_val * stack_size + rem_val
                     if user_total == correct:
                         message = "Правильно!"
