@@ -38,7 +38,7 @@
 
 		<div class="payout-row">
 			<div class="payout-entry">
-				<input type="text" name="user_payout" class="payout-input" placeholder="ответ" autocomplete="off" readonly inputmode="none" {% if success or skipped %}disabled{% endif %} id="payoutInput">
+				<input type="text" name="user_payout" class="payout-input" placeholder="ответ" autocomplete="off" inputmode="decimal" {% if success or skipped %}disabled{% endif %} id="payoutInput">
 				<div class="payout-keyboard">
 					<button type="button" class="payout-key" data-val="7">7</button>
 					<button type="button" class="payout-key" data-val="8">8</button>
@@ -99,27 +99,6 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-	const input = document.getElementById('payoutInput');
-	if (input) {
-		input.addEventListener('mousedown', function(e) { if (!this.disabled) e.preventDefault(); });
-		input.addEventListener('touchstart', function(e) { if (!this.disabled) e.preventDefault(); }, { passive: false });
-		input.addEventListener('focus', function() { if (!this.disabled) this.blur(); });
-	}
-	const keys = document.querySelectorAll('.payout-key');
-	keys.forEach(function(k) {
-		k.addEventListener('click', function(e) {
-			if (this.type === 'submit') return;
-			if (!input || input.disabled) return;
-			e.preventDefault();
-			const action = this.getAttribute('data-action');
-			if (action === 'backspace') {
-				input.value = input.value.slice(0, -1);
-			} else {
-				input.value += this.getAttribute('data-val');
-			}
-		});
-	});
-
 	const successOverlay = document.getElementById('payoutSuccessOverlay');
 	const errorOverlay = document.getElementById('payoutErrorOverlay');
 	const errorCloseBtn = document.getElementById('payoutErrorClose');

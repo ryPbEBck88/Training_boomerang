@@ -3,7 +3,7 @@
 {% block main_class %}payout-main{% endblock %}
 {% block content %}
 <div class="payout-screen">
-<div class="payout-page">
+<div class="payout-page payout-page--ptc">
 	<div class="payout-header payout-header--center">
 		<table class="payout-ptc-table">
 			<thead>
@@ -34,13 +34,13 @@
 			<h3 class="payout-settings-title">Настройки</h3>
 			<form method="post" autocomplete="off">
 				{% csrf_token %}
-				<div class="payout-settings-fields payout-ptc-stacks-row">
+				<input type="hidden" name="action" value="settings">
+				<div class="payout-settings-fields">
 					<label class="ar-stacks-row">
 						<input type="checkbox" name="ar_ptc_use_stacks" {% if use_stacks %}checked{% endif %}>
 						<span>Стеки</span>
 					</label>
 				</div>
-				<input type="hidden" name="action" value="settings">
 				<div class="payout-settings-fields">
 					<p class="payout-ptc-settings-hint">цвет (диапазон):</p>
 					<label>min: <input type="number" name="min_val" value="{{ min_val }}" min="1" max="10000"></label>
@@ -70,7 +70,7 @@
 				{% if use_stacks %}
 				<div class="payout-ptc-answer-row">
 					<label class="payout-ptc-answer-cell">
-						<input type="text" name="user_answer_stacks" class="payout-input payout-ptc-input" placeholder="стеки" autocomplete="off" inputmode="numeric" {% if success or skipped %}disabled{% endif %} id="arPtcInputStacks">
+						<input type="text" name="user_answer_stacks" class="payout-input payout-ptc-input" placeholder="стеков" autocomplete="off" inputmode="numeric" {% if success or skipped %}disabled{% endif %} id="arPtcInputStacks">
 					</label>
 					<label class="payout-ptc-answer-cell">
 						<input type="text" name="user_answer_remainder" class="payout-input payout-ptc-input" placeholder="остаток" autocomplete="off" inputmode="numeric" {% if success or skipped %}disabled{% endif %} id="arPtcInputRemainder">
@@ -141,39 +141,6 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-	const input = document.getElementById('arPtcInput');
-	const inputStacks = document.getElementById('arPtcInputStacks');
-	const inputRemainder = document.getElementById('arPtcInputRemainder');
-	let lastTappedInput = input || inputStacks;
-	const inputs = input ? [input] : (inputStacks && inputRemainder ? [inputStacks, inputRemainder] : []);
-	function getActiveInput() { return lastTappedInput; }
-	inputs.forEach(function(inp) {
-		if (!inp) return;
-		inp.addEventListener('mousedown', function(e) {
-			if (!this.disabled) { e.preventDefault(); lastTappedInput = this; }
-		});
-		inp.addEventListener('touchstart', function(e) {
-			if (!this.disabled) { lastTappedInput = this; }
-		}, { passive: true });
-		inp.addEventListener('focus', function() { if (!this.disabled) this.blur(); });
-		inp.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); this.form.querySelector('[name=action][value=check]')?.click(); } });
-	});
-	const keys = document.querySelectorAll('.payout-form .payout-key');
-	keys.forEach(function(k) {
-		k.addEventListener('click', function(e) {
-			if (this.type === 'submit') return;
-			const active = getActiveInput();
-			if (!active || active.disabled) return;
-			e.preventDefault();
-			const action = this.getAttribute('data-action');
-			if (action === 'backspace') {
-				active.value = active.value.slice(0, -1);
-			} else {
-				active.value += this.getAttribute('data-val');
-			}
-		});
-	});
-
 	const successOverlay = document.getElementById('arPtcSuccessOverlay');
 	const errorOverlay = document.getElementById('arPtcErrorOverlay');
 	const errorCloseBtn = document.getElementById('arPtcErrorClose');

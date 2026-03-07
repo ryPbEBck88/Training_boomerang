@@ -190,7 +190,7 @@ def ar_payout_through_cash(request):
     step = request.session.get('ar_ptc_step', 10)
     color_per_opts = request.session.get('ar_ptc_color_per', list(DEFAULT_COLOR_PER))
     use_stacks = request.session.get('ar_ptc_use_stacks', False)
-    stack_size = request.session.get('ar_ptc_stack_size', 20)
+    stack_size = 20  # фиксировано
 
     if request.method == 'POST' and request.POST.get('action') == 'settings':
         min_val = _parse_int(request.POST.get('min_val'), min_val, 1, 10000)
@@ -207,13 +207,11 @@ def ar_payout_through_cash(request):
         if not color_per_opts:
             color_per_opts = list(DEFAULT_COLOR_PER)
         use_stacks = request.POST.get('ar_ptc_use_stacks') == 'on'
-        stack_size = _parse_int(request.POST.get('ar_ptc_stack_size'), stack_size, 1, 1000)
         request.session['ar_ptc_min'] = min_val
         request.session['ar_ptc_max'] = max_val
         request.session['ar_ptc_step'] = step
         request.session['ar_ptc_color_per'] = color_per_opts
         request.session['ar_ptc_use_stacks'] = use_stacks
-        request.session['ar_ptc_stack_size'] = stack_size
         return redirect('ar_payout_through_cash')
 
     color = request.session.get('ar_ptc_color')

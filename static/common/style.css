@@ -531,13 +531,12 @@ main h2 {
 .payout-ptc-input {
   padding: 4px 6px;
   box-sizing: border-box;
-  font-size: 0.95rem;
 }
 .payout-ptc-answer-cell:first-child .payout-ptc-input {
-  width: 36px;  /* стеков: 3–4 знака */
+  width: 42px;  /* 3–4 знака */
 }
 .payout-ptc-answer-cell:last-child .payout-ptc-input {
-  width: 28px;  /* в неполном: до 19 */
+  width: 30px;  /* до 19 */
 }
 
 .payout-settings-btn {
@@ -1393,6 +1392,37 @@ main h2 {
   margin: 0;
   font-size: 0.95rem;
   color: var(--text-muted);
+}
+
+/* PTC: на мобилке таблица не съезжает на клавиатуру */
+@media (max-width: 600px) {
+  .payout-page--ptc {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .payout-page--ptc .payout-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    flex-shrink: 0;
+    margin-bottom: 12px;
+    background: var(--bg-main, #fff);
+    padding-bottom: 8px;
+  }
+  .payout-page--ptc .payout-form {
+    padding-top: 0;
+    flex-shrink: 0;
+  }
+  .payout-page--ptc .payout-ptc-question {
+    margin: 8px 0 12px;
+    flex-shrink: 0;
+  }
+  .payout-page--ptc .payout-ptc-table th,
+  .payout-page--ptc .payout-ptc-table td {
+    padding: 6px 12px;
+    font-size: 1.1rem;
+  }
 }
 
 @media (max-width: 600px) {
