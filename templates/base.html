@@ -5,7 +5,7 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>{% block title %}Тренажёры крупье{% endblock %}</title>
-	<meta name="description" content="{% block meta_description %}Тренажёры крупье — Black Jack, Poker (Oasis, Texas Hold'em), AR заставки для практики выплат и комбинаций.{% endblock %}">
+	<meta name="description" content="{% block meta_description %}Тренажёры крупье — BJ, Poker (Oasis, Texas Hold'em), AR заставки для практики выплат и комбинаций.{% endblock %}">
 	<meta name="keywords" content="{% block meta_keywords %}тренажёр крупье, black jack, покер, oasis poker, texas holdem, выплаты, комбинации, рулетка, AR{% endblock %}">
 	<link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
 	<link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
@@ -14,20 +14,20 @@
 	<meta property="og:type" content="website">
 	<meta property="og:locale" content="ru_RU">
 	<meta property="og:title" content="{% block og_title %}Тренажёры крупье{% endblock %}">
-	<meta property="og:description" content="{% block og_description %}Тренажёры крупье — Black Jack, Poker (Oasis, Texas Hold'em), AR заставки.{% endblock %}">
+	<meta property="og:description" content="{% block og_description %}Тренажёры крупье — BJ, Poker (Oasis, Texas Hold'em), AR заставки.{% endblock %}">
 	<meta property="og:url" content="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
 	<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'images/favicon.png' %}">
 	<meta property="og:site_name" content="Тренажёры крупье">
 	<meta name="twitter:card" content="summary">
 	<meta name="twitter:title" content="{% block twitter_title %}Тренажёры крупье{% endblock %}">
-	<meta name="twitter:description" content="{% block twitter_description %}Тренажёры крупье — Black Jack, Poker, AR.{% endblock %}">
-	<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Тренажёры крупье","url":"{{ request.scheme }}://{{ request.get_host }}/","description":"Black Jack, Poker (Oasis, Texas Hold'em), AR заставки для практики выплат и комбинаций","inLanguage":"ru"}</script>
+	<meta name="twitter:description" content="{% block twitter_description %}Тренажёры крупье — BJ, Poker, AR.{% endblock %}">
+	<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Тренажёры крупье","url":"{{ request.scheme }}://{{ request.get_host }}/","description":"BJ, Poker (Oasis, Texas Hold'em), AR заставки для практики выплат и комбинаций","inLanguage":"ru"}</script>
 </head>
 <body>
 	<header>
 		<nav>
 			<a href="{% url 'homepage_index' %}" class="nav-home" title="Главная"><img src="{% static 'images/favicon.png' %}" alt="" width="28" height="28"></a>
-			<a href="{% url 'blackjack_index' %}">Black Jack</a>
+			<a href="{% url 'blackjack_index' %}">BJ</a>
 			<a href="{% url 'poker_index' %}">Poker</a>
 			<a href="{% url 'ar_index' %}">AR</a>
 		</nav>
@@ -38,6 +38,7 @@
 		</div>
 	</main>
 	<script src="{% static 'common/payout-keyboard.js' %}"></script>
+	<script src="{% static 'common/fuse_timer.js' %}"></script>
 	{% block extra_scripts %}{% endblock %}
 </body>
 </html>

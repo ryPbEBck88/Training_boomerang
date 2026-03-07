@@ -5,7 +5,7 @@
 <div class="payout-screen">
 <div class="payout-page">
 	<div class="payout-header">
-		<h2>Oasis Poker: Считаем выплату</h2>
+		<h2>Oasis Poker: Выплата</h2>
 		<button type="button" class="payout-settings-btn" id="payoutSettingsBtn" title="Настройки" aria-label="Настройки">
 		<svg class="payout-settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 			<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
@@ -21,6 +21,7 @@
 				{% csrf_token %}
 				<input type="hidden" name="action" value="settings">
 				<div class="payout-settings-fields">
+					{% include "partials/fuse_timer_settings.html" %}
 					<label>min: <input type="number" name="min_bet" value="{{ min_bet }}" min="1" max="10000"></label>
 					<label>max: <input type="number" name="max_bet" value="{{ max_bet }}" min="1" max="10000"></label>
 					<label>step: <input type="number" name="step" value="{{ step }}" min="1" max="1000"></label>
@@ -33,6 +34,9 @@
 		</div>
 	</div>
 
+	{% if timer_enabled and success is None and not skipped %}
+	{% include "partials/fuse_timer.html" with prefix="poker-payout" %}
+	{% endif %}
 	<form method="post" autocomplete="off" class="payout-form">
 		{% csrf_token %}
 		<div class="payout-bet">{{ bet }}</div>
@@ -174,6 +178,10 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 });
 </script>
-
+{% if timer_enabled and success is None and not skipped %}
+{% block extra_scripts %}
+<script>document.addEventListener('DOMContentLoaded',function(){if(typeof initFuseTimer==='function')initFuseTimer({prefix:'poker-payout',seconds:{{ timer_seconds }},timeoutButton:'button[value="check"]',settingsOverlay:'#payoutSettingsOverlay'});});</script>
+{% endblock %}
+{% endif %}
 <p class="payout-back"><a href="{% url 'poker_index' %}">← К списку игр</a></p>
 {% endblock %}

@@ -7,7 +7,7 @@
 <style>
 /* BJ — выплата с картинкой, набираю себе — только цвет */
 .home-splash__card--bj-self .home-splash__card-img { background-color: #1a472a; }
-.home-splash__card--bj-payout .home-splash__card-img { background-image: url('{% static "images/blackjack/payout.png" %}'); background-color: #1a472a; }
+.home-splash__card--bj-payout .home-splash__card-img { background-image: url('{% static "images/blackjack/Black Jack_payout.webp" %}'); background-color: #1a472a; }
 .home-splash__card--poker-payout .home-splash__card-img { background-image: url('{% static "images/poker/oasic_payout.png" %}'); background-color: #8b2942; }
 .home-splash__card--poker-combo .home-splash__card-img { background-image: url('{% static "images/poker/oasis_combo.png" %}'); background-color: #8b2942; }
 .home-splash__card--poker-holdem .home-splash__card-img { background-color: #6b2340; }
@@ -24,56 +24,201 @@
 	<h1 class="home-splash__title">Добро пожаловать!</h1>
 	<p class="home-splash__tagline">Профессионалами не рождаются — ими становятся.</p>
 
-	<h2 class="home-splash__section">Black Jack</h2>
+	<h2 class="home-splash__section">BJ</h2>
 	<div class="home-splash__grid">
-		<a href="{% url 'blackjack_self_draw' %}" class="home-splash__card home-splash__card--bj-self">
-			<span class="home-splash__card-img"></span>
-			<span class="home-splash__card-label">Набираю себе</span>
-		</a>
-		<a href="{% url 'blackjack_payout' %}" class="home-splash__card home-splash__card--bj-payout">
-			<span class="home-splash__card-img"></span>
-			<span class="home-splash__card-label">Выплата</span>
-		</a>
+		<div class="home-splash__game-wrap">
+			<a href="{% url 'blackjack_self_draw' %}" class="home-splash__card home-splash__card--bj-self">
+				<span class="home-splash__card-img"></span>
+				<span class="home-splash__card-label">Набираю себе</span>
+			</a>
+			<details class="home-splash__details">
+				<summary class="home-splash__details-summary">Описание</summary>
+				<div class="home-splash__game-desc">
+					<p>Считаем сумму карт. Если 16 и меньше → Взять карту. Если 17 и больше → Стоп.</p>
+					<p class="home-splash__card-values"><strong>Номинал карт:</strong></p>
+					<ul class="home-splash__card-list">
+						<li>A (туз) — 1 или 11</li>
+						<li>K (король) — 10</li>
+						<li>Q (дама) — 10</li>
+						<li>J (валет) — 10</li>
+						<li>10 — 10</li>
+						<li>9 — 9</li>
+						<li>8 — 8</li>
+						<li>7 — 7</li>
+						<li>6 — 6</li>
+						<li>5 — 5</li>
+						<li>4 — 4</li>
+						<li>3 — 3</li>
+						<li>2 — 2</li>
+					</ul>
+				</div>
+			</details>
+		</div>
+		<div class="home-splash__game-wrap">
+			<a href="{% url 'blackjack_payout' %}" class="home-splash__card home-splash__card--bj-payout">
+				<span class="home-splash__card-img"></span>
+				<span class="home-splash__card-label">Выплата</span>
+			</a>
+			<details class="home-splash__details">
+				<summary class="home-splash__details-summary">Описание</summary>
+				<div class="home-splash__game-desc">
+					<p>Считаем выплату по картам дилера и игрока.</p>
+				</div>
+			</details>
+		</div>
 	</div>
 
 	<h2 class="home-splash__section">Poker</h2>
 	<div class="home-splash__grid">
-		<a href="{% url 'poker_payout' %}" class="home-splash__card home-splash__card--poker-payout">
-			<span class="home-splash__card-img"></span>
-			<span class="home-splash__card-label">Oasis: Считаем выплату</span>
-		</a>
-		<a href="{% url 'poker_combo' %}" class="home-splash__card home-splash__card--poker-combo">
-			<span class="home-splash__card-img"></span>
-			<span class="home-splash__card-label">Oasis комбинации</span>
-		</a>
-		<a href="{% url 'poker_combo_holdem' %}" class="home-splash__card home-splash__card--poker-holdem">
-			<span class="home-splash__card-img"></span>
-			<span class="home-splash__card-label">Texas комбинации</span>
-		</a>
+		<div class="home-splash__game-wrap">
+			<a href="{% url 'poker_payout' %}" class="home-splash__card home-splash__card--poker-payout">
+				<span class="home-splash__card-img"></span>
+				<span class="home-splash__card-label">Oasis: Выплата</span>
+			</a>
+			<details class="home-splash__details">
+				<summary class="home-splash__details-summary">Описание</summary>
+				<div class="home-splash__game-desc">
+					<p>Расчёт выплат по комбинациям Oasis Poker.</p>
+				</div>
+			</details>
+		</div>
+		<div class="home-splash__game-wrap">
+			<a href="{% url 'poker_combo' %}" class="home-splash__card home-splash__card--poker-combo">
+				<span class="home-splash__card-img"></span>
+				<span class="home-splash__card-label">Oasis: Комбинации</span>
+			</a>
+			<details class="home-splash__details">
+				<summary class="home-splash__details-summary">Описание</summary>
+				<div class="home-splash__game-desc">
+					<p>Угадай комбинацию из 5 карт.</p>
+				</div>
+			</details>
+		</div>
+		<div class="home-splash__game-wrap">
+			<a href="{% url 'poker_combo_holdem' %}" class="home-splash__card home-splash__card--poker-holdem">
+				<span class="home-splash__card-img"></span>
+				<span class="home-splash__card-label">Texas комбинации</span>
+			</a>
+			<details class="home-splash__details">
+				<summary class="home-splash__details-summary">Описание</summary>
+				<div class="home-splash__game-desc">
+					<p>Угадай лучшую комбинацию из 7 карт (5 на столе + 2 в руке).</p>
+				</div>
+			</details>
+		</div>
 	</div>
 
 	<h2 class="home-splash__section">AR</h2>
 	<div class="home-splash__grid">
-		<a href="{% url 'ar_bets' %}" class="home-splash__card home-splash__card--ar-bets">
-			<span class="home-splash__card-img"></span>
-			<span class="home-splash__card-label">Заставки</span>
-		</a>
-		<a href="{% url 'ar_color_in_cash' %}" class="home-splash__card home-splash__card--ar-color">
-			<span class="home-splash__card-img"></span>
-			<span class="home-splash__card-label">Цвет в cash</span>
-		</a>
-		<a href="{% url 'ar_payout_through_cash' %}" class="home-splash__card home-splash__card--ar-payout">
-			<span class="home-splash__card-img"></span>
-			<span class="home-splash__card-label">Выплата через cash</span>
-		</a>
-		<a href="{% url 'ar_mix' %}" class="home-splash__card home-splash__card--ar-mix">
-			<span class="home-splash__card-img"></span>
-			<span class="home-splash__card-label">Mix</span>
-		</a>
+		<div class="home-splash__game-wrap">
+			<a href="{% url 'ar_bets' %}" class="home-splash__card home-splash__card--ar-bets">
+				<span class="home-splash__card-img"></span>
+				<span class="home-splash__card-label">Заставки</span>
+			</a>
+			<details class="home-splash__details">
+				<summary class="home-splash__details-summary">Описание</summary>
+				<div class="home-splash__game-desc">
+					<p>Числа и цвета для тренировки.</p>
+				</div>
+			</details>
+		</div>
+		<div class="home-splash__game-wrap">
+			<a href="{% url 'ar_color_in_cash' %}" class="home-splash__card home-splash__card--ar-color">
+				<span class="home-splash__card-img"></span>
+				<span class="home-splash__card-label">Цвет в cash</span>
+			</a>
+			<details class="home-splash__details">
+				<summary class="home-splash__details-summary">Описание</summary>
+				<div class="home-splash__game-desc">
+					<p>Число × множитель = ? Введите ответ.</p>
+				</div>
+			</details>
+		</div>
+		<div class="home-splash__game-wrap">
+			<a href="{% url 'ar_payout_through_cash' %}" class="home-splash__card home-splash__card--ar-payout">
+				<span class="home-splash__card-img"></span>
+				<span class="home-splash__card-label">Выплата через cash</span>
+			</a>
+			<details class="home-splash__details">
+				<summary class="home-splash__details-summary">Описание</summary>
+				<div class="home-splash__game-desc">
+					<p>Сколько цветных фишек осталось? Цвет − (cash ÷ цвет_по) = ответ.</p>
+				</div>
+			</details>
+		</div>
+		<div class="home-splash__game-wrap">
+			<a href="{% url 'ar_mix' %}" class="home-splash__card home-splash__card--ar-mix">
+				<span class="home-splash__card-img"></span>
+				<span class="home-splash__card-label">Mix</span>
+			</a>
+			<details class="home-splash__details">
+				<summary class="home-splash__details-summary">Описание</summary>
+				<div class="home-splash__game-desc">
+					<p>Заставка → цвет в cash → выплата через cash. Комбинированный режим.</p>
+				</div>
+			</details>
+		</div>
 	</div>
 </div>
 
+<section class="home-poems">
+	<h2 class="home-poems__title">Стихи о крупье</h2>
+	<nav class="home-poems__nav">
+		<a href="#poem-1">Глотая едкий дым от сигареты</a>
+		<a href="#poem-2">После смены</a>
+		<a href="#poem-3">Баллада о неполном стеке</a>
+	</nav>
+	<div class="home-poems__list">
+		<details class="home-poem-details" id="poem-1">
+			<summary class="home-poem-details__summary">Глотая едкий дым от сигареты</summary>
+			<article class="home-poem">
+				<div class="home-poem__body">
+					<p>Глотая едкий дым от сигареты,<br>Склонившись над затёртым вдрызг сукном,<br>Окутанный холодным тусклым светом,<br>Мешает дилер карты за столом.</p>
+					<p>«Десятки», «Короли», «Валеты», «Дамы»…<br>Кто ж знает, как распределится масть?<br>А за столом разыгрывает драмы<br>Азарт, что захватил над всеми власть.</p>
+					<p>Какую только брань здесь не услышишь:<br>Тут не оплачен «Стрейт», а там «Каре».<br>Но дилер лишь глаза опустит ниже<br>И улыбнётся этой ерунде.</p>
+					<p>Ему-то что, пускай себе болтают,<br>Привык он слушать этот дикий вздор.<br>Под маской чувства он свои скрывает,<br>Поддерживая глупый разговор.</p>
+					<p>Откуда знать всем этим «умным» дядям,<br>Кто перед ними в «бабочке» стоит,<br>О чём он думает, на карты молча глядя,<br>Какая жизнь внутри него бурлит.</p>
+					<p>Откуда знать им, что, окончив смену,<br>Послав подальше ставки и подсчет,<br>Читает он Шекспира и Мольера,<br>Бросаясь в строгих рифм водоворот.</p>
+					<p>Откуда знать, что под простой личиной<br>Беспечного, весёлого шута,<br>Страдает, рвётся птахой легкокрылой<br>Открытая и тонкая душа.</p>
+				</div>
+				<footer class="home-poem__author">Светлана Алексеева, казино «Кристалл», Москва, 2000</footer>
+			</article>
+		</details>
+		<details class="home-poem-details" id="poem-2">
+			<summary class="home-poem-details__summary">После смены</summary>
+			<article class="home-poem">
+				<div class="home-poem__body">
+				<p>После смены под тёплым душем<br>Смоем грязь с себя, матерясь.<br>Только как нам отчистить души,<br>Чем с сердец смыть людскую грязь?</p>
+				<p>Ничего для других не значим,<br>Отражения без стекла<br>Мы – охотники за удачей<br>Или попросту – дилера́.</p>
+				<p>Если ночью в Москве туманы,<br>То шумит до зари игра.<br>Будут утром шуршать стаканы,<br>Потому что – не из стекла.</p>
+				<p>И когда предательский тонок<br>Голос твой под потоком лжи,<br>Знаешь ты – век крупье недолог,<br>А удачи – лишь миражи.</p>
+				<p>Так зачем нам чужие сказки?<br>Мы и сами умеем лгать.<br>Прячем чувства всю жизнь под маски<br>И боимся их потерять.</p>
+				<p>Мы – мишени в хрустальном тире,<br>Жизнь – неистовый карнавал…<br>И беспечно хохочет дилер<br>В глубине ледяных зеркал.</p>
+			</div>
+			<footer class="home-poem__author">Елена Гусева, казино «Кристалл», Москва, 2000</footer>
+		</article>
+		</details>
+		<details class="home-poem-details" id="poem-3">
+			<summary class="home-poem-details__summary">Баллада о неполном стеке</summary>
+			<article class="home-poem">
+				<div class="home-poem__body">
+				<p>О нашей жизни прозой и стихом<br>Поведать миру можем мы немало.<br>Вот вам произведение о том,<br>Как в стеке пары фишек не хватало.</p>
+				<p>Запущен спин, сверкает барабан,<br>Завалено всё поле, чипер бледен…<br>И, фишки положив в пустой карман,<br>Ушёл игрок – никто и не заметил.</p>
+				<p>На память о «Кристалле» сувенир<br>Он прихватил, сердито чертыхаясь.<br>А может – просто на пол уронил<br>У выхода, за голову хватаясь.</p>
+				<p>И чипер флот, волнуясь, перебрал,<br>Стремясь скорее отыскать потерю.<br>Он даже под рулеткой проверял<br>Раз пятьдесят, глазам своим не веря.</p>
+				<p>А стек стоял – небесно-голубой,<br>Осиротевший и такой несчастный!<br>Среди своих собратьев – как изгой!<br>Ведь фишек в нём осталось восемнадцать…</p>
+				<p>Об этом рассказала я стихами,<br>А вышло или нет – судите сами.</p>
+			</div>
+			<footer class="home-poem__author">Елена Гусева, казино «Кристалл», Москва, 2000</footer>
+		</article>
+		</details>
+	</div>
+</section>
+
 <div class="home-footer">
-	<p>Также советуем посетить <a href="https://kabunda.github.io/Saite/" target="_blank" rel="noopener noreferrer">Сайт Кулагина Владимира</a>.</p>
+	<p>Также советуем посетить сайты:</p>
+	<p><a href="https://kabunda.github.io/Saite/" target="_blank" rel="noopener noreferrer">Кулагина Владимира</a></p>
+	<p><a href="https://margarinkak.github.io/Insta/" target="_blank" rel="noopener noreferrer">Кутузовой Маргариты</a></p>
+	<p><a href="https://kowaruss.github.io/coach/" target="_blank" rel="noopener noreferrer">Коваль Руслана</a></p>
 </div>
 {% endblock %}

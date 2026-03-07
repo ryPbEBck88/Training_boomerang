@@ -36,6 +36,7 @@
 				{% csrf_token %}
 				<input type="hidden" name="action" value="settings">
 				<div class="payout-settings-fields">
+					{% include "partials/fuse_timer_settings.html" %}
 					<label class="ar-stacks-row">
 						<input type="checkbox" name="ar_ptc_use_stacks" {% if use_stacks %}checked{% endif %}>
 						<span>Стеки</span>
@@ -61,6 +62,9 @@
 		</div>
 	</div>
 
+	{% if timer_enabled and success is None and not skipped %}
+	{% include "partials/fuse_timer.html" with prefix="ar-ptc" %}
+	{% endif %}
 	<p class="payout-ptc-question">Сколько цветных фишек осталось?</p>
 
 	<form method="post" autocomplete="off" class="payout-form">
@@ -174,6 +178,10 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 });
 </script>
-
+{% if timer_enabled and success is None and not skipped %}
+{% block extra_scripts %}
+<script>document.addEventListener('DOMContentLoaded',function(){if(typeof initFuseTimer==='function')initFuseTimer({prefix:'ar-ptc',seconds:{{ timer_seconds }},timeoutButton:'button[value="check"]',settingsOverlay:'#arPtcSettingsOverlay'});});</script>
+{% endblock %}
+{% endif %}
 <p class="payout-back"><a href="{% url 'ar_index' %}">← К списку игр</a></p>
 {% endblock %}

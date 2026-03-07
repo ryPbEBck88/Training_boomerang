@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from data.cards import get_shuffled_shoe
 from blackjack.utils.payout import get_random_bet
+from training.utils.timer import process_timer_settings
 from .utils.combo import make_combo_queue, make_holdem_combo_queue, hand_to_combo, best_combo_from_7, COMBO_CHOICES, COMBO_CHOICES_HOLDEM
 from .utils.payout import check_user_payout
 
@@ -118,6 +119,7 @@ def payout_view(request):
     step = request.session.get('poker_payout_step', 5)
 
     if request.method == 'POST' and request.POST.get('action') == 'settings':
+        process_timer_settings(request)
         min_bet = _parse_int(request.POST.get('min_bet'), min_bet, 1, 10000)
         max_bet = _parse_int(request.POST.get('max_bet'), max_bet, 1, 10000)
         step = _parse_int(request.POST.get('step'), step, 1, 1000)

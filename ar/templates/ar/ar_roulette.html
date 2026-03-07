@@ -21,6 +21,7 @@
 				{% csrf_token %}
 				<input type="hidden" name="action" value="settings">
 				<div class="payout-settings-fields">
+					{% include "partials/fuse_timer_settings.html" %}
 					<label>min: <input type="number" name="min_val" value="{{ min_val }}" min="1" max="100000"></label>
 					<label>max: <input type="number" name="max_val" value="{{ max_val }}" min="1" max="100000"></label>
 					<label>step: <input type="number" name="step" value="{{ step }}" min="1" max="10000"></label>
@@ -39,6 +40,9 @@
 		</div>
 	</div>
 
+	{% if timer_enabled and success is None and not skipped %}
+	{% include "partials/fuse_timer.html" with prefix="ar-roulette" %}
+	{% endif %}
 	<form method="post" autocomplete="off" class="payout-form">
 		{% csrf_token %}
 		<div class="payout-row">
@@ -144,6 +148,10 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 });
 </script>
-
+{% if timer_enabled and success is None and not skipped %}
+{% block extra_scripts %}
+<script>document.addEventListener('DOMContentLoaded',function(){if(typeof initFuseTimer==='function')initFuseTimer({prefix:'ar-roulette',seconds:{{ timer_seconds }},timeoutButton:'button[value="check"]',settingsOverlay:'#arRouletteSettingsOverlay'});});</script>
+{% endblock %}
+{% endif %}
 <p class="payout-back"><a href="{% url 'ar_index' %}">← К списку игр</a></p>
 {% endblock %}

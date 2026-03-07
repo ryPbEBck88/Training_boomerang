@@ -2,6 +2,7 @@ import math
 import random
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from training.utils.timer import process_timer_settings
 
 
 MULTIPLIER_OPTIONS = [1, 2, 5, 10, 25, 50, 125]
@@ -86,6 +87,7 @@ def ar_roulette(request):
     multipliers = request.session.get('ar_roulette_multipliers', list(DEFAULT_MULTIPLIERS))
 
     if request.method == 'POST' and request.POST.get('action') == 'settings':
+        process_timer_settings(request)
         min_val = _parse_int(request.POST.get('min_val'), min_val, 1, 100000)
         max_val = _parse_int(request.POST.get('max_val'), max_val, 1, 100000)
         step = _parse_int(request.POST.get('step'), step, 1, 10000)
@@ -193,6 +195,7 @@ def ar_payout_through_cash(request):
     stack_size = 20  # фиксировано
 
     if request.method == 'POST' and request.POST.get('action') == 'settings':
+        process_timer_settings(request)
         min_val = _parse_int(request.POST.get('min_val'), min_val, 1, 10000)
         max_val = _parse_int(request.POST.get('max_val'), max_val, 1, 10000)
         step = _parse_int(request.POST.get('step'), step, 1, 1000)

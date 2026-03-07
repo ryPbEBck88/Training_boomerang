@@ -176,6 +176,128 @@ main h2 {
   text-decoration: underline;
 }
 
+/* --- Стихи о крупье --- */
+.home-poems {
+  margin-top: 40px;
+  padding: 32px 0;
+  border-top: 1px solid var(--border);
+}
+
+.home-poems__title {
+  margin: 0 0 20px;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-align: center;
+}
+
+.home-poems__nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 20px;
+  margin-bottom: 28px;
+}
+
+.home-poems__nav a {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 0.95rem;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  transition: background 0.2s, color 0.2s;
+}
+
+.home-poems__nav a:hover {
+  background: rgba(37, 99, 235, 0.1);
+}
+
+.home-poem-details {
+  margin-bottom: 12px;
+}
+
+.home-poem-details:last-of-type {
+  margin-bottom: 0;
+}
+
+.home-poem-details__summary {
+  cursor: pointer;
+  padding: 12px 16px;
+  background: rgba(37, 99, 235, 0.08);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--accent);
+  list-style: none;
+  user-select: none;
+}
+
+.home-poem-details__summary::-webkit-details-marker {
+  display: none;
+}
+
+.home-poem-details__summary::before {
+  content: '▶';
+  display: inline-block;
+  margin-right: 8px;
+  font-size: 0.7rem;
+  transition: transform 0.2s;
+}
+
+.home-poem-details[open] .home-poem-details__summary::before {
+  transform: rotate(90deg);
+}
+
+.home-poem-details__summary:hover {
+  background: rgba(37, 99, 235, 0.12);
+}
+
+.home-poems__list {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.home-poem {
+  padding: 24px 28px;
+  background: linear-gradient(135deg, rgba(30, 58, 95, 0.04) 0%, rgba(37, 99, 235, 0.04) 100%);
+  border-radius: var(--radius);
+  border-left: 4px solid var(--accent);
+  text-align: left;
+}
+
+.home-poem__title {
+  margin: 0 0 16px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.home-poem__body {
+  font-size: 0.95rem;
+  line-height: 1.75;
+  color: var(--text);
+}
+
+.home-poem__body p {
+  margin: 0 0 12px;
+}
+
+.home-poem__body p:last-child {
+  margin-bottom: 0;
+}
+
+.home-poem__author {
+  margin: 16px 0 0;
+  padding-top: 16px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-style: italic;
+  border-top: 1px solid var(--border);
+}
+
 /* --- Главная: блоки как на AR --- */
 .home-splash {
   text-align: center;
@@ -209,6 +331,96 @@ main h2 {
 
 .home-splash__section:first-of-type {
   margin-top: 0;
+}
+
+.home-splash__details {
+  max-width: 560px;
+  margin: 12px auto 24px;
+}
+
+.home-splash__details-summary {
+  cursor: pointer;
+  padding: 10px 16px;
+  background: rgba(37, 99, 235, 0.08);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--accent);
+  list-style: none;
+  user-select: none;
+}
+
+.home-splash__details-summary::-webkit-details-marker {
+  display: none;
+}
+
+.home-splash__details-summary::before {
+  content: '▶';
+  display: inline-block;
+  margin-right: 8px;
+  font-size: 0.75rem;
+  transition: transform 0.2s;
+}
+
+.home-splash__details[open] .home-splash__details-summary::before {
+  transform: rotate(90deg);
+}
+
+.home-splash__details-summary:hover {
+  background: rgba(37, 99, 235, 0.12);
+}
+
+.home-splash__game-desc {
+  text-align: left;
+  max-width: 560px;
+  margin: 0 auto 20px;
+  padding: 16px 20px;
+  background: rgba(37, 99, 235, 0.06);
+  border-radius: var(--radius-sm);
+  border-left: 4px solid var(--accent);
+}
+
+.home-splash__game-name {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.home-splash__game-desc p {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.home-splash__game-desc p:last-child {
+  margin-bottom: 0;
+}
+
+.home-splash__card-values {
+  font-size: 0.9rem !important;
+  color: var(--text-muted) !important;
+}
+
+.home-splash__card-list {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.home-splash__game-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.home-splash__game-wrap .home-splash__details {
+  margin: 0;
+  max-width: none;
 }
 
 .home-splash__grid {
@@ -1196,6 +1408,265 @@ main h2 {
   font-size: 1rem;
 }
 
+.self-draw-screen {
+  position: relative;
+}
+
+.self-draw-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.self-draw-help-btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.self-draw-help-icon {
+  width: 28px;
+  height: 28px;
+}
+
+.self-draw-help-btn:hover .self-draw-help-icon circle {
+  fill: #1d4ed8;
+}
+
+.self-draw-settings-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: rgba(0,0,0,0.08);
+  color: var(--text);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.self-draw-settings-btn:hover {
+  background: rgba(0,0,0,0.12);
+}
+
+.self-draw-settings-btn .payout-settings-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.self-draw-fuse, .fuse-timer {
+  margin: 0;
+  width: 100%;
+  max-width: 300px;
+  margin-left: auto;
+  margin-right: auto;
+  overflow: visible;
+}
+
+.self-draw-fuse-track, .fuse-timer-track {
+  height: 12px;
+  background:
+    repeating-linear-gradient(
+      105deg,
+      #1a120c 0px,
+      #1a120c 2px,
+      #2d1f14 2px,
+      #2d1f14 4px
+    );
+  border-radius: 6px;
+  overflow: visible;
+  position: relative;
+  box-shadow:
+    inset 0 2px 2px rgba(255,255,255,0.04),
+    inset 0 -2px 2px rgba(0,0,0,0.5),
+    0 3px 6px rgba(0,0,0,0.25);
+}
+
+.self-draw-fuse-burn, .fuse-timer-burn {
+  height: 100%;
+  width: 100%;
+  background:
+    repeating-linear-gradient(
+      -75deg,
+      #5a3a1a 0px,
+      #5a3a1a 1px,
+      #7a5228 1px,
+      #7a5228 3px
+    ),
+    linear-gradient(to right, #4a3018 0%, #8b5a2b 25%, #b87333 55%, #c45a2a 85%, #a04020 100%);
+  border-radius: 6px;
+  position: relative;
+  min-width: 0;
+  overflow: visible;
+  box-shadow:
+    inset 0 1px 0 rgba(255,220,180,0.2),
+    inset 0 -1px 0 rgba(0,0,0,0.25),
+    0 0 0 1px rgba(0,0,0,0.1);
+}
+
+.self-draw-fuse-flame, .fuse-timer-flame {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translate(50%, -50%);
+  width: 24px;
+  height: 30px;
+  background: radial-gradient(ellipse 55% 75% at 50% 65%, #ffb347 0%, #ff8c42 20%, #ff5722 45%, #e65100 65%, #bf360c 80%, transparent 90%);
+  border-radius: 50% 50% 50% 50% / 55% 55% 45% 45%;
+  box-shadow:
+    0 0 18px #ff8c42,
+    0 0 30px #ff5722,
+    0 0 45px rgba(255,87,34,0.6);
+  animation: self-draw-flame-flicker 0.12s ease-in-out infinite alternate;
+  overflow: visible;
+}
+
+.self-draw-spark, .fuse-timer-spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  background: radial-gradient(circle, #fff3b0 0%, #ffcc00 30%, #ff9800 60%, transparent 80%);
+  border-radius: 50%;
+  box-shadow: 0 0 6px #ffcc00, 0 0 10px #ff9800, 0 0 14px rgba(255,152,0,0.6);
+  animation: self-draw-spark-fly 0.7s ease-out infinite;
+  animation-delay: var(--delay, 0s);
+  animation-duration: var(--dur, 0.7s);
+  transform-origin: center center;
+  pointer-events: none;
+}
+
+.self-draw-spark::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: radial-gradient(circle, rgba(255,204,0,0.5) 0%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(2px);
+}
+
+@keyframes self-draw-spark-fly {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2) translate(0, 0);
+  }
+  70% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3) translate(calc(var(--dx, 0) * 1px), calc(var(--dy, -40) * 1px));
+  }
+}
+
+@keyframes self-draw-flame-flicker {
+  from { opacity: 1; transform: translate(50%, -50%) scale(1); }
+  to { opacity: 0.92; transform: translate(50%, -50%) scale(1.08); }
+}
+
+/* --- Fuse timer (reusable) --- */
+.fuse-timer, .fuse-timer-track, .fuse-timer-burn, .fuse-timer-flame { box-sizing: border-box; }
+.fuse-timer { margin: 0; width: 100%; max-width: 300px; margin-left: auto; margin-right: auto; overflow: visible; }
+.fuse-timer-track { height: 12px; background: repeating-linear-gradient(105deg,#1a120c 0,#1a120c 2px,#2d1f14 2px,#2d1f14 4px); border-radius: 6px; overflow: visible; position: relative; box-shadow: inset 0 2px 2px rgba(255,255,255,0.04),inset 0 -2px 2px rgba(0,0,0,0.5),0 3px 6px rgba(0,0,0,0.25); }
+.fuse-timer-burn { height: 100%; width: 100%; background: repeating-linear-gradient(-75deg,#5a3a1a 0,#5a3a1a 1px,#7a5228 1px,#7a5228 3px),linear-gradient(to right,#4a3018 0%,#8b5a2b 25%,#b87333 55%,#c45a2a 85%,#a04020 100%); border-radius: 6px; position: relative; min-width: 0; overflow: visible; box-shadow: inset 0 1px 0 rgba(255,220,180,0.2),inset 0 -1px 0 rgba(0,0,0,0.25),0 0 0 1px rgba(0,0,0,0.1); }
+.fuse-timer-flame { position: absolute; right: 0; top: 50%; transform: translate(50%, -50%); width: 24px; height: 30px; background: radial-gradient(ellipse 55% 75% at 50% 65%,#ffb347 0%,#ff8c42 20%,#ff5722 45%,#e65100 65%,#bf360c 80%,transparent 90%); border-radius: 50% 50% 50% 50%/55% 55% 45% 45%; box-shadow: 0 0 18px #ff8c42,0 0 30px #ff5722,0 0 45px rgba(255,87,34,0.6); animation: self-draw-flame-flicker 0.12s ease-in-out infinite alternate; overflow: visible; }
+.fuse-timer-spark { position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; background: radial-gradient(circle,#fff3b0 0%,#ffcc00 30%,#ff9800 60%,transparent 80%); border-radius: 50%; box-shadow: 0 0 6px #ffcc00,0 0 10px #ff9800,0 0 14px rgba(255,152,0,0.6); animation: self-draw-spark-fly 0.7s ease-out infinite; animation-delay: var(--delay,0s); animation-duration: var(--dur,0.7s); transform-origin: center center; pointer-events: none; }
+.fuse-timer-spark::before { content: ''; position: absolute; inset: -2px; background: radial-gradient(circle,rgba(255,204,0,0.5) 0%,transparent 70%); border-radius: 50%; filter: blur(2px); }
+
+.self-draw-settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+}
+
+.self-draw-settings-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.self-draw-settings-panel {
+  background: var(--bg-main);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 320px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.self-draw-settings-panel h3 {
+  margin: 0 0 16px;
+  font-size: 1.25rem;
+}
+
+.self-draw-settings-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.self-draw-settings-row label {
+  margin: 0;
+  cursor: pointer;
+}
+
+.self-draw-settings-row input[type="number"] {
+  width: 60px;
+  padding: 6px 10px;
+  font-size: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.self-draw-settings-panel label {
+  display: block;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+
+.self-draw-timer-input-wrap {
+  margin: 12px 0 20px;
+}
+
+.self-draw-timer-input-wrap label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+}
+
+.self-draw-timer-input-wrap input {
+  width: 100%;
+  max-width: 120px;
+  padding: 8px 12px;
+  font-size: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.self-draw-settings-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
 .self-draw-actions {
   display: flex;
   gap: 24px;
@@ -1204,6 +1675,111 @@ main h2 {
   padding-bottom: env(safe-area-inset-bottom, 24px);
   flex-wrap: wrap;
   justify-content: center;
+}
+
+.self-draw-screen {
+  position: relative;
+}
+
+.self-draw-settings-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  font-size: 1.5rem;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.self-draw-settings-btn:hover {
+  opacity: 1;
+}
+
+.self-draw-settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+}
+
+.self-draw-settings-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.self-draw-settings-panel {
+  background: var(--bg-main);
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 360px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.self-draw-settings-panel h3 {
+  margin: 0 0 16px;
+  font-size: 1.25rem;
+}
+
+.self-draw-settings-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.self-draw-settings-row label {
+  margin: 0;
+  cursor: pointer;
+}
+
+.self-draw-settings-row input[type="number"] {
+  width: 60px;
+  padding: 6px 10px;
+  font-size: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.self-draw-settings-panel label {
+  display: block;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+
+.self-draw-timer-input-wrap {
+  margin: 12px 0 20px;
+}
+
+.self-draw-timer-input-wrap label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+}
+
+.self-draw-timer-input-wrap input {
+  width: 80px;
+  padding: 8px 12px;
+  font-size: 1rem;
+  border: 1px solid var(--border, #333);
+  border-radius: 6px;
+  background: var(--bg-card);
+}
+
+.self-draw-settings-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
 }
 
 @media (max-width: 480px) {

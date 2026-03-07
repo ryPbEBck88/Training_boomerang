@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from data.cards import get_shuffled_shoe, draw_card
 from blackjack.utils.self_draw import update_hand_value, check_action
 from .utils.payout import get_random_bet, check_user_payout
+from training.utils.timer import process_timer_settings
 
 def _parse_int(val, default, min_val=None, max_val=None):
     try:
@@ -21,6 +22,7 @@ def payout_view(request):
     step = request.session.get('payout_step', 5)
 
     if request.method == 'POST' and request.POST.get('action') == 'settings':
+        process_timer_settings(request)
         min_bet = _parse_int(request.POST.get('min_bet'), min_bet, 1, 10000)
         max_bet = _parse_int(request.POST.get('max_bet'), max_bet, 1, 10000)
         step = _parse_int(request.POST.get('step'), step, 1, 1000)
@@ -89,6 +91,13 @@ def payout_view(request):
     })
 
 def self_draw(request):
+    timer_seconds = request.session.get('timer_seconds', 3)
+    timer_enabled = request.session.get('timer_enabled', False)
+
+    if request.method == 'POST' and request.POST.get('action') == 'settings':
+        process_timer_settings(request)
+        return redirect('blackjack_self_draw')
+
     hand = request.session.get('hand', [])
     if request.method == 'GET':
         if request.GET.get('new') or not hand:
@@ -104,6 +113,8 @@ def self_draw(request):
                 'value': value,
                 'message': '',
                 'game_over': False,
+                'timer_seconds': timer_seconds,
+                'timer_enabled': timer_enabled,
             })
         value = request.session.get('hand_value', [0, 0])
         return render(request, 'blackjack/self_draw.html', {
@@ -111,6 +122,8 @@ def self_draw(request):
             'value': value,
             'message': '',
             'game_over': False,
+            'timer_seconds': timer_seconds,
+            'timer_enabled': timer_enabled,
         })
 
     hand = request.session.get('hand', [])
@@ -143,6 +156,8 @@ def self_draw(request):
         'message': message,
         'game_over': game_over,
         'success': success,
+        'timer_seconds': timer_seconds,
+        'timer_enabled': timer_enabled,
     }
     return render(request, 'blackjack/self_draw.html', context)
 

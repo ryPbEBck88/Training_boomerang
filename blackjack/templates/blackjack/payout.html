@@ -20,6 +20,7 @@
 				{% csrf_token %}
 				<input type="hidden" name="action" value="settings">
 				<div class="payout-settings-fields">
+					{% include "partials/fuse_timer_settings.html" %}
 					<label>min: <input type="number" name="min_bet" value="{{ min_bet }}" min="1" max="10000"></label>
 					<label>max: <input type="number" name="max_bet" value="{{ max_bet }}" min="1" max="10000"></label>
 					<label>step: <input type="number" name="step" value="{{ step }}" min="1" max="1000"></label>
@@ -32,7 +33,10 @@
 		</div>
 	</div>
 
-	<form method="post" autocomplete="off" class="payout-form">
+	{% if timer_enabled and success is None and not skipped %}
+	{% include "partials/fuse_timer.html" with prefix="bj-payout" %}
+	{% endif %}
+	<form method="post" autocomplete="off" class="payout-form" id="bj-payout-form">
 		{% csrf_token %}
 		<div class="payout-bet">{{ bet }}</div>
 
@@ -132,5 +136,9 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 });
 </script>
-
+{% if timer_enabled and success is None and not skipped %}
+{% block extra_scripts %}
+<script>document.addEventListener('DOMContentLoaded',function(){if(typeof initFuseTimer==='function')initFuseTimer({prefix:'bj-payout',seconds:{{ timer_seconds }},timeoutButton:'button[value="check"]',settingsOverlay:'#payoutSettingsOverlay'});});</script>
+{% endblock %}
+{% endif %}
 {% endblock %}

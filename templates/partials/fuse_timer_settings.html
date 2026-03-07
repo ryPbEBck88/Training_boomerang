@@ -1,0 +1,7 @@
+<div class="fuse-timer-settings-row" style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+	<label style="margin:0;display:flex;align-items:center;gap:8px;cursor:pointer;">
+		<input type="checkbox" name="timer_enabled" {% if timer_enabled %}checked{% endif %}>
+		Таймер
+	</label>
+	<input type="number" name="timer_seconds" min="1" max="60" value="{{ timer_seconds }}" title="Секунд" style="width:70px;padding:6px 10px;">
+</div>

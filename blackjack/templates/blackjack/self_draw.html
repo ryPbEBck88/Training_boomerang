@@ -4,14 +4,30 @@
 {% block main_class %}self-draw-main{% endblock %}
 {% block content %}
 <div class="self-draw-screen">
-	<h2>Тренажёр “Набираю себе” (Blackjack)</h2>
-<div class="self-draw-cards">
+	<div class="self-draw-header">
+		<button type="button" class="self-draw-help-btn" aria-label="Справка" title="Справка">
+			<svg class="self-draw-help-icon" viewBox="0 0 24 24">
+				<circle cx="12" cy="12" r="10" fill="#2563eb"/>
+				<text x="12" y="17" text-anchor="middle" fill="white" font-size="14" font-weight="bold" font-family="system-ui,sans-serif">?</text>
+			</svg>
+		</button>
+		<button type="button" class="self-draw-settings-btn" aria-label="Настройки" title="Настройки">
+		<svg class="payout-settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+			<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+			<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
+		</svg>
+	</button>
+	</div>
+	<div class="self-draw-cards">
 		{% for card in cards %}
 			<img src="{% static 'cards/'|add:card.img %}" width="80" height="120" class="card-img" alt="">
 		{% endfor %}
 	</div>
 {% if not game_over %}
-  <form method="post" class="self-draw-actions">
+	{% if timer_enabled %}
+	{% include "partials/fuse_timer.html" with prefix="self-draw" %}
+	{% endif %}
+  <form method="post" class="self-draw-actions" id="self-draw-form">
       {% csrf_token %}
       <button type="submit" name="action" value="hit" class="btn-circle btn-hit">Взять карту</button>
       <button type="submit" name="action" value="stand" class="btn-circle btn-stand">Стоп</button>
@@ -42,4 +58,73 @@
 	</div>
 	{% endif %}
 </div>
+
+<div class="self-draw-settings-overlay" id="self-draw-help-overlay" aria-hidden="true">
+	<div class="self-draw-settings-panel">
+		<h3>Справка</h3>
+		<p class="self-draw-help-text">Считаем сумму карт.</p>
+		<p class="self-draw-help-text">Если 16 и меньше → <strong>Взять карту</strong></p>
+		<p class="self-draw-help-text">Если 17 и больше → <strong>Стоп</strong></p>
+		<p class="self-draw-help-text" style="margin-top:16px;"><strong>Номинал карт:</strong></p>
+		<ul class="self-draw-help-list">
+			<li>A (туз) — 1 или 11</li>
+			<li>K (король) — 10</li>
+			<li>Q (дама) — 10</li>
+			<li>J (валет) — 10</li>
+			<li>10 — 10</li>
+			<li>9 — 9</li>
+			<li>8 — 8</li>
+			<li>7 — 7</li>
+			<li>6 — 6</li>
+			<li>5 — 5</li>
+			<li>4 — 4</li>
+			<li>3 — 3</li>
+			<li>2 — 2</li>
+		</ul>
+		<div class="self-draw-settings-actions">
+			<a href="{% url 'homepage_index' %}" class="btn btn-secondary">На главную</a>
+			<button type="button" class="btn btn-primary self-draw-help-close">Понятно</button>
+		</div>
+	</div>
+</div>
+
+<div class="self-draw-settings-overlay" id="self-draw-settings-overlay" aria-hidden="true">
+	<div class="self-draw-settings-panel">
+		<h3>Настройки</h3>
+		<form method="post" action="{% url 'blackjack_self_draw' %}">
+			{% csrf_token %}
+			<input type="hidden" name="action" value="settings">
+			{% include "partials/fuse_timer_settings.html" %}
+			<div class="self-draw-settings-actions">
+				<button type="submit" class="btn btn-primary">Сохранить</button>
+				<button type="button" class="btn btn-secondary self-draw-settings-close">Отмена</button>
+			</div>
+		</form>
+	</div>
+</div>
+
+<script>
+(function(){
+	var settingsBtn = document.querySelector('.self-draw-settings-btn');
+	var settingsOverlay = document.getElementById('self-draw-settings-overlay');
+	var settingsClose = settingsOverlay && settingsOverlay.querySelector('.self-draw-settings-close');
+	if (settingsBtn && settingsOverlay) {
+		settingsBtn.addEventListener('click', function(){ settingsOverlay.setAttribute('aria-hidden','false'); settingsOverlay.classList.add('open'); });
+		if (settingsClose) settingsClose.addEventListener('click', function(){ settingsOverlay.setAttribute('aria-hidden','true'); settingsOverlay.classList.remove('open'); });
+	}
+	var helpBtn = document.querySelector('.self-draw-help-btn');
+	var helpOverlay = document.getElementById('self-draw-help-overlay');
+	var helpClose = helpOverlay && helpOverlay.querySelector('.self-draw-help-close');
+	if (helpBtn && helpOverlay) {
+		helpBtn.addEventListener('click', function(){ helpOverlay.setAttribute('aria-hidden','false'); helpOverlay.classList.add('open'); });
+		if (helpClose) helpClose.addEventListener('click', function(){ helpOverlay.setAttribute('aria-hidden','true'); helpOverlay.classList.remove('open'); });
+		helpOverlay.addEventListener('click', function(e){ if (e.target === helpOverlay) { helpOverlay.setAttribute('aria-hidden','true'); helpOverlay.classList.remove('open'); } });
+	}
+})();
+</script>
+{% if not game_over and timer_enabled %}
+{% block extra_scripts %}
+<script>document.addEventListener('DOMContentLoaded',function(){if(typeof initFuseTimer==='function')initFuseTimer({prefix:'self-draw',seconds:{{ timer_seconds }},timeoutButton:'button[value="stand"]',settingsOverlay:'#self-draw-settings-overlay'});});</script>
+{% endblock %}
+{% endif %}
 {% endblock %}
