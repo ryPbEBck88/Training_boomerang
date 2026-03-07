@@ -43,7 +43,7 @@
 		{% csrf_token %}
 		<div class="payout-row">
 			<div class="payout-entry">
-				<input type="text" name="user_answer" class="payout-input" placeholder="ответ" autocomplete="off" inputmode="numeric" {% if success or skipped %}disabled{% endif %} id="arRouletteInput">
+				<input type="text" name="user_answer" class="payout-input" placeholder="ответ" autocomplete="off" inputmode="none" {% if success or skipped %}disabled{% endif %} id="arRouletteInput">
 				<div class="payout-keyboard">
 					<button type="button" class="payout-key" data-val="7">7</button>
 					<button type="button" class="payout-key" data-val="8">8</button>

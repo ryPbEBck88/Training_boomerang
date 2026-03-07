@@ -12,6 +12,8 @@
 		if (!inputs.length) return;
 
 		var lastActiveInput = inputs[0];
+		var lastHandledKey = null;
+		var lastHandledTime = 0;
 
 		inputs.forEach(function(inp) {
 			inp.addEventListener('focus', function() {
@@ -29,23 +31,36 @@
 			});
 		});
 
-		keyboard.addEventListener('mousedown', function(e) { e.preventDefault(); });
-		keyboard.addEventListener('touchstart', function(e) { e.preventDefault(); }, { passive: false });
+		function handleKeyPress(keyEl) {
+			if (keyEl.type === 'submit') {
+				keyEl.click();
+				return;
+			}
+			if (!lastActiveInput || lastActiveInput.disabled) return;
+			var now = Date.now();
+			if (keyEl === lastHandledKey && now - lastHandledTime < 300) return;
+			lastHandledKey = keyEl;
+			lastHandledTime = now;
+			var action = keyEl.getAttribute('data-action');
+			if (action === 'backspace') {
+				lastActiveInput.value = lastActiveInput.value.slice(0, -1);
+			} else {
+				var val = keyEl.getAttribute('data-val');
+				if (val != null) lastActiveInput.value += val;
+			}
+		}
 
 		var keys = keyboard.querySelectorAll('.payout-key');
 		keys.forEach(function(k) {
-			k.addEventListener('click', function(e) {
-				if (this.type === 'submit') return;
-				if (!lastActiveInput || lastActiveInput.disabled) return;
+			var isSubmit = k.type === 'submit';
+			k.addEventListener('pointerdown', function(e) {
+				if (isSubmit) return; // Enter — не блокируем, native submit сработает
 				e.preventDefault();
-				var action = this.getAttribute('data-action');
-				if (action === 'backspace') {
-					lastActiveInput.value = lastActiveInput.value.slice(0, -1);
-				} else {
-					var val = this.getAttribute('data-val');
-					if (val != null) lastActiveInput.value += val;
-				}
+				handleKeyPress(k);
 			});
+			k.addEventListener('touchstart', function(e) {
+				if (!isSubmit) e.preventDefault();
+			}, { passive: false });
 		});
 	}
 

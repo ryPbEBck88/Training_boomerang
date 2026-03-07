@@ -70,14 +70,14 @@
 				{% if use_stacks %}
 				<div class="payout-ptc-answer-row">
 					<label class="payout-ptc-answer-cell">
-						<input type="text" name="user_answer_stacks" class="payout-input payout-ptc-input" placeholder="стеков" autocomplete="off" inputmode="numeric" {% if success or skipped %}disabled{% endif %} id="arPtcInputStacks">
+						<input type="text" name="user_answer_stacks" class="payout-input payout-ptc-input" placeholder="стеков" autocomplete="off" inputmode="none" {% if success or skipped %}disabled{% endif %} id="arPtcInputStacks">
 					</label>
 					<label class="payout-ptc-answer-cell">
-						<input type="text" name="user_answer_remainder" class="payout-input payout-ptc-input" placeholder="остаток" autocomplete="off" inputmode="numeric" {% if success or skipped %}disabled{% endif %} id="arPtcInputRemainder">
+						<input type="text" name="user_answer_remainder" class="payout-input payout-ptc-input" placeholder="остаток" autocomplete="off" inputmode="none" {% if success or skipped %}disabled{% endif %} id="arPtcInputRemainder">
 					</label>
 				</div>
 				{% else %}
-				<input type="text" name="user_answer" class="payout-input" placeholder="ответ" autocomplete="off" inputmode="numeric" {% if success or skipped %}disabled{% endif %} id="arPtcInput">
+				<input type="text" name="user_answer" class="payout-input" placeholder="ответ" autocomplete="off" inputmode="none" {% if success or skipped %}disabled{% endif %} id="arPtcInput">
 				{% endif %}
 				<div class="payout-keyboard">
 					<button type="button" class="payout-key" data-val="7">7</button>

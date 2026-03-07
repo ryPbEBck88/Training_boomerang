@@ -176,6 +176,100 @@ main h2 {
   text-decoration: underline;
 }
 
+/* --- Главная: блоки как на AR --- */
+.home-splash {
+  text-align: center;
+  padding: 48px 24px 56px;
+  margin: -32px -36px 32px -36px;
+  background: linear-gradient(160deg, rgba(45, 90, 39, 0.12) 0%, rgba(45, 90, 39, 0.04) 100%);
+  border-radius: var(--radius) var(--radius) 0 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.home-splash__title {
+  margin: 0 0 8px;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.05em;
+}
+
+.home-splash__tagline {
+  margin: 0 0 24px;
+  font-size: 1.1rem;
+  color: var(--text-muted);
+}
+
+.home-splash__section {
+  margin: 32px 0 16px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.home-splash__section:first-of-type {
+  margin-top: 0;
+}
+
+.home-splash__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  justify-content: center;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.home-splash__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  text-decoration: none;
+  color: var(--text);
+  transition: transform 0.2s, box-shadow 0.2s;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--bg-main);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.home-splash__card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  color: var(--text);
+}
+
+.home-splash__card-img {
+  width: 100%;
+  aspect-ratio: 1;
+  max-height: 180px;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+}
+
+.home-splash__card-label {
+  padding: 12px 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+}
+
+@media (min-width: 600px) {
+  .home-splash__grid {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 960px;
+    gap: 24px;
+  }
+  .home-splash__card-img {
+    max-height: 200px;
+  }
+}
+
 /* --- Мобильная версия --- */
 @media (max-width: 600px) {
   body {
@@ -741,6 +835,7 @@ main h2 {
   display: grid;
   grid-template-columns: repeat(4, 52px);
   gap: 8px;
+  touch-action: manipulation; /* быстрый отклик на мобильных */
 }
 
 @media (min-width: 480px) {
@@ -762,6 +857,10 @@ main h2 {
   background: #fff;
   color: var(--text);
   cursor: pointer;
+  touch-action: manipulation; /* быстрый отклик на тач, без 300ms задержки */
+  -webkit-tap-highlight-color: transparent; /* убирает подсветку тапа на iOS */
+  -webkit-tap-highlight-color: transparent; /* убирает подсветку тапа на iOS */
+  -webkit-tap-highlight-color: transparent; /* убирает подсветку тапа на iOS/Android */
   box-shadow: 0 2px 4px rgba(30, 58, 95, 0.12), 0 1px 0 rgba(255,255,255,0.9) inset;
   transition: transform 0.08s, box-shadow 0.2s, background 0.15s;
 }
@@ -1432,6 +1531,15 @@ main h2 {
   }
 
   .ar-splash__title {
+    font-size: 2rem;
+  }
+
+  .home-splash {
+    margin: -20px -10px 20px -10px;
+    padding: 32px 16px 40px;
+  }
+
+  .home-splash__title {
     font-size: 2rem;
   }
 }

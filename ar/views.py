@@ -40,7 +40,7 @@ def ar_mix(request):
 
 
 def ar_mix_to_ptc(request):
-    """Mix: после успеха в цвет в cash — в выплату через кеш (цвет + цвет_по)."""
+    """Mix: после успеха в цвет в cash — в выплату через cash (цвет + цвет_по)."""
     if request.method != 'POST':
         return redirect('ar_bets')
     mix_color = request.POST.get('mix_number')  # число от заставки = цвет
@@ -59,7 +59,7 @@ def ar_mix_to_ptc(request):
 
 
 def ar_mix_continue(request):
-    """После успеха в выплате через кеш (mix) — обратно к заставке."""
+    """После успеха в выплате через cash (mix) — обратно к заставке."""
     request.session.pop('ar_roulette_mix_mode', None)
     request.session.pop('ar_roulette_mix_number', None)
     request.session.pop('ar_ptc_mix_color', None)
@@ -180,7 +180,7 @@ DEFAULT_COLOR_PER = [5, 10, 25]
 
 
 def ar_payout_through_cash(request):
-    """Выплата через кеш: цвет, cash, цвет по. Сколько цветных фишек осталось? ответ = цвет - (cash / цвет_по), 1–200."""
+    """Выплата через cash: цвет, cash, цвет по. Сколько цветных фишек осталось? ответ = цвет - (cash / цвет_по), 1–200."""
     mix_mode = request.GET.get('mode') == 'mix' or request.session.get('ar_ptc_mix_mode')
     if request.GET.get('mode') == 'mix':
         request.session['ar_ptc_mix_mode'] = True
