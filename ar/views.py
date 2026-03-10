@@ -26,6 +26,24 @@ def _gen_number(min_val, max_val, step):
     return min_val + random.randint(0, n - 1) * step
 
 
+# Порядок чисел на колесе рулетки (по часовой стрелке)
+ROULETTE_WHEEL = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26]
+
+
+def _wheel_neighbors(center):
+    """Для числа center возвращает (ccw2, ccw1, cw1, cw2) по колесу."""
+    try:
+        idx = ROULETTE_WHEEL.index(center)
+    except ValueError:
+        return (None, None, None, None)
+    n = len(ROULETTE_WHEEL)
+    ccw2 = ROULETTE_WHEEL[(idx - 2) % n]
+    ccw1 = ROULETTE_WHEEL[(idx - 1) % n]
+    cw1 = ROULETTE_WHEEL[(idx + 1) % n]
+    cw2 = ROULETTE_WHEEL[(idx + 2) % n]
+    return (ccw2, ccw1, cw1, cw2)
+
+
 def index(request):
     return render(request, 'ar/index.html')
 
@@ -33,6 +51,88 @@ def index(request):
 def ar_bets(request):
     mix_mode = request.GET.get('mode') == 'mix'
     return render(request, 'ar/ar_bets.html', {'mix_mode': mix_mode})
+
+
+def ar_neighbors(request):
+    """Соседи: 5 ячеек, центр 0–36, ввести 4 соседа по колесу. По часовой — чек, против — почти чек."""
+    if request.method == 'GET' or (request.method == 'POST' and request.POST.get('action') == 'next'):
+        center = random.randint(0, 36)
+        ccw2, ccw1, cw1, cw2 = _wheel_neighbors(center)
+        request.session['ar_neighbors_center'] = center
+        request.session['ar_neighbors_ccw2'] = ccw2
+        request.session['ar_neighbors_ccw1'] = ccw1
+        request.session['ar_neighbors_cw1'] = cw1
+        request.session['ar_neighbors_cw2'] = cw2
+        return render(request, 'ar/ar_neighbors.html', {
+            'center': center,
+            'message': '',
+            'success': None,
+            'skipped': False,
+            'user_cell1': '',
+            'user_cell2': '',
+            'user_cell4': '',
+            'user_cell5': '',
+        })
+
+    center = request.session.get('ar_neighbors_center', 0)
+    ccw2, ccw1, cw1, cw2 = (
+        request.session.get('ar_neighbors_ccw2'),
+        request.session.get('ar_neighbors_ccw1'),
+        request.session.get('ar_neighbors_cw1'),
+        request.session.get('ar_neighbors_cw2'),
+    )
+    message = ''
+    success = None
+    skipped = False
+
+    def _parse_cell(val):
+        try:
+            v = int(val) if val else None
+            return v if v is not None and 0 <= v <= 36 else None
+        except (TypeError, ValueError):
+            return None
+
+    if request.POST.get('action') == 'skip':
+        message = f"Пропущено. Правильно: {ccw2} | {ccw1} | {center} | {cw1} | {cw2}"
+        success = None
+        skipped = True
+    elif request.POST.get('action') == 'check':
+        u1 = _parse_cell(request.POST.get('cell1'))
+        u2 = _parse_cell(request.POST.get('cell2'))
+        u4 = _parse_cell(request.POST.get('cell4'))
+        u5 = _parse_cell(request.POST.get('cell5'))
+        if u1 is None or u2 is None or u4 is None or u5 is None:
+            message = "Введите все 4 числа"
+            success = None
+        else:
+            # Стандартный порядок (чек): [CCW2, CCW1, center, CW1, CW2] — напр. 26 0 32 15 19
+            standard_ok = (u1 == ccw2 and u2 == ccw1 and u4 == cw1 and u5 == cw2)
+            # По часовой (чек): [CW2, CW1, center, CCW2, CCW1] — напр. 10 5 24 16 33
+            cw_order_ok = (u1 == cw2 and u2 == cw1 and u4 == ccw2 and u5 == ccw1)
+            # По часовой, правая пара в обратном порядке: [CW2, CW1, center, CCW1, CCW2] — напр. 0 26 3 35 12 (почти чек)
+            cw_order_rev_ok = (u1 == cw2 and u2 == cw1 and u4 == ccw1 and u5 == ccw2)
+            # Против часовой (почти чек): [CCW1, CCW2, center, CW1, CW2] — напр. 33 16 24 5 10
+            ccw_order_ok = (u1 == ccw1 and u2 == ccw2 and u4 == cw1 and u5 == cw2)
+            if standard_ok or cw_order_ok:
+                message = "Правильно!"
+                success = 'full'
+            elif ccw_order_ok or cw_order_rev_ok:
+                message = "👍 Почти! Правильно по часовой стрелке."
+                success = 'almost'
+            else:
+                message = ""
+                success = False
+
+    return render(request, 'ar/ar_neighbors.html', {
+        'center': center,
+        'message': message,
+        'success': success,
+        'skipped': skipped,
+        'user_cell1': request.POST.get('cell1', ''),
+        'user_cell2': request.POST.get('cell2', ''),
+        'user_cell4': request.POST.get('cell4', ''),
+        'user_cell5': request.POST.get('cell5', ''),
+    })
 
 
 def ar_mix(request):

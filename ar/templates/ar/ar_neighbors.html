@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+{% load static %}
+{% block main_class %}payout-main{% endblock %}
+{% block content %}
+<div class="payout-screen">
+<div class="payout-page">
+	<div class="payout-header neighbors-header">
+		<button type="button" class="neighbors-help-btn" id="neighborsHelpBtn" aria-label="Справка" title="Справка">
+			<svg class="neighbors-help-icon" viewBox="0 0 24 24">
+				<circle cx="12" cy="12" r="10" fill="#2563eb"/>
+				<text x="12" y="17" text-anchor="middle" fill="white" font-size="14" font-weight="bold" font-family="system-ui,sans-serif">?</text>
+			</svg>
+		</button>
+		<div class="payout-bet neighbors-title">Соседи</div>
+	</div>
+	<div class="neighbors-help-overlay" id="neighborsHelpOverlay" aria-hidden="true">
+		<div class="neighbors-help-modal">
+			<p class="neighbors-help-text">Введите 4 соседа по колесу рулетки (по часовой стрелке — чек, против — почти чек)</p>
+			<button type="button" class="btn btn-primary neighbors-help-close" id="neighborsHelpClose">Понятно</button>
+		</div>
+	</div>
+
+	<form method="post" autocomplete="off" class="payout-form neighbors-form">
+		{% csrf_token %}
+		<div class="neighbors-row">
+			<div class="neighbors-cell neighbors-cell--input">
+				<input type="text" name="cell1" class="payout-input neighbors-input" placeholder="" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="2" value="{{ user_cell1 }}" {% if success or skipped %}disabled{% endif %} id="neighborsCell1" title="Против часовой (2 шага)">
+			</div>
+			<div class="neighbors-cell neighbors-cell--input">
+				<input type="text" name="cell2" class="payout-input neighbors-input" placeholder="" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="2" value="{{ user_cell2 }}" {% if success or skipped %}disabled{% endif %} id="neighborsCell2" title="Против часовой (1 шаг)">
+			</div>
+			<div class="neighbors-cell neighbors-cell--center">
+				<span class="neighbors-center-num">{{ center }}</span>
+			</div>
+			<div class="neighbors-cell neighbors-cell--input">
+				<input type="text" name="cell4" class="payout-input neighbors-input" placeholder="" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="2" value="{{ user_cell4 }}" {% if success or skipped %}disabled{% endif %} id="neighborsCell4" title="По часовой (1 шаг)">
+			</div>
+			<div class="neighbors-cell neighbors-cell--input">
+				<input type="text" name="cell5" class="payout-input neighbors-input" placeholder="" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="2" value="{{ user_cell5 }}" {% if success or skipped %}disabled{% endif %} id="neighborsCell5" title="По часовой (2 шага)">
+			</div>
+		</div>
+
+		<div class="payout-entry">
+			<div class="payout-keyboard">
+				<button type="button" class="payout-key" data-val="7">7</button>
+				<button type="button" class="payout-key" data-val="8">8</button>
+				<button type="button" class="payout-key" data-val="9">9</button>
+				<button type="button" class="payout-key payout-key--backspace" data-action="backspace" title="Удалить">⌫</button>
+				<button type="button" class="payout-key" data-val="4">4</button>
+				<button type="button" class="payout-key" data-val="5">5</button>
+				<button type="button" class="payout-key" data-val="6">6</button>
+				{% if not success and not skipped %}
+				<button type="submit" name="action" value="check" class="payout-key payout-key--enter" title="Проверить">↵</button>
+				{% endif %}
+				<button type="button" class="payout-key" data-val="1">1</button>
+				<button type="button" class="payout-key" data-val="2">2</button>
+				<button type="button" class="payout-key" data-val="3">3</button>
+				<button type="button" class="payout-key" data-val="0">0</button>
+				<button type="button" class="payout-key payout-key--nextcell" data-action="nextcell" title="Следующая ячейка">&gt;|</button>
+			</div>
+			{% if not success and not skipped %}
+			<div class="payout-pass-row">
+				<button type="submit" name="action" value="skip" formnovalidate class="btn btn-secondary payout-pass-btn">Pass</button>
+			</div>
+			{% endif %}
+		</div>
+
+		{% if message and not success and not skipped %}
+			<div class="payout-message error">{{ message }}</div>
+		{% endif %}
+	</form>
+
+	{% if success is False %}
+	<div class="payout-success-overlay self-draw-error-overlay" id="neighborsErrorOverlay">
+		<button type="button" class="payout-success-tap" id="neighborsErrorClose"></button>
+		<div class="payout-fireworks payout-fireworks--stop" aria-hidden="true">
+			<span></span><span></span><span></span><span></span><span></span><span></span>
+			<span></span><span></span><span></span><span></span><span></span><span></span>
+		</div>
+		<div class="self-draw-error-content">
+			<span class="self-draw-error-hand" aria-hidden="true">✋</span>
+			<div class="payout-success-text self-draw-error-text">Стоп!<br><small>Нажмите, чтобы попробовать снова</small></div>
+		</div>
+	</div>
+	{% endif %}
+
+	{% if success or skipped %}
+	<form method="post" class="payout-success-overlay" id="neighborsSuccessOverlay">
+		{% csrf_token %}
+		<input type="hidden" name="action" value="next">
+		<button type="submit" class="payout-success-tap"></button>
+		{% if success %}
+		<div class="payout-fireworks" aria-hidden="true">
+			<span></span><span></span><span></span><span></span><span></span><span></span>
+			<span></span><span></span><span></span><span></span><span></span><span></span>
+		</div>
+		{% endif %}
+		<div class="payout-success-text">
+			{% if success == 'full' %}{% include "partials/payout_check_text.html" %}{% elif success == 'check' %}Правильно по часовой стрелке! ✓{% elif success == 'almost' %}👍 Почти! Правильно по часовой стрелке.{% else %}{{ message }}{% endif %}
+		</div>
+	</form>
+	{% endif %}
+</div>
+</div>
+
+<style>
+.neighbors-header {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+	gap: 0.5rem;
+	min-height: 2.5rem;
+}
+.neighbors-help-btn {
+	position: absolute;
+	left: 0;
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 4px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.neighbors-help-icon {
+	width: 28px;
+	height: 28px;
+	display: block;
+}
+.neighbors-help-btn:hover .neighbors-help-icon circle { fill: #1d4ed8; }
+.neighbors-title { margin: 0; text-align: center; }
+.neighbors-help-overlay {
+	display: none;
+	position: fixed;
+	inset: 0;
+	background: rgba(0,0,0,0.5);
+	z-index: 100;
+	align-items: center;
+	justify-content: center;
+	padding: 20px;
+}
+.neighbors-help-overlay.is-open { display: flex; }
+.neighbors-help-modal {
+	background: var(--bg-main, #fff);
+	border-radius: var(--radius, 12px);
+	padding: 24px;
+	max-width: 320px;
+	width: 100%;
+	box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+.neighbors-help-text { margin: 0 0 20px; font-size: 0.95rem; }
+.neighbors-help-close { width: 100%; }
+.neighbors-row {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 0.5rem;
+	margin: 1.25rem 0;
+	flex-wrap: nowrap;
+}
+.neighbors-cell {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	min-width: 3rem;
+	width: 3rem;
+	height: 3rem;
+	border: 2px solid #cbd5e1;
+	border-radius: 8px;
+	background: #fff;
+	font-size: 1.1rem;
+	font-weight: 600;
+}
+.neighbors-cell--center {
+	background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+	color: #fff;
+	border: 2px solid #2563eb;
+}
+.neighbors-center-num {
+	display: block;
+	line-height: 1;
+}
+.neighbors-cell--input {
+	padding: 0;
+	overflow: hidden;
+}
+.neighbors-cell--input .payout-input {
+	box-sizing: border-box;
+	width: 100%;
+	height: 100%;
+	min-width: 0;
+	padding: 0;
+	text-align: center;
+	border: none;
+	background: transparent;
+	font-size: 1.1rem;
+	font-weight: 600;
+}
+.neighbors-cell--input .payout-input:focus {
+	outline: none;
+	box-shadow: inset 0 0 0 2px #3b82f6;
+}
+.neighbors-form .payout-entry { justify-content: center; margin-top: 1rem; }
+.neighbors-form .payout-key--nextcell { grid-column: 4; grid-row: 4; }
+@media (max-width: 400px) {
+	.neighbors-cell { min-width: 2.6rem; width: 2.6rem; height: 2.6rem; font-size: 1rem; }
+	.neighbors-row { gap: 0.35rem; }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+	var neighborsLastCell = document.getElementById('neighborsCell1');
+	['neighborsCell1','neighborsCell2','neighborsCell4','neighborsCell5'].forEach(function(id){
+		var el = document.getElementById(id);
+		if (el) el.addEventListener('focus', function(){ neighborsLastCell = el; });
+	});
+	var nextCellBtn = document.querySelector('.payout-key[data-action="nextcell"]');
+	if (nextCellBtn) {
+		nextCellBtn.addEventListener('pointerdown', function(e){ e.preventDefault(); });
+		nextCellBtn.addEventListener('click', function(){
+			var order = ['neighborsCell1','neighborsCell2','neighborsCell4','neighborsCell5'];
+			var idx = order.indexOf(neighborsLastCell ? neighborsLastCell.id : '');
+			var nextIdx = (idx < 0 ? 0 : idx + 1) % 4;
+			var nextEl = document.getElementById(order[nextIdx]);
+			if (nextEl && !nextEl.disabled) nextEl.focus();
+		});
+	}
+	var helpBtn = document.getElementById('neighborsHelpBtn');
+	const helpOverlay = document.getElementById('neighborsHelpOverlay');
+	const helpClose = document.getElementById('neighborsHelpClose');
+	if (helpBtn && helpOverlay) {
+		helpBtn.addEventListener('click', function() { helpOverlay.classList.add('is-open'); });
+		if (helpClose) helpClose.addEventListener('click', function() { helpOverlay.classList.remove('is-open'); });
+		helpOverlay.addEventListener('click', function(e) { if (e.target === helpOverlay) helpOverlay.classList.remove('is-open'); });
+	}
+	const successOverlay = document.getElementById('neighborsSuccessOverlay');
+	const errorOverlay = document.getElementById('neighborsErrorOverlay');
+	const errorCloseBtn = document.getElementById('neighborsErrorClose');
+	if (errorOverlay && errorCloseBtn) {
+		errorCloseBtn.addEventListener('click', function() { errorOverlay.style.display = 'none'; });
+		document.addEventListener('keydown', function(e) {
+			if (e.key === 'Enter') {
+				e.preventDefault();
+				errorOverlay.style.display = 'none';
+			}
+		});
+	}
+	if (successOverlay) {
+		document.addEventListener('keydown', function(e) {
+			if (e.key === 'Enter') {
+				e.preventDefault();
+				successOverlay.submit();
+			}
+		});
+	}
+});
+</script>
+<p class="payout-back"><a href="{% url 'ar_index' %}">← К списку игр</a></p>
+{% endblock %}

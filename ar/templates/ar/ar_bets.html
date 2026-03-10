@@ -162,6 +162,7 @@ dir.position.set(20, 25, 20);
 scene.add(dir);
 
 const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+const whiteStripMat = new THREE.MeshBasicMaterial({ color: 0xffffff }); /* полоски — всегда белые */
 const blueMat = new THREE.MeshStandardMaterial({ color: 0x2563eb });
 const cellW = 8, cellH = 10;
 const gap = 0.3;
@@ -305,7 +306,7 @@ const vertX = [
 	gridRight
 ];
 vertX.forEach(function (x) {
-	const line = new THREE.Mesh(new THREE.PlaneGeometry(gap, vertLineH), whiteMat);
+	const line = new THREE.Mesh(new THREE.PlaneGeometry(gap, vertLineH), whiteStripMat);
 	line.name = 'split';
 	line.position.set(x, (gridTop + gridBottom) / 2, 0);
 	scene.add(line);
@@ -313,7 +314,7 @@ vertX.forEach(function (x) {
 
 const horzY = [gridBottom, cellH + gap / 2, cellH + gap + cellH + gap / 2, gridTop];
 horzY.forEach(function (y) {
-	const line = new THREE.Mesh(new THREE.PlaneGeometry(horzLineW, gap), whiteMat);
+	const line = new THREE.Mesh(new THREE.PlaneGeometry(horzLineW, gap), whiteStripMat);
 	line.name = 'split';
 	line.position.set((gridLeft + gridRight) / 2, y, 0);
 	scene.add(line);
@@ -323,23 +324,25 @@ function addGrayStrip(x1, y1, x2, y2, thickness) {
 	const dx = x2 - x1;
 	const dy = y2 - y1;
 	const length = Math.hypot(dx, dy);
-	const strip = new THREE.Mesh(new THREE.PlaneGeometry(length, thickness), whiteMat);
-	strip.name = 'gray-strip';
+	const strip = new THREE.Mesh(new THREE.PlaneGeometry(length, thickness), whiteStripMat);
+	strip.name = 'white-strip';
 	strip.position.set((x1 + x2) / 2, (y1 + y2) / 2, 0);
 	strip.rotation.z = Math.atan2(dy, dx);
 	scene.add(strip);
 }
-addGrayStrip(-0.15, -0.15, -8.15, 10.15, gap);
-addGrayStrip(-0.15, 30.75, -8.15, 20.75, gap);
+addGrayStrip(-0.15, -0.15, -3.15, -0.15, gap);   /* горизонталь снизу: (-0.15,-0.15) → (-3.15,-0.15) */
+addGrayStrip(-3.15, -0.15, -8.15, 10.15, gap);   /* диагональ снизу от (-3.15,-0.15) к вершине */
+addGrayStrip(-0.15, 30.75, -3.15, 30.75, gap);   /* горизонталь: corner 0-1-2-3 → (-3.15, 30.75) */
+addGrayStrip(-3.15, 30.75, -8.15, 20.75, gap);   /* диагональ от (-3.15, 30.75) к вершине трапеции */
 addGrayStrip(-8.15, 10.15, -8.15, 20.75, gap);
-addGrayStrip(-0.15, 30.75, -0.15, 36, gap);
-addGrayStrip(33.05, 30.75, 33.05, 36, gap);
-addGrayStrip(-0.15, 36, 33.05, 36, gap);
+const topRectBottom = gridTop + 0.3;  /* зазор 0.3 между полем 1-12 и 1st Dozen */
 
 const trapezoidShape = new THREE.Shape();
 trapezoidShape.moveTo(-0.15, -0.15);
+trapezoidShape.lineTo(-3.15, -0.15);
 trapezoidShape.lineTo(-8.15, 10.15);
 trapezoidShape.lineTo(-8.15, 20.75);
+trapezoidShape.lineTo(-3.15, 30.75);
 trapezoidShape.lineTo(-0.15, 30.75);
 trapezoidShape.closePath();
 const trapezoid = new THREE.Mesh(new THREE.ShapeGeometry(trapezoidShape), blueMat);
@@ -347,26 +350,47 @@ trapezoid.name = 'blue-trapezoid';
 trapezoid.position.set(0, 0, -0.01);
 scene.add(trapezoid);
 
+const dozRight = 33.05 - 0.15;
 const topRectShape = new THREE.Shape();
-topRectShape.moveTo(-0.15, 30.75);
-topRectShape.lineTo(33.05, 30.75);
-topRectShape.lineTo(33.05, 36);
-topRectShape.lineTo(-0.15, 36);
+topRectShape.moveTo(0, topRectBottom);
+topRectShape.lineTo(dozRight, topRectBottom);
+topRectShape.lineTo(dozRight, 36);
+topRectShape.lineTo(0, 36);
 topRectShape.closePath();
 const topRect = new THREE.Mesh(new THREE.ShapeGeometry(topRectShape), blueMat);
 topRect.name = 'blue-top-rect';
 topRect.position.set(0, 0, -0.01);
 scene.add(topRect);
 
+/* Белая рамка 1st Dozen — низ не опускается в зазор, чтобы оставался gap 0.3 */
+const topRectBorderThickness = gap;
+const dozOut = new THREE.Shape();
+dozOut.moveTo(-0.3, topRectBottom);
+dozOut.lineTo(dozRight + topRectBorderThickness, topRectBottom);
+dozOut.lineTo(dozRight + topRectBorderThickness, 36 + topRectBorderThickness);
+dozOut.lineTo(-0.3, 36 + topRectBorderThickness);
+dozOut.closePath();
+const dozHole = new THREE.Path();
+dozHole.moveTo(-0.3 + topRectBorderThickness, topRectBottom + topRectBorderThickness);
+dozHole.lineTo(dozRight, topRectBottom + topRectBorderThickness);
+dozHole.lineTo(dozRight, 36);
+dozHole.lineTo(-0.3 + topRectBorderThickness, 36);
+dozHole.closePath();
+dozOut.holes.push(dozHole);
+const topRectBorder = new THREE.Mesh(new THREE.ShapeGeometry(dozOut), whiteStripMat);
+topRectBorder.position.set(0, 0, 0.001);
+topRectBorder.name = 'top-rect-border';
+scene.add(topRectBorder);
+
 const dozenLabel = new THREE.Mesh(
-	new THREE.PlaneGeometry(20, 6),
+	new THREE.PlaneGeometry(12, 5),
 	new THREE.MeshBasicMaterial({
 		map: makeTextTexture('1st Dozen', '#000000'),
 		transparent: true,
 		side: THREE.DoubleSide
 	})
 );
-dozenLabel.position.set(16.45, 33.375, 0.02);
+dozenLabel.position.set(16.45, (topRectBottom + 36) / 2, 0.02);
 dozenLabel.rotation.z = 0;
 dozenLabel.name = 'label 1st Dozen';
 scene.add(dozenLabel);
@@ -387,7 +411,7 @@ scene.add(zeroLabel);
 
 vertX.forEach(function (x) {
 	horzY.forEach(function (y) {
-		const corner = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), whiteMat);
+		const corner = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), whiteStripMat);
 		corner.name = 'corner';
 		corner.position.set(x, y, 0);
 		corner.scale.set(cornerScale, cornerScale, 1);
