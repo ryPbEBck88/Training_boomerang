@@ -2141,6 +2141,44 @@ main h2 {
   color: var(--text-muted);
 }
 
+/* Подсказка: можно крутить поле рулетки */
+.ar-rotate-hint {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.95);
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 24px;
+  pointer-events: none;
+  animation: ar-rotate-hint-pulse 2.5s ease-in-out infinite;
+}
+.ar-rotate-hint.ar-rotate-hint--hidden {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s, visibility 0.4s;
+}
+.ar-rotate-hint__icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+.ar-rotate-hint__arrows {
+  font-size: 1rem;
+  opacity: 0.9;
+}
+.ar-rotate-hint__text {
+  white-space: nowrap;
+}
+@keyframes ar-rotate-hint-pulse {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
+}
+
 /* PTC: на мобилке таблица не съезжает на клавиатуру */
 @media (max-width: 600px) {
   .payout-page--ptc {

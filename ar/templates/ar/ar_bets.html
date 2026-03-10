@@ -6,6 +6,11 @@
 {% block content %}
 <div class="ar-canvas-wrap">
 	<canvas id="ar-canvas"></canvas>
+	<div class="ar-rotate-hint" aria-hidden="true">
+		<span class="ar-rotate-hint__icon">👆</span>
+		<span class="ar-rotate-hint__arrows">↔</span>
+		<span class="ar-rotate-hint__text">Нажми и води</span>
+	</div>
 	<button type="button" class="payout-settings-btn ar-settings-btn" id="arSettingsBtn" title="Настройки" aria-label="Настройки">
 		<svg class="payout-settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 			<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
@@ -42,6 +47,10 @@
 			</label>
 			<label>min: <input type="number" id="ar-min-chips" min="0" max="10" value="0"></label>
 			<label>max: <input type="number" id="ar-max-chips" min="0" max="10" value="5"></label>
+			<label class="ar-stacks-row">
+				<input type="checkbox" id="ar-hints-disabled">
+				<span>Отключить подсказки</span>
+			</label>
 		</div>
 		<div class="payout-settings-actions">
 			<button type="button" class="btn btn-primary" id="arSettingsSave">Сохранить</button>
@@ -105,6 +114,7 @@ let arMaxChips = 5;
 let arUseStacks = true;
 let arStacksCount = 1;
 let arSelectedNumber = 5;
+let arHintsDisabled = false;
 try {
 	const stored = getCookie('ar_chips_range') || localStorage.getItem('ar_chips_range');
 	if (stored) {
@@ -126,6 +136,8 @@ try {
 		const n = parseInt(numberStored, 10);
 		if (n === 0 || n === 2 || n === 5) arSelectedNumber = n;
 	}
+	const hintsStored = getCookie('ar_hints_disabled') || localStorage.getItem('ar_hints_disabled');
+	arHintsDisabled = hintsStored === '1' || hintsStored === 'true';
 } catch (_) {}
 
 var containerW = canvas.parentElement.clientWidth || 480;
@@ -144,6 +156,13 @@ camera.lookAt(12.281, 17.126, 1.613);
 
 const controls = new OrbitControls(camera, canvas);
 controls.target.set(12.281, 17.126, 1.613);
+var rotateHint = document.querySelector('.ar-rotate-hint');
+function hideRotateHint() {
+	if (rotateHint && !arHintsDisabled && !rotateHint.classList.contains('ar-rotate-hint--hidden')) {
+		rotateHint.classList.add('ar-rotate-hint--hidden');
+	}
+}
+controls.addEventListener('start', hideRotateHint);
 const cameraHomePos = { x: 12.095, y: 2.566, z: 18.105 };
 const cameraHomeTarget = { x: 12.281, y: 17.126, z: 1.613 };
 controls.enableDamping = true;
@@ -882,7 +901,9 @@ function loadArSettings() {
 	document.getElementById('ar-use-stacks').checked = arUseStacks;
 	document.getElementById('ar-stacks-select').value = String(arStacksCount);
 	document.getElementById('ar-number-select').value = String(arSelectedNumber);
+	document.getElementById('ar-hints-disabled').checked = arHintsDisabled;
 	updateStacksUI();
+	updateRotateHint();
 }
 function saveArSettings() {
 	const minEl = document.getElementById('ar-min-chips');
@@ -890,8 +911,12 @@ function saveArSettings() {
 	const useStacks = document.getElementById('ar-use-stacks').checked;
 	const stacksVal = document.getElementById('ar-stacks-select').value;
 	const numberVal = document.getElementById('ar-number-select').value;
+	const hintsDisabled = document.getElementById('ar-hints-disabled').checked;
 	arUseStacks = useStacks;
 	arStacksCount = Math.max(1, Math.min(3, parseInt(stacksVal, 10) || 1));
+	arHintsDisabled = hintsDisabled;
+	localStorage.setItem('ar_hints_disabled', arHintsDisabled ? '1' : '0');
+	setCookie('ar_hints_disabled', arHintsDisabled ? '1' : '0', 365);
 	const parsedNumber = parseInt(numberVal, 10);
 	arSelectedNumber = (parsedNumber === 0 || parsedNumber === 2 || parsedNumber === 5) ? parsedNumber : 5;
 	if (minEl && maxEl && !useStacks) {
@@ -904,6 +929,13 @@ function saveArSettings() {
 	localStorage.setItem('ar_number_select', String(arSelectedNumber));
 	setCookie('ar_stacks_mode', JSON.stringify({ enabled: arUseStacks, stacks: arStacksCount }), 365);
 	setCookie('ar_number_select', String(arSelectedNumber), 365);
+	updateRotateHint();
+}
+function updateRotateHint() {
+	var h = document.querySelector('.ar-rotate-hint');
+	if (!h) return;
+	if (arHintsDisabled) h.classList.add('ar-rotate-hint--hidden');
+	else h.classList.remove('ar-rotate-hint--hidden');
 }
 function focusCameraOnNumber() {
 	if (arSelectedNumber === 0) {
