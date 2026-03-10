@@ -219,8 +219,8 @@ document.addEventListener('DOMContentLoaded', function() {
 	});
 	var nextCellBtn = document.querySelector('.payout-key[data-action="nextcell"]');
 	if (nextCellBtn) {
-		nextCellBtn.addEventListener('pointerdown', function(e){ e.preventDefault(); });
-		nextCellBtn.addEventListener('click', function(){
+		nextCellBtn.addEventListener('pointerdown', function(e){
+			e.preventDefault();
 			var order = ['neighborsCell1','neighborsCell2','neighborsCell4','neighborsCell5'];
 			var idx = order.indexOf(neighborsLastCell ? neighborsLastCell.id : '');
 			var nextIdx = (idx < 0 ? 0 : idx + 1) % 4;

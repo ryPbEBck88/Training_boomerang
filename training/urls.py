@@ -14,12 +14,17 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf import settings
 from django.contrib import admin
 from django.http import HttpResponse, JsonResponse
 from django.urls import path, include
 from django.views.generic import TemplateView
 
 from .sitemaps import sitemap_view
+
+def favicon_view(request):
+    with open(settings.BASE_DIR / 'static' / 'images' / 'favicon.png', 'rb') as f:
+        return HttpResponse(f.read(), content_type='image/png')
 
 def chrome_devtools_json(request):
     return JsonResponse({})  # Chrome DevTools probe — убирает 404 из логов
@@ -37,6 +42,7 @@ Sitemap: {sitemap_url}
     )
 
 urlpatterns = [
+    path('favicon.ico', favicon_view),
     path('robots.txt', robots_txt),
     path('sitemap.xml', sitemap_view),
     path('.well-known/appspecific/com.chrome.devtools.json', chrome_devtools_json),

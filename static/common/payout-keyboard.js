@@ -38,7 +38,7 @@
 			}
 			if (!lastActiveInput || lastActiveInput.disabled) return;
 			var now = Date.now();
-			if (keyEl === lastHandledKey && now - lastHandledTime < 300) return;
+			if (keyEl === lastHandledKey && now - lastHandledTime < 80) return;
 			lastHandledKey = keyEl;
 			lastHandledTime = now;
 			var action = keyEl.getAttribute('data-action');
