@@ -23,7 +23,7 @@ from django.views.generic import TemplateView
 from .sitemaps import sitemap_view
 
 def favicon_view(request):
-    with open(settings.BASE_DIR / 'static' / 'images' / 'favicon.png', 'rb') as f:
+    with open(settings.BASE_DIR / 'static' / 'images' / 'favicon-48.png', 'rb') as f:
         return HttpResponse(f.read(), content_type='image/png')
 
 def chrome_devtools_json(request):
