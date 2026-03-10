@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+{% load static %}
+{% block main_class %}payout-main{% endblock %}
+{% block content %}
+<div class="payout-screen">
+<div class="payout-page">
+	<div class="payout-header completes-header">
+		<button type="button" class="neighbors-help-btn" id="completesHelpBtn" aria-label="Справка" title="Справка">
+			<svg class="neighbors-help-icon" viewBox="0 0 24 24">
+				<circle cx="12" cy="12" r="10" fill="#2563eb"/>
+				<text x="12" y="17" text-anchor="middle" fill="white" font-size="14" font-weight="bold" font-family="system-ui,sans-serif">?</text>
+			</svg>
+		</button>
+		<div class="payout-bet completes-title">Комплиты</div>
+		<button type="button" class="payout-settings-btn completes-settings-btn" id="completesSettingsBtn" title="Настройки" aria-label="Настройки">
+			<svg class="payout-settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+				<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
+			</svg>
+		</button>
+	</div>
+	<div class="payout-settings-overlay" id="completesSettingsOverlay">
+		<div class="payout-settings-modal completes-settings-modal">
+			<h3 class="payout-settings-title">Настройки комплитов</h3>
+			<form method="post" autocomplete="off">
+				{% csrf_token %}
+				<input type="hidden" name="action" value="settings">
+				<div class="payout-settings-fields">
+					<div class="roulette-multipliers">
+						<span class="roulette-multipliers-label">Номиналы:</span>
+						{% for d in denominations_all %}
+						<label class="roulette-multiplier-check"><input type="checkbox" name="denom_{{ d }}" value="on" {% if d in selected_denoms %}checked{% endif %}>{{ d }}</label>
+						{% endfor %}
+					</div>
+					<div class="completes-numbers-settings">
+						<span class="roulette-multipliers-label">Номера:</span>
+						<div class="completes-numbers-groups">
+							{% for key, label, nums in number_groups %}
+							<label class="roulette-multiplier-check"><input type="checkbox" name="group_{{ key }}" value="on" {% if key in selected_group_keys %}checked{% endif %}>{{ label }}</label>
+							{% endfor %}
+						</div>
+					</div>
+				</div>
+				<div class="payout-settings-actions">
+					<button type="submit" class="btn btn-primary">Сохранить</button>
+					<button type="button" class="btn btn-secondary" id="completesSettingsClose">Отмена</button>
+				</div>
+			</form>
+		</div>
+	</div>
+	<div class="neighbors-help-overlay" id="completesHelpOverlay" aria-hidden="true">
+		<div class="neighbors-help-modal">
+			<div class="completes-help-content">
+				<p><strong>Комплит</strong> — ставка одной фишкой в номер, покрывающая все позиции этого номера равными долями.</p>
+				<p><strong>Ставка</strong> = количество фишек × номинал (напр. 30 × 100 = 3000)</p>
+				<p><strong>Выплата</strong> = коэффициент × номинал (напр. 294 × 100 = 29400)</p>
+				<p>Количество фишек и коэффициент зависят от номера: 0 (17/235), 1,3 (27/297), 2 (36/396), средняя колонка (40/392), боковые (30/294), 34,36 (18/198), 35 (24/264).</p>
+			</div>
+			<button type="button" class="btn btn-primary neighbors-help-close" id="completesHelpClose">Понятно</button>
+		</div>
+	</div>
+
+	<div class="completes-task">
+		<div class="completes-display">
+			<span class="completes-number">{{ number }}</span>
+			<span class="completes-sep">по</span>
+			<span class="completes-denom">{{ denom }}</span>
+		</div>
+	</div>
+
+	<form method="post" autocomplete="off" class="payout-form neighbors-form">
+		{% csrf_token %}
+		<div class="completes-row">
+			<div class="completes-cell completes-cell--input">
+				<input type="text" name="stavka" class="payout-input neighbors-input" placeholder="ставка" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="{{ user_stavka }}" {% if success or skipped %}disabled{% endif %} id="completesStavka">
+			</div>
+			<div class="completes-cell completes-cell--input">
+				<input type="text" name="payout" class="payout-input neighbors-input" placeholder="выплата" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="{{ user_payout }}" {% if success or skipped %}disabled{% endif %} id="completesPayout">
+			</div>
+		</div>
+
+		<div class="payout-entry">
+			<div class="payout-keyboard">
+				<button type="button" class="payout-key" data-val="7">7</button>
+				<button type="button" class="payout-key" data-val="8">8</button>
+				<button type="button" class="payout-key" data-val="9">9</button>
+				<button type="button" class="payout-key payout-key--backspace" data-action="backspace" title="Удалить">⌫</button>
+				<button type="button" class="payout-key" data-val="4">4</button>
+				<button type="button" class="payout-key" data-val="5">5</button>
+				<button type="button" class="payout-key" data-val="6">6</button>
+				{% if not success and not skipped %}
+				<button type="submit" name="action" value="check" class="payout-key payout-key--enter" title="Проверить">↵</button>
+				{% endif %}
+				<button type="button" class="payout-key" data-val="1">1</button>
+				<button type="button" class="payout-key" data-val="2">2</button>
+				<button type="button" class="payout-key" data-val="3">3</button>
+				<button type="button" class="payout-key" data-val="0">0</button>
+				<button type="button" class="payout-key payout-key--nextcell" data-action="nextcell" title="Следующая ячейка">&gt;|</button>
+			</div>
+			{% if not success and not skipped %}
+			<div class="payout-pass-row">
+				<button type="submit" name="action" value="skip" formnovalidate class="btn btn-secondary payout-pass-btn">Pass</button>
+			</div>
+			{% endif %}
+		</div>
+
+	</form>
+
+	{% if success is False %}
+	<div class="payout-success-overlay self-draw-error-overlay" id="completesErrorOverlay">
+		<button type="button" class="payout-success-tap" id="completesErrorClose"></button>
+		<div class="self-draw-error-content">
+			<span class="self-draw-error-hand" aria-hidden="true">✋</span>
+			<div class="payout-success-text self-draw-error-text">Стоп!<br><small>Нажмите, чтобы попробовать снова</small></div>
+		</div>
+	</div>
+	{% endif %}
+
+	{% if success or skipped %}
+	<form method="post" class="payout-success-overlay" id="completesSuccessOverlay">
+		{% csrf_token %}
+		<input type="hidden" name="action" value="next">
+		<button type="submit" class="payout-success-tap"></button>
+		{% if success %}
+		<div class="payout-fireworks" aria-hidden="true">
+			<span></span><span></span><span></span><span></span><span></span><span></span>
+			<span></span><span></span><span></span><span></span><span></span><span></span>
+		</div>
+		{% endif %}
+		<div class="payout-success-text">{% if success %}{% include "partials/payout_check_text.html" %}{% else %}{{ message }}{% endif %}</div>
+	</form>
+	{% endif %}
+</div>
+</div>
+
+<style>
+.completes-header {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+	gap: 0.5rem;
+	min-height: 2.5rem;
+}
+.completes-title { margin: 0; text-align: center; }
+.completes-numbers-settings { margin-top: 12px; }
+.completes-numbers-groups {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 12px;
+	margin-top: 6px;
+}
+.completes-settings-modal { max-width: 380px; }
+.completes-settings-btn {
+	position: absolute;
+	right: 0;
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 4px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.neighbors-help-btn {
+	position: absolute;
+	left: 0;
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 4px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.neighbors-help-icon {
+	width: 28px;
+	height: 28px;
+	display: block;
+}
+.neighbors-help-btn:hover .neighbors-help-icon circle { fill: #1d4ed8; }
+.neighbors-help-overlay {
+	display: none;
+	position: fixed;
+	inset: 0;
+	background: rgba(0,0,0,0.5);
+	z-index: 100;
+	align-items: center;
+	justify-content: center;
+	padding: 20px;
+}
+.neighbors-help-overlay.is-open { display: flex; }
+.neighbors-help-modal {
+	background: var(--bg-main, #fff);
+	border-radius: var(--radius, 12px);
+	padding: 24px;
+	max-width: 360px;
+	width: 100%;
+	box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+.completes-help-content p { margin: 0 0 12px; font-size: 0.95rem; }
+.completes-help-content p:last-of-type { margin-bottom: 0; }
+.completes-task { margin: 0.5rem 0 0.25rem; text-align: center; }
+.completes-display {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	flex-wrap: wrap;
+	font-size: 1.25rem;
+}
+.completes-number {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 3rem;
+	height: 3rem;
+	background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+	color: #fff;
+	border-radius: 10px;
+	font-weight: 700;
+	font-size: 1.5rem;
+}
+.completes-sep { color: var(--text-muted); }
+.completes-denom { font-weight: 700; color: var(--accent); }
+.completes-row {
+	display: flex;
+	justify-content: center;
+	align-items: flex-end;
+	gap: 1rem;
+	margin: 0.25rem 0 1rem;
+	flex-wrap: wrap;
+}
+.completes-cell {
+	display: flex;
+	align-items: center;
+}
+.completes-cell--input .payout-input {
+	box-sizing: border-box;
+	width: 140px;
+	height: 3rem;
+	padding: 0 12px;
+	text-align: center;
+	border: 2px solid #cbd5e1;
+	border-radius: 8px;
+	background: #fff;
+	font-size: 1.1rem;
+	font-weight: 600;
+}
+.completes-cell--input .payout-input:focus {
+	outline: none;
+	box-shadow: inset 0 0 0 2px #3b82f6;
+}
+.completes-form .payout-entry { justify-content: center; margin-top: 1rem; }
+.neighbors-form .payout-key--nextcell { grid-column: 4; grid-row: 4; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+	var completesLastCell = document.getElementById('completesStavka');
+	['completesStavka','completesPayout'].forEach(function(id){
+		var el = document.getElementById(id);
+		if (el) el.addEventListener('focus', function(){ completesLastCell = el; });
+	});
+	var nextCellBtn = document.querySelector('.payout-key[data-action="nextcell"]');
+	if (nextCellBtn) {
+		nextCellBtn.addEventListener('pointerdown', function(e){
+			e.preventDefault();
+			var order = ['completesStavka','completesPayout'];
+			var idx = order.indexOf(completesLastCell ? completesLastCell.id : '');
+			var nextIdx = (idx < 0 ? 0 : idx + 1) % 2;
+			var nextEl = document.getElementById(order[nextIdx]);
+			if (nextEl && !nextEl.disabled) nextEl.focus();
+		});
+	}
+	var helpBtn = document.getElementById('completesHelpBtn');
+	var helpOverlay = document.getElementById('completesHelpOverlay');
+	var helpClose = document.getElementById('completesHelpClose');
+	if (helpBtn && helpOverlay) {
+		helpBtn.addEventListener('click', function() { helpOverlay.classList.add('is-open'); });
+		if (helpClose) helpClose.addEventListener('click', function() { helpOverlay.classList.remove('is-open'); });
+		helpOverlay.addEventListener('click', function(e) { if (e.target === helpOverlay) helpOverlay.classList.remove('is-open'); });
+	}
+	var settingsBtn = document.getElementById('completesSettingsBtn');
+	var settingsOverlay = document.getElementById('completesSettingsOverlay');
+	var settingsClose = document.getElementById('completesSettingsClose');
+	if (settingsBtn && settingsOverlay) {
+		settingsBtn.addEventListener('click', function() { settingsOverlay.classList.add('is-open'); });
+		if (settingsClose) settingsClose.addEventListener('click', function() { settingsOverlay.classList.remove('is-open'); });
+		settingsOverlay.addEventListener('click', function(e) { if (e.target === settingsOverlay) settingsOverlay.classList.remove('is-open'); });
+	}
+	var errorOverlay = document.getElementById('completesErrorOverlay');
+	var errorCloseBtn = document.getElementById('completesErrorClose');
+	if (errorOverlay && errorCloseBtn) {
+		errorCloseBtn.addEventListener('click', function() { errorOverlay.style.display = 'none'; });
+	}
+	var successOverlay = document.getElementById('completesSuccessOverlay');
+	if (successOverlay) {
+		document.addEventListener('keydown', function(e) {
+			if (e.key === 'Enter') {
+				e.preventDefault();
+				successOverlay.submit();
+			}
+		});
+	}
+});
+</script>
+<p class="payout-back"><a href="{% url 'ar_index' %}">← К списку игр</a></p>
+{% endblock %}

@@ -10,6 +10,7 @@
 .ar-splash__card--payout .ar-splash__card-img { background-image: url('{% static "images/ar/payout_through_cash.png" %}'); }
 .ar-splash__card--neighbors .ar-splash__card-img { background-image: url('{% static "images/ar/neighbors.png" %}'); }
 .ar-splash__card--mix .ar-splash__card-img { background-image: url('{% static "images/ar/mix.png" %}'); }
+.ar-splash__card--completes .ar-splash__card-img { background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); }
 </style>
 {% endblock %}
 
@@ -34,6 +35,10 @@
 			<span class="ar-splash__card-img"></span>
 			<span class="ar-splash__card-label">Соседи</span>
 		</a>
+		<a href="{% url 'ar_completes' %}" class="ar-splash__card ar-splash__card--completes">
+			<span class="ar-splash__card-img"></span>
+			<span class="ar-splash__card-label">Комплиты</span>
+		</a>
 		<a href="{% url 'ar_mix' %}" class="ar-splash__card ar-splash__card--mix">
 			<span class="ar-splash__card-img"></span>
 			<span class="ar-splash__card-label">3 в 1</span>
@@ -50,6 +55,7 @@
 	<p><strong>Цвет в cash</strong> — генерируется число (min 100, max 1000, step 1) и случайный множитель из выбранных (1, 2, 5, 10, 25, 50, 125). Введите произведение.</p>
 	<p><strong>Выплата через cash</strong> — даны: цвет (число), цвет по (номинал фишки), cash (выплачено). Сколько цветных фишек осталось? Формула: цвет − (cash ÷ цвет по). Диапазон ответа: 1–200. В настройках можно включить «Стеки» — ответ вводится как «стеков» и «в неполном».</p>
 	<p><strong>Соседи</strong> — дано число 0–36 в центре. Введите четыре соседа по колесу рулетки (2 против часовой стрелки слева, 2 по часовой стрелке справа). Все четыре правильно — чек; только по часовой стрелке — чек; только против часовой стрелки — почти чек.</p>
+	<p><strong>Комплиты</strong> — выпал номер, комплит по номиналу. Введите выплату.</p>
 	<p><strong>3 в 1</strong> — заставка (считайте фишки) → «Цвет в cash» (число × множитель) → «Выплата через cash» (цвет = число от заставки, цвет по = множитель) → заставка → по кругу.</p>
 </div>
 {% endblock %}

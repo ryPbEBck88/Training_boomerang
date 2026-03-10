@@ -135,6 +135,161 @@ def ar_neighbors(request):
     })
 
 
+# Таблица комплитов: (chips_count, payout_mult) по номеру
+# payout = payout_mult × (total / chips_count) = payout_mult × chip_value
+COMPLETE_TABLE = {
+    0: (17, 235),
+    1: (27, 297), 3: (27, 297),
+    2: (36, 396),
+    4: (30, 294), 7: (30, 294), 10: (30, 294), 13: (30, 294), 16: (30, 294),
+    19: (30, 294), 22: (30, 294), 25: (30, 294), 28: (30, 294), 31: (30, 294),
+    6: (30, 294), 9: (30, 294), 12: (30, 294), 15: (30, 294), 18: (30, 294),
+    21: (30, 294), 24: (30, 294), 27: (30, 294), 30: (30, 294), 33: (30, 294),
+    5: (40, 392), 8: (40, 392), 11: (40, 392), 14: (40, 392), 17: (40, 392),
+    20: (40, 392), 23: (40, 392), 26: (40, 392), 29: (40, 392), 32: (40, 392),
+    34: (18, 198), 36: (18, 198),
+    35: (24, 264),
+}
+COMPLETE_DENOMINATIONS_DEFAULT = [25, 50, 75, 100, 200, 300, 400, 500]
+COMPLETE_DENOMINATIONS_ALL = [25, 50, 75, 100, 150, 200, 250, 300, 400, 500]
+
+# Группы номеров для комплитов (ключ, подпись, список номеров)
+COMPLETE_NUMBER_GROUPS = [
+    ('0', '0', [0]),
+    ('1_3', '1, 3', [1, 3]),
+    ('2', '2', [2]),
+    ('34_36', '34, 36', [34, 36]),
+    ('35', '35', [35]),
+    ('4_31', 'column 4-31', [4, 7, 10, 13, 16, 19, 22, 25, 28, 31]),
+    ('6_33', 'column 6-33', [6, 9, 12, 15, 18, 21, 24, 27, 30, 33]),
+    ('5_32', 'column 5-32', [5, 8, 11, 14, 17, 20, 23, 26, 29, 32]),
+]
+
+
+def _get_complete_denominations(request):
+    """Номиналы из сессии или по умолчанию."""
+    stored = request.session.get('ar_complete_denominations')
+    if stored and isinstance(stored, list) and len(stored) > 0:
+        valid = [d for d in stored if d in COMPLETE_DENOMINATIONS_ALL]
+        if valid:
+            return valid
+    return COMPLETE_DENOMINATIONS_DEFAULT
+
+
+def _get_complete_numbers(request):
+    """Номера 0–36 из сессии или по умолчанию все."""
+    stored = request.session.get('ar_complete_numbers')
+    if stored and isinstance(stored, list) and len(stored) > 0:
+        valid = [n for n in stored if isinstance(n, int) and 0 <= n <= 36]
+        if valid:
+            return sorted(valid)
+    return list(range(37))  # 0–36
+
+
+def _selected_group_keys(selected_numbers):
+    """Ключи групп, которые выбраны (все их номера в selected_numbers)."""
+    return {k for k, _l, nums in COMPLETE_NUMBER_GROUPS
+            if all(n in selected_numbers for n in nums)}
+
+
+def ar_completes(request):
+    """Комплиты: выпал номер N, комплит по X — ввести ставку и выплату."""
+    if request.method == 'POST' and request.POST.get('action') == 'settings':
+        selected_d = []
+        for d in COMPLETE_DENOMINATIONS_ALL:
+            if request.POST.get('denom_%d' % d) == 'on':
+                selected_d.append(d)
+        if selected_d:
+            request.session['ar_complete_denominations'] = sorted(selected_d)
+        else:
+            request.session['ar_complete_denominations'] = COMPLETE_DENOMINATIONS_DEFAULT
+        selected_n = []
+        for key, _label, nums in COMPLETE_NUMBER_GROUPS:
+            if request.POST.get('group_%s' % key) == 'on':
+                selected_n.extend(nums)
+        if selected_n:
+            request.session['ar_complete_numbers'] = sorted(set(selected_n))
+        else:
+            request.session['ar_complete_numbers'] = list(range(37))
+        return redirect(reverse('ar_completes'))
+
+    denoms = _get_complete_denominations(request)
+    numbers = _get_complete_numbers(request)
+    if request.method == 'GET' or (request.method == 'POST' and request.POST.get('action') == 'next'):
+        number = random.choice(numbers)
+        denom = random.choice(denoms)
+        chips, mult = COMPLETE_TABLE[number]
+        total = chips * denom
+        payout = mult * denom
+        request.session['ar_complete_number'] = number
+        request.session['ar_complete_denom'] = denom
+        request.session['ar_complete_total'] = total
+        request.session['ar_complete_payout'] = payout
+        return render(request, 'ar/ar_completes.html', {
+            'number': number,
+            'denom': denom,
+            'message': '',
+            'success': None,
+            'skipped': False,
+            'user_stavka': '',
+            'user_payout': '',
+            'denominations_all': COMPLETE_DENOMINATIONS_ALL,
+            'selected_denoms': denoms,
+            'selected_numbers': numbers,
+            'number_groups': COMPLETE_NUMBER_GROUPS,
+            'selected_group_keys': _selected_group_keys(numbers),
+        })
+
+    number = request.session.get('ar_complete_number', 0)
+    denom = request.session.get('ar_complete_denom', 100)
+    correct_total = request.session.get('ar_complete_total', 0)
+    correct_payout = request.session.get('ar_complete_payout', 0)
+    message = ''
+    success = None
+    skipped = False
+
+    if request.POST.get('action') == 'skip':
+        message = f'Пропущено. Ставка: {correct_total}, выплата: {correct_payout}'
+        skipped = True
+    elif request.POST.get('action') == 'check':
+        try:
+            user_stavka = int(request.POST.get('stavka', '').replace(' ', ''))
+        except (TypeError, ValueError):
+            user_stavka = None
+        try:
+            user_payout = int(request.POST.get('payout', '').replace(' ', ''))
+        except (TypeError, ValueError):
+            user_payout = None
+        if user_stavka is None or user_payout is None:
+            message = 'Введите ставку и выплату'
+        elif user_stavka == correct_total and user_payout == correct_payout:
+            message = 'Правильно!'
+            success = True
+        else:
+            errors = []
+            if user_stavka != correct_total:
+                errors.append(f'ставка {correct_total}')
+            if user_payout != correct_payout:
+                errors.append(f'выплата {correct_payout}')
+            message = f'Нет. Правильно: {", ".join(errors)}'
+            success = False
+
+    return render(request, 'ar/ar_completes.html', {
+        'number': number,
+        'denom': denom,
+        'message': message,
+        'success': success,
+        'skipped': skipped,
+        'user_stavka': request.POST.get('stavka', ''),
+        'user_payout': request.POST.get('payout', ''),
+        'denominations_all': COMPLETE_DENOMINATIONS_ALL,
+        'selected_denoms': _get_complete_denominations(request),
+        'selected_numbers': _get_complete_numbers(request),
+        'number_groups': COMPLETE_NUMBER_GROUPS,
+        'selected_group_keys': _selected_group_keys(_get_complete_numbers(request)),
+    })
+
+
 def ar_mix(request):
     """Mix: заставка → число x → цвет в cash с числом x → заставка → ..."""
     return redirect(reverse('ar_bets') + '?mode=mix')
