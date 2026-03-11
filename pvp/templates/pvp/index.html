@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}PvP — Тренажёры крупье{% endblock %}
+{% block content %}
+<h1>PvP режим</h1>
+<p>Создайте комнату или найдите соперника.</p>
+
+<h2>Выберите игру</h2>
+<div class="pvp-game-list">
+	{% for value, label in room_game_types %}
+	<div class="pvp-game-item">
+		<span class="pvp-game-name">{{ label }}</span>
+		<a href="{% url 'pvp_room_create' %}?game={{ value }}" class="btn btn-primary">Создать</a>
+		<a href="{% url 'pvp_room_find' %}?game={{ value }}" class="btn btn-secondary">Найти</a>
+	</div>
+	{% endfor %}
+</div>
+
+<p class="pvp-back"><a href="{% url 'homepage_index' %}">← На главную</a></p>
+{% endblock %}

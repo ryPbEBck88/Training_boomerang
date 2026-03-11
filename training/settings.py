@@ -36,6 +36,9 @@ CSRF_TRUSTED_ORIGINS = [
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
+    'channels',
+    'pvp.apps.PvpConfig',
     'poker.apps.PokerConfig',
     'homepage.apps.HomepageConfig',
     'blackjack.apps.BlackjackConfig',
@@ -78,6 +81,19 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'training.wsgi.application'
+ASGI_APPLICATION = 'training.asgi.application'
+
+if os.environ.get('CHANNEL_LAYER') == 'memory':
+    CHANNEL_LAYERS = {'default': {'BACKEND': 'channels.layers.InMemoryChannelLayer'}}
+else:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                'hosts': [(os.environ.get('REDIS_HOST', '127.0.0.1'), int(os.environ.get('REDIS_PORT', 6379)))],
+            },
+        },
+    }
 
 
 # Database
@@ -136,3 +152,6 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_REDIRECT_URL = '/pvp/'
+LOGIN_URL = '/accounts/login/'

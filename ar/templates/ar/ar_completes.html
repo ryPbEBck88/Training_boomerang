@@ -73,10 +73,10 @@
 		{% csrf_token %}
 		<div class="completes-row">
 			<div class="completes-cell completes-cell--input">
-				<input type="text" name="stavka" class="payout-input neighbors-input" placeholder="ставка" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="{{ user_stavka }}" {% if success or skipped %}disabled{% endif %} id="completesStavka">
+				<input type="text" name="stavka" class="payout-input neighbors-input" placeholder="ставка" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="{{ user_stavka }}" {% if success or skipped %}disabled{% endif %} {% if not success and not skipped %}readonly{% endif %} id="completesStavka">
 			</div>
 			<div class="completes-cell completes-cell--input">
-				<input type="text" name="payout" class="payout-input neighbors-input" placeholder="выплата" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="{{ user_payout }}" {% if success or skipped %}disabled{% endif %} id="completesPayout">
+				<input type="text" name="payout" class="payout-input neighbors-input" placeholder="выплата" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="{{ user_payout }}" {% if success or skipped %}disabled{% endif %} {% if not success and not skipped %}readonly{% endif %} id="completesPayout">
 			</div>
 		</div>
 

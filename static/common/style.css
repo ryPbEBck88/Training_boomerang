@@ -2229,3 +2229,41 @@ main h2 {
     font-size: 2rem;
   }
 }
+
+/* --- PvP --- */
+.pvp-game-list { margin: 1rem 0; }
+.pvp-game-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.pvp-game-name { flex: 1; }
+.pvp-back { margin-top: 1.5rem; }
+.pvp-room-header { margin-bottom: 1rem; }
+.pvp-ar-neighbors {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+.pvp-task { font-size: 1.25rem; font-weight: 600; }
+.pvp-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.pvp-center {
+  min-width: 2.5rem;
+  height: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+  color: #fff;
+  border-radius: 10px;
+  font-weight: 700;
+}
+#pvp-status { margin-top: 1rem; color: var(--text-muted); }

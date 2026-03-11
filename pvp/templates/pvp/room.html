@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Комната {{ room.pk }} — PvP{% endblock %}
+{% block main_class %}payout-main pvp-room{% endblock %}
+{% block content %}
+<div class="pvp-room-header">
+	<h1>PvP: {{ room.get_game_type_display }}</h1>
+	<p>Комната {{ room.pk }} • {% if room.status == 'waiting' %}Ожидание соперника{% elif room.status == 'active' %}Игра{% else %}Завершена{% endif %}</p>
+</div>
+
+<div id="pvp-game-area">
+	{% if room.game_type == 'ar_neighbors' %}
+	<div class="pvp-ar-neighbors">
+		<div class="pvp-task" id="pvpTask">—</div>
+		<div class="pvp-inputs" id="pvpInputs">
+			<input type="text" id="pvpCell1" placeholder="" maxlength="2" inputmode="numeric" class="payout-input neighbors-input">
+			<input type="text" id="pvpCell2" placeholder="" maxlength="2" inputmode="numeric" class="payout-input neighbors-input">
+			<span class="pvp-center" id="pvpCenter">?</span>
+			<input type="text" id="pvpCell4" placeholder="" maxlength="2" inputmode="numeric" class="payout-input neighbors-input">
+			<input type="text" id="pvpCell5" placeholder="" maxlength="2" inputmode="numeric" class="payout-input neighbors-input">
+		</div>
+		<button type="button" class="btn btn-primary" id="pvpCheck">Проверить</button>
+	</div>
+	{% else %}
+	<p>Режим {{ room.get_game_type_display }} — в разработке.</p>
+	{% endif %}
+</div>
+
+<div id="pvp-status">Подключение...</div>
+<p class="pvp-back"><a href="{% url 'pvp_index' %}">← К списку игр</a></p>
+
+<script>
+window.PVP_ROOM_ID = '{{ room.pk }}';
+window.PVP_WS_URL = "{{ ws_url|escapejs }}";
+window.PVP_GAME_TYPE = '{{ room.game_type }}';
+</script>
+<script src="{% static 'pvp/pvp-client.js' %}"></script>
+{% endblock %}

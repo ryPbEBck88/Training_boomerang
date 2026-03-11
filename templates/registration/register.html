@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Регистрация — Тренажёры крупье{% endblock %}
+{% block content %}
+<h1>Регистрация</h1>
+<form method="post">
+	{% csrf_token %}
+	<p>
+		<label for="id_username">Логин:</label>
+		<input type="text" name="username" id="id_username" required autocomplete="username" maxlength="150">
+		{% if form.username.errors %}<span class="errorlist">{{ form.username.errors }}</span>{% endif %}
+	</p>
+	<p>
+		<label for="id_password1">Пароль:</label>
+		<input type="password" name="password1" id="id_password1" required autocomplete="new-password">
+		{% if form.password1.errors %}<span class="errorlist">{{ form.password1.errors }}</span>{% endif %}
+	</p>
+	<p>
+		<label for="id_password2">Пароль (повтор):</label>
+		<input type="password" name="password2" id="id_password2" required autocomplete="new-password">
+		{% if form.password2.errors %}<span class="errorlist">{{ form.password2.errors }}</span>{% endif %}
+	</p>
+	{% if form.non_field_errors %}
+	<ul class="errorlist">{{ form.non_field_errors }}</ul>
+	{% endif %}
+	<button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+</form>
+<p><a href="{% url 'login' %}">Уже есть аккаунт? Войти</a></p>
+{% endblock %}

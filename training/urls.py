@@ -16,10 +16,12 @@ Including another URLconf
 """
 from django.conf import settings
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
 from django.http import HttpResponse, JsonResponse
 from django.urls import path, include
 from django.views.generic import TemplateView
 
+from .auth_views import CustomLoginView, CustomLogoutView, RegisterView
 from .sitemaps import sitemap_view
 
 def favicon_view(request):
@@ -45,6 +47,9 @@ Sitemap: {sitemap_url}
     )
 
 urlpatterns = [
+    path('accounts/login/', CustomLoginView.as_view(), name='login'),
+    path('accounts/logout/', CustomLogoutView.as_view(), name='logout'),
+    path('accounts/register/', RegisterView.as_view(), name='register'),
     path('favicon.ico', favicon_view),
     path('robots.txt', robots_txt),
     path('sitemap.xml', sitemap_view),
@@ -55,4 +60,5 @@ urlpatterns = [
     path('blackjack/', include('blackjack.urls')),
     path('poker/', include('poker.urls')),
     path('ar/', include('ar.urls')),
+    path('pvp/', include('pvp.urls')),
 ]
