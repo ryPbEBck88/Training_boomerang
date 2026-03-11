@@ -9,9 +9,10 @@
 	<meta name="description" content="{% block meta_description %}Я крупье — обучение крупье, тренажёры BJ, Poker (Oasis, Texas Hold'em), рулетка, AR заставки для практики выплат и комбинаций.{% endblock %}">
 	<meta name="keywords" content="{% block meta_keywords %}я крупье, обучение крупье, тренажёр крупье, black jack, покер, oasis poker, texas holdem, выплаты, комбинации, рулетка, AR{% endblock %}">
 	<link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+	<link rel="icon" type="image/png" href="{{ request.scheme }}://{{ request.get_host }}/favicon.ico">
 	<link rel="icon" type="image/png" sizes="48x48" href="{{ request.scheme }}://{{ request.get_host }}{% static 'images/favicon-48.png' %}">
 	<link rel="icon" type="image/png" sizes="96x96" href="{{ request.scheme }}://{{ request.get_host }}{% static 'images/favicon-96.png' %}">
-	<link rel="shortcut icon" href="{{ request.scheme }}://{{ request.get_host }}{% static 'images/favicon-48.png' %}">
+	<link rel="apple-touch-icon" sizes="180x180" href="{{ request.scheme }}://{{ request.get_host }}{% static 'images/favicon-96.png' %}">
 	<link rel="stylesheet" href="{% static 'common/style.css' %}">
 	{% block extra_head %}{% endblock %}
 	<meta property="og:type" content="website">

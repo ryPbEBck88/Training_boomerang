@@ -23,8 +23,11 @@ from django.views.generic import TemplateView
 from .sitemaps import sitemap_view
 
 def favicon_view(request):
-    with open(settings.BASE_DIR / 'static' / 'images' / 'favicon-48.png', 'rb') as f:
-        return HttpResponse(f.read(), content_type='image/png')
+    path_ico = settings.BASE_DIR / 'static' / 'images' / 'favicon-48.png'
+    with open(path_ico, 'rb') as f:
+        r = HttpResponse(f.read(), content_type='image/png')
+        r['Cache-Control'] = 'public, max-age=86400'
+        return r
 
 def chrome_devtools_json(request):
     return JsonResponse({})  # Chrome DevTools probe — убирает 404 из логов
