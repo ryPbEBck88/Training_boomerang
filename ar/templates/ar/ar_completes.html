@@ -272,22 +272,6 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-	var completesLastCell = document.getElementById('completesStavka');
-	['completesStavka','completesPayout'].forEach(function(id){
-		var el = document.getElementById(id);
-		if (el) el.addEventListener('focus', function(){ completesLastCell = el; });
-	});
-	var nextCellBtn = document.querySelector('.payout-key[data-action="nextcell"]');
-	if (nextCellBtn) {
-		nextCellBtn.addEventListener('pointerdown', function(e){
-			e.preventDefault();
-			var order = ['completesStavka','completesPayout'];
-			var idx = order.indexOf(completesLastCell ? completesLastCell.id : '');
-			var nextIdx = (idx < 0 ? 0 : idx + 1) % 2;
-			var nextEl = document.getElementById(order[nextIdx]);
-			if (nextEl && !nextEl.disabled) nextEl.focus();
-		});
-	}
 	var helpBtn = document.getElementById('completesHelpBtn');
 	var helpOverlay = document.getElementById('completesHelpOverlay');
 	var helpClose = document.getElementById('completesHelpClose');

@@ -40,9 +40,10 @@
 			</form>
 		</div>
 	</div>
-
 	{% if timer_enabled and success is None and not skipped %}
-	{% include "partials/fuse_timer.html" with prefix="ar-roulette" %}
+	<div class="payout-timer-row payout-timer-row--compact">
+		{% include "partials/fuse_timer.html" with prefix="ar-roulette" %}
+	</div>
 	{% endif %}
 	<form method="post" autocomplete="off" class="payout-form">
 		{% csrf_token %}
@@ -72,10 +73,6 @@
 				{% endif %}
 			</div>
 		</div>
-
-		{% if message and not success and not skipped %}
-			<div class="payout-message error">{{ message }}</div>
-		{% endif %}
 	</form>
 
 	{% if success is False %}

@@ -44,6 +44,10 @@
 			var action = keyEl.getAttribute('data-action');
 			if (action === 'backspace') {
 				lastActiveInput.value = lastActiveInput.value.slice(0, -1);
+			} else if (action === 'nextcell') {
+				var idx = inputs.indexOf(lastActiveInput);
+				var nextIdx = (idx < 0 ? 0 : idx + 1) % inputs.length;
+				lastActiveInput = inputs[nextIdx];
 			} else {
 				var val = keyEl.getAttribute('data-val');
 				if (val != null) lastActiveInput.value += val;

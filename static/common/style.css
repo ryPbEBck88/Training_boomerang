@@ -799,6 +799,11 @@ main h2 {
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding-top: 56px;
+}
+
+.payout-page--ptc {
+  padding-top: 96px;
 }
 
 .payout-header {
@@ -836,6 +841,11 @@ main h2 {
   top: 0;
 }
 
+.payout-timer-row--compact {
+  margin: 28px 0 0;
+  width: 100%;
+}
+
 .payout-ptc-table {
   border-collapse: collapse;
   font-size: 1.4rem;
@@ -855,7 +865,7 @@ main h2 {
   min-width: 80px;
 }
 .payout-ptc-question {
-  margin: 12px 0 16px;
+  margin: 4px 0 0;
   font-size: 1.1rem;
   font-weight: 600;
   text-align: center;
@@ -1076,6 +1086,9 @@ main h2 {
   flex-direction: column;
   align-items: center;
   padding-top: 56px;
+}
+.payout-page--ptc .payout-form {
+  padding-top: 0;
 }
 
 .payout-bet {
@@ -2200,7 +2213,7 @@ main h2 {
     flex-shrink: 0;
   }
   .payout-page--ptc .payout-ptc-question {
-    margin: 8px 0 12px;
+    margin: 4px 0 4px;
     flex-shrink: 0;
   }
   .payout-page--ptc .payout-ptc-table th,

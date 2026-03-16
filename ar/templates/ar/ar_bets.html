@@ -4,6 +4,7 @@
 {% block title %}AR Bets{% endblock %}
 
 {% block content %}
+<div class="payout-settings-fields">
 <div class="ar-canvas-wrap">
 	<canvas id="ar-canvas"></canvas>
 	<div class="ar-rotate-hint" aria-hidden="true">
@@ -28,6 +29,7 @@
 	<div class="payout-settings-modal">
 		<h3 class="payout-settings-title">Настройки заставок</h3>
 		<div class="payout-settings-fields">
+			{% include "partials/fuse_timer_settings.html" %}
 			<label class="ar-stacks-row">
 				<input type="checkbox" id="ar-use-stacks" checked>
 				<span>Заставка из</span>
@@ -58,6 +60,9 @@
 		</div>
 	</div>
 </div>
+{% if timer_enabled %}
+{% include "partials/fuse_timer.html" with prefix="ar-bets" %}
+{% endif %}
 <div class="ar-answer-row" style="margin-top: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
 	<div class="ar-answer-left" style="display: flex; align-items: center; gap: 12px;">
 		<input type="number" id="user-answer" min="0" step="1" placeholder="ответ" style="width: 100px; padding: 8px 12px;">
@@ -885,6 +890,18 @@ document.getElementById('ar-error-close').addEventListener('click', function () 
 	if (arErrorWasPass) {
 		arErrorWasPass = false;
 		doSpawn();
+		// при Pass тоже запускаем таймер заново, если он включён
+		if (typeof initFuseTimer === 'function') {
+			var timerCheckbox = document.querySelector('#ar-settings-overlay input[name="timer_enabled"]');
+			if (!timerCheckbox || timerCheckbox.checked) {
+				initFuseTimer({
+					prefix: 'ar-bets',
+					seconds: "{{ timer_seconds|default:0 }}",
+					timeoutButton: '#btn-pass',
+					settingsOverlay: '#ar-settings-overlay'
+				});
+			}
+		}
 	}
 });
 
@@ -919,6 +936,16 @@ function saveArSettings() {
 	setCookie('ar_hints_disabled', arHintsDisabled ? '1' : '0', 365);
 	const parsedNumber = parseInt(numberVal, 10);
 	arSelectedNumber = (parsedNumber === 0 || parsedNumber === 2 || parsedNumber === 5) ? parsedNumber : 5;
+	// показать/скрыть визуальный таймер в зависимости от галочки
+	var timerRoot = document.getElementById('ar-bets-fuse-timer');
+	var timerCheckbox = document.querySelector('#ar-settings-overlay input[name="timer_enabled"]');
+	if (timerRoot && timerCheckbox) {
+		if (timerCheckbox.checked) {
+			timerRoot.style.display = '';
+		} else {
+			timerRoot.style.display = 'none';
+		}
+	}
 	if (minEl && maxEl && !useStacks) {
 		arMinChips = Math.max(0, Math.min(10, parseInt(minEl.value, 10) || 0));
 		arMaxChips = Math.max(0, Math.min(10, parseInt(maxEl.value, 10) || 0));
@@ -992,4 +1019,37 @@ window.addEventListener('resize', function () {
 	renderer.setSize(w, h);
 });
 </script>
+{% if timer_enabled %}
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+	if (typeof initFuseTimer === 'function') {
+		// первый запуск таймера для текущего вопроса
+		initFuseTimer({
+			prefix: 'ar-bets',
+			seconds: "{{ timer_seconds|default:0 }}",
+			timeoutButton: '#btn-pass',
+			settingsOverlay: '#ar-settings-overlay'
+		});
+	}
+	// при закрытии окошка с верным ответом генерим новый вопрос и перезапускаем таймер
+	var successBtn = document.getElementById('ar-success-close');
+	if (successBtn && typeof initFuseTimer === 'function') {
+		successBtn.addEventListener('click', function () {
+			// doSpawn() вызовется в существующем обработчике; здесь просто перезапускаем таймер
+			var timerCheckbox = document.querySelector('#ar-settings-overlay input[name="timer_enabled"]');
+			if (!timerCheckbox || timerCheckbox.checked) {
+				initFuseTimer({
+					prefix: 'ar-bets',
+					seconds: "{{ timer_seconds|default:0 }}",
+					timeoutButton: '#btn-pass',
+					settingsOverlay: '#ar-settings-overlay'
+				});
+			}
+		});
+	}
+});
+</script>
+{% endblock %}
+{% endif %}
 {% endblock %}

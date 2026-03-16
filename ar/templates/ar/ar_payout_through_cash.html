@@ -64,7 +64,9 @@
 	</div>
 
 	{% if timer_enabled and success is None and not skipped %}
-	{% include "partials/fuse_timer.html" with prefix="ar-ptc" %}
+	<div class="payout-timer-row payout-timer-row--compact">
+		{% include "partials/fuse_timer.html" with prefix="ar-ptc" %}
+	</div>
 	{% endif %}
 	<p class="payout-ptc-question">Сколько цветных фишек осталось?</p>
 
