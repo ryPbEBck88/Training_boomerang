@@ -88,6 +88,13 @@
 		<small class="self-draw-error-hint">Нажмите, чтобы попробовать снова</small>
 	</div>
 </div>
+<div id="ar-timeup-overlay" class="payout-success-overlay self-draw-error-overlay" style="display: none;">
+	<button type="button" class="payout-success-tap" id="ar-timeup-close" style="position:absolute;inset:0;border:none;background:transparent;cursor:pointer;"></button>
+	<div class="self-draw-error-content">
+		<div class="payout-success-text self-draw-error-text">Время вышло!</div>
+		<small class="self-draw-error-hint">Нажмите, чтобы продолжить</small>
+	</div>
+</div>
 <script>window.CYLINDER_TEXTURE_URL = "{% static 'CHIP_Test_2024/chip.png' %}";</script>
 {% if mix_mode %}<script>window.AR_MIX_ROULETTE_URL = "{% url 'ar_color_in_cash' %}";</script>{% endif %}
 <script type="importmap">
@@ -814,8 +821,10 @@ function doSpawn() {
 				initFuseTimer({
 					prefix: 'ar-bets',
 					seconds: sec,
-					timeoutButton: '#btn-pass',
-					settingsOverlay: '#ar-settings-overlay'
+					timeoutButton: '[data-ar-timeout-none]',
+					settingsOverlay: '#ar-settings-overlay',
+					clickOnTimeout: false,
+					onTimeout: showTimeUpOverlay
 				});
 			}
 		}
@@ -878,6 +887,13 @@ function showErrorOverlay(isPass) {
 	}
 	document.getElementById('ar-error-overlay').style.display = 'flex';
 }
+function showTimeUpOverlay() {
+	var answerRow = document.querySelector('.ar-answer-row');
+	var answerDisplay = document.getElementById('answer-display');
+	if (answerRow) answerRow.style.display = 'none';
+	if (answerDisplay) answerDisplay.style.display = 'none';
+	document.getElementById('ar-timeup-overlay').style.display = 'flex';
+}
 document.getElementById('btn-check').addEventListener('click', doCheck);
 var arErrorWasPass = false;
 document.getElementById('btn-pass').addEventListener('click', function () {
@@ -906,6 +922,13 @@ document.getElementById('ar-error-close').addEventListener('click', function () 
 		doSpawn();
 	}
 });
+document.getElementById('ar-timeup-close').addEventListener('click', function () {
+	document.getElementById('ar-timeup-overlay').style.display = 'none';
+	var answerRow = document.querySelector('.ar-answer-row');
+	var answerDisplay = document.getElementById('answer-display');
+	if (answerRow) answerRow.style.display = 'flex';
+	if (answerDisplay) answerDisplay.style.display = '';
+});
 
 function updateStacksUI() {
 	const useStacks = document.getElementById('ar-use-stacks').checked;
@@ -921,8 +944,23 @@ function loadArSettings() {
 	document.getElementById('ar-stacks-select').value = String(arStacksCount);
 	document.getElementById('ar-number-select').value = String(arSelectedNumber);
 	document.getElementById('ar-hints-disabled').checked = arHintsDisabled;
+	var timerCheckbox = document.querySelector('#ar-settings-overlay input[name="timer_enabled"]');
+	var secInput = document.querySelector('#ar-settings-overlay input[name="timer_seconds"]');
+	if (timerCheckbox) {
+		var te = localStorage.getItem('ar_timer_enabled');
+		if (te !== null) timerCheckbox.checked = (te === '1');
+	}
+	if (secInput) {
+		var ts = localStorage.getItem('ar_timer_seconds');
+		if (ts !== null) secInput.value = ts;
+	}
 	updateStacksUI();
 	updateRotateHint();
+	/* показ/скрытие фитиля по настройкам */
+	var timerRoot = document.getElementById('ar-bets-fuse-timer');
+	if (timerRoot && timerCheckbox) {
+		timerRoot.style.display = timerCheckbox.checked ? '' : 'none';
+	}
 }
 function saveArSettings() {
 	const minEl = document.getElementById('ar-min-chips');
@@ -938,16 +976,15 @@ function saveArSettings() {
 	setCookie('ar_hints_disabled', arHintsDisabled ? '1' : '0', 365);
 	const parsedNumber = parseInt(numberVal, 10);
 	arSelectedNumber = (parsedNumber === 0 || parsedNumber === 2 || parsedNumber === 5) ? parsedNumber : 5;
-	// показать/скрыть визуальный таймер в зависимости от галочки
+	// показать/скрыть визуальный таймер и сохранить настройки
 	var timerRoot = document.getElementById('ar-bets-fuse-timer');
 	var timerCheckbox = document.querySelector('#ar-settings-overlay input[name="timer_enabled"]');
+	var secInput = document.querySelector('#ar-settings-overlay input[name="timer_seconds"]');
 	if (timerRoot && timerCheckbox) {
-		if (timerCheckbox.checked) {
-			timerRoot.style.display = '';
-		} else {
-			timerRoot.style.display = 'none';
-		}
+		timerRoot.style.display = timerCheckbox.checked ? '' : 'none';
+		localStorage.setItem('ar_timer_enabled', timerCheckbox.checked ? '1' : '0');
 	}
+	if (secInput) localStorage.setItem('ar_timer_seconds', secInput.value);
 	if (minEl && maxEl && !useStacks) {
 		arMinChips = Math.max(0, Math.min(10, parseInt(minEl.value, 10) || 0));
 		arMaxChips = Math.max(0, Math.min(10, parseInt(maxEl.value, 10) || 0));

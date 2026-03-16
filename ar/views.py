@@ -50,7 +50,13 @@ def index(request):
 
 def ar_bets(request):
     mix_mode = request.GET.get('mode') == 'mix'
-    return render(request, 'ar/ar_bets.html', {'mix_mode': mix_mode})
+    timer_enabled = request.session.get('timer_enabled', True)
+    timer_seconds = request.session.get('timer_seconds', 10)
+    return render(request, 'ar/ar_bets.html', {
+        'mix_mode': mix_mode,
+        'timer_enabled': timer_enabled,
+        'timer_seconds': timer_seconds,
+    })
 
 
 def ar_neighbors(request):

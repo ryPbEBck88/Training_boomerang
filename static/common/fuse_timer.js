@@ -8,9 +8,13 @@
  * @param {number} opts.seconds - Countdown seconds
  * @param {string} opts.timeoutButton - Selector for button to click on timeout (e.g. 'button[value="stand"]')
  * @param {string} [opts.settingsOverlay] - Selector for settings overlay (to pause when open)
+ * @param {boolean} [opts.clickOnTimeout=true] - Если false, по истечении времени не нажимать кнопку
+ * @param {function} [opts.onTimeout] - Колбэк при истечении времени (вместо клика по кнопке)
  */
 function initFuseTimer(opts) {
 	var prefix = opts.prefix || 'fuse';
+	var clickOnTimeout = opts.clickOnTimeout !== false;
+	var onTimeout = opts.onTimeout;
 	var fillId = prefix + '-fuse-fill';
 	var fillEl = document.getElementById(fillId);
 	if (!fillEl) return; /* fuse not in DOM = timer disabled, do nothing */
@@ -44,9 +48,13 @@ function initFuseTimer(opts) {
 		if (fillEl) fillEl.style.width = pct + '%';
 		if (t <= 0) {
 			if (window._fuseTimerGen && window._fuseTimerGen[prefix] !== myGen) return;
-			var btn = document.querySelector(timeoutBtnSel);
-			if (btn) btn.click();
-			return;
+			if (typeof onTimeout === 'function') {
+				onTimeout();
+			} else if (clickOnTimeout) {
+				var btn = document.querySelector(timeoutBtnSel);
+				if (btn) btn.click();
+			}
+			return; /* не продолжать цикл и не кликать повторно */
 		}
 		requestAnimationFrame(tick);
 	}
