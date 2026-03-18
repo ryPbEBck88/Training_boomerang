@@ -40,6 +40,16 @@
 				</select>
 				<span>стек(ов)а</span>
 			</label>
+			<!-- дюжины на поле:
+			<label>
+				<select id="ar-visible-dozens">
+					<option value="1">1-я (1–12)</option>
+					<option value="2">2-я (13–24)</option>
+					<option value="1,2" selected>1-я и 2-я</option>
+					<option value="1,2,3">все три</option>
+				</select>
+			</label>
+			-->
 			<label>номер:
 				<select id="ar-number-select">
 					<option value="0">0</option>
@@ -47,8 +57,8 @@
 					<option value="5" selected>5</option>
 				</select>
 			</label>
-			<label>min: <input type="number" id="ar-min-chips" min="0" max="10" value="0"></label>
-			<label>max: <input type="number" id="ar-max-chips" min="0" max="10" value="5"></label>
+			<label>min: <input type="number" id="ar-min-chips" min="0" max="20" value="0"></label>
+			<label>max: <input type="number" id="ar-max-chips" min="0" max="20" value="5"></label>
 			<label class="ar-stacks-row">
 				<input type="checkbox" id="ar-hints-disabled">
 				<span>Отключить подсказки</span>
@@ -127,14 +137,15 @@ let arUseStacks = true;
 let arStacksCount = 1;
 let arSelectedNumber = 5;
 let arHintsDisabled = false;
+let arVisibleDozens = [1, 2];
 try {
 	const stored = getCookie('ar_chips_range') || localStorage.getItem('ar_chips_range');
 	if (stored) {
 		const p = JSON.parse(stored);
 		const vmin = parseInt(p.min, 10);
 		const vmax = parseInt(p.max, 10);
-		if (!isNaN(vmin)) arMinChips = Math.max(0, Math.min(10, vmin));
-		if (!isNaN(vmax)) arMaxChips = Math.max(0, Math.min(10, vmax));
+		if (!isNaN(vmin)) arMinChips = Math.max(0, Math.min(20, vmin));
+		if (!isNaN(vmax)) arMaxChips = Math.max(0, Math.min(20, vmax));
 	}
 	const stacksStored = getCookie('ar_stacks_mode') || localStorage.getItem('ar_stacks_mode');
 	if (stacksStored) {
@@ -150,19 +161,28 @@ try {
 	}
 	const hintsStored = getCookie('ar_hints_disabled') || localStorage.getItem('ar_hints_disabled');
 	arHintsDisabled = hintsStored === '1' || hintsStored === 'true';
+	const dozStored = localStorage.getItem('ar_visible_dozens');
+	if (dozStored) {
+		const arr = JSON.parse(dozStored);
+		if (Array.isArray(arr) && arr.length >= 1) {
+			const valid = arr.filter(function (n) { return n >= 1 && n <= 3; }).sort(function (a, b) { return a - b; });
+			if (valid.length) arVisibleDozens = valid;
+		}
+	}
 } catch (_) {}
 
-var containerW = canvas.parentElement.clientWidth || 480;
-var containerH = canvas.parentElement.clientHeight || Math.min(640, Math.floor(containerW * 0.75));
-if (containerW < 100) containerW = 640;
-if (containerH < 100) containerH = 360;
+var containerW = canvas.parentElement ? canvas.parentElement.clientWidth : 0;
+var containerH = canvas.parentElement ? canvas.parentElement.clientHeight : 0;
+if (!containerW || containerW < 100) containerW = 640;
+if (!containerH || containerH < 100) containerH = 360;
 var w = containerW;
 var h = containerH;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x1a1a1a);
 
-const camera = new THREE.PerspectiveCamera(50, w / h, 0.1, 1000);
+const aspect = (h > 0 && w > 0) ? w / h : 16 / 9;
+const camera = new THREE.PerspectiveCamera(50, aspect, 0.1, 1000);
 camera.position.set(12.095, 2.566, 18.105);
 camera.lookAt(12.281, 17.126, 1.613);
 
@@ -184,6 +204,9 @@ controls.minAzimuthAngle = -Math.PI / 2;
 controls.maxAzimuthAngle = Math.PI / 2;
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+if (!renderer.getContext()) {
+	canvas.parentElement && canvas.parentElement.insertAdjacentHTML('beforeend', '<p style="color:#e11;padding:16px;margin:0;">WebGL не доступен. Обновите браузер или включите аппаратное ускорение.</p>');
+}
 renderer.setSize(w, h);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
@@ -233,16 +256,22 @@ function makeTextTexture(text, color) {
 	return tex;
 }
 
-var labelNumbers = [1, 4, 7, 10, 2, 5, 8, 11, 3, 6, 9, 12];
+/* Конфиг дюжин: порядок чисел в сетке 4×3 (сверху вниз: 1-4-7-10, 2-5-8-11, 3-6-9-12) */
+const DOZEN_CONFIG = {
+	1: { numbers: [1, 4, 7, 10, 2, 5, 8, 11, 3, 6, 9, 12], label: '1st Dozen', red: [1, 3, 5, 7, 9, 12] },
+	2: { numbers: [13, 16, 19, 22, 14, 17, 20, 23, 15, 18, 21, 24], label: '2nd Dozen', red: [14, 16, 17, 19, 21, 23] },
+	3: { numbers: [25, 28, 31, 34, 26, 29, 32, 35, 27, 30, 33, 36], label: '3rd Dozen', red: [25, 27, 30, 32, 34, 36] }
+};
+const BLOCK_HEIGHT = 36.15;
+const BLOCK_GAP = 0.3;
 
-function addCell(cx, cy, cellIndex) {
-	const number5 = new THREE.Mesh(new THREE.PlaneGeometry(cellW, cellH), blueMat);
-	number5.name = 'number 5';
-	number5.position.set(cx, cy, 0);
-	scene.add(number5);
+function addCell(scene, cx, cy, num, redSet) {
+	const cell = new THREE.Mesh(new THREE.PlaneGeometry(cellW, cellH), blueMat);
+	cell.name = 'number ' + num;
+	cell.position.set(cx, cy, 0);
+	scene.add(cell);
 
-	const num = labelNumbers[cellIndex];
-	const isRed = [1, 3, 5, 7, 9, 12].indexOf(num) !== -1;
+	const isRed = redSet.indexOf(num) !== -1;
 	const labelColor = isRed ? '#c00' : '#000';
 	const labelPlane = new THREE.Mesh(
 		new THREE.PlaneGeometry(7.2, 7.2),
@@ -265,7 +294,108 @@ const centers = [
 	[cx0, cy1], [cx1, cy1], [cx2, cy1], [cx3, cy1],
 	[cx0, cy2], [cx1, cy2], [cx2, cy2], [cx3, cy2]
 ];
-centers.forEach(function (c, i) { addCell(c[0], c[1], i); });
+
+const gridLeft = -edge;
+const gridRight = cellW + gap + cellW + gap + cellW + gap + cellW + edge;
+const gridBottom = -edge;
+const gridTop = cellH + gap + cellH + gap + cellH + edge;
+const vertLineH = gridTop - gridBottom;
+const horzLineW = gridRight - gridLeft;
+const vertX = [
+	gridLeft,
+	cellW + gap / 2,
+	cellW + gap + cellW + gap / 2,
+	cellW + gap + cellW + gap + cellW + gap / 2,
+	gridRight
+];
+const horzY = [gridBottom, cellH + gap / 2, cellH + gap + cellH + gap / 2, gridTop];
+
+const dozRight = 33.05 - 0.15;
+const topRectBorderThickness = gap;
+
+function createDozenBlock(opts) {
+	const { offsetY, numbers, label, red } = opts;
+	/* Ячейки */
+	centers.forEach(function (c, i) {
+		addCell(scene, c[0], c[1] + offsetY, numbers[i], red);
+	});
+	/* Сетка линий */
+	const vertLineH = gridTop - gridBottom;
+	const horzLineW = gridRight - gridLeft;
+	vertX.forEach(function (x) {
+		const line = new THREE.Mesh(new THREE.PlaneGeometry(gap, vertLineH), whiteStripMat);
+		line.name = 'split';
+		line.position.set(x, (gridTop + gridBottom) / 2 + offsetY, 0);
+		scene.add(line);
+	});
+	horzY.forEach(function (y) {
+		const line = new THREE.Mesh(new THREE.PlaneGeometry(horzLineW, gap), whiteStripMat);
+		line.name = 'split';
+		line.position.set((gridLeft + gridRight) / 2, y + offsetY, 0);
+		scene.add(line);
+	});
+	/* Прямоугольник дюжины */
+	const localTopRectBottom = gridTop + 0.3;
+	const localTop = 36;
+	const rectShape = new THREE.Shape();
+	rectShape.moveTo(0, localTopRectBottom + offsetY);
+	rectShape.lineTo(dozRight, localTopRectBottom + offsetY);
+	rectShape.lineTo(dozRight, localTop + offsetY);
+	rectShape.lineTo(0, localTop + offsetY);
+	rectShape.closePath();
+	const rect = new THREE.Mesh(new THREE.ShapeGeometry(rectShape), blueMat);
+	rect.name = 'blue-top-rect';
+	rect.position.set(0, 0, -0.01);
+	scene.add(rect);
+	/* Белая рамка */
+	const dozOut = new THREE.Shape();
+	dozOut.moveTo(-0.3, localTopRectBottom + offsetY);
+	dozOut.lineTo(dozRight + topRectBorderThickness, localTopRectBottom + offsetY);
+	dozOut.lineTo(dozRight + topRectBorderThickness, localTop + offsetY + topRectBorderThickness);
+	dozOut.lineTo(-0.3, localTop + offsetY + topRectBorderThickness);
+	dozOut.closePath();
+	const dozHole = new THREE.Path();
+	dozHole.moveTo(-0.3 + topRectBorderThickness, localTopRectBottom + offsetY + topRectBorderThickness);
+	dozHole.lineTo(dozRight, localTopRectBottom + offsetY + topRectBorderThickness);
+	dozHole.lineTo(dozRight, localTop + offsetY);
+	dozHole.lineTo(-0.3 + topRectBorderThickness, localTop + offsetY);
+	dozHole.closePath();
+	dozOut.holes.push(dozHole);
+	const border = new THREE.Mesh(new THREE.ShapeGeometry(dozOut), whiteStripMat);
+	border.position.set(0, 0, 0.001);
+	border.name = 'top-rect-border';
+	scene.add(border);
+	/* Надпись дюжины */
+	const labelMesh = new THREE.Mesh(
+		new THREE.PlaneGeometry(12, 5),
+		new THREE.MeshBasicMaterial({
+			map: makeTextTexture(label, '#000000'),
+			transparent: true,
+			side: THREE.DoubleSide
+		})
+	);
+	labelMesh.position.set(16.45, (localTopRectBottom + localTop) / 2 + offsetY, 0.02);
+	labelMesh.name = 'label ' + label;
+	scene.add(labelMesh);
+	/* Углы сетки */
+	vertX.forEach(function (x) {
+		horzY.forEach(function (y) {
+			const corner = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), whiteStripMat);
+			corner.name = 'corner';
+			corner.position.set(x, y + offsetY, 0);
+			corner.scale.set(cornerScale, cornerScale, 1);
+			scene.add(corner);
+		});
+	});
+}
+
+/* Рисуем выбранные дюжины */
+arVisibleDozens.forEach(function (dozIdx) {
+	const cfg = DOZEN_CONFIG[dozIdx];
+	if (!cfg) return;
+	const offsetY = (dozIdx - 1) * -(BLOCK_HEIGHT + BLOCK_GAP);
+	createDozenBlock({ offsetY, numbers: cfg.numbers, label: cfg.label, red: cfg.red });
+});
 
 const centerCell = [cx1, cy1];
 const halfW = cellW / 2, halfH = cellH / 2;
@@ -322,35 +452,6 @@ axisAbove8Right.position.set(cx1 + halfW + splitCenter, cy2 + halfH + splitCente
 axisAbove8Right.visible = false;
 scene.add(axisAbove8Right);
 
-const gridLeft = -edge;
-const gridRight = cellW + gap + cellW + gap + cellW + gap + cellW + edge;
-const gridBottom = -edge;
-const gridTop = cellH + gap + cellH + gap + cellH + edge;
-const vertLineH = gridTop - gridBottom;
-const horzLineW = gridRight - gridLeft;
-
-const vertX = [
-	gridLeft,
-	cellW + gap / 2,
-	cellW + gap + cellW + gap / 2,
-	cellW + gap + cellW + gap + cellW + gap / 2,
-	gridRight
-];
-vertX.forEach(function (x) {
-	const line = new THREE.Mesh(new THREE.PlaneGeometry(gap, vertLineH), whiteStripMat);
-	line.name = 'split';
-	line.position.set(x, (gridTop + gridBottom) / 2, 0);
-	scene.add(line);
-});
-
-const horzY = [gridBottom, cellH + gap / 2, cellH + gap + cellH + gap / 2, gridTop];
-horzY.forEach(function (y) {
-	const line = new THREE.Mesh(new THREE.PlaneGeometry(horzLineW, gap), whiteStripMat);
-	line.name = 'split';
-	line.position.set((gridLeft + gridRight) / 2, y, 0);
-	scene.add(line);
-});
-
 function addGrayStrip(x1, y1, x2, y2, thickness) {
 	const dx = x2 - x1;
 	const dy = y2 - y1;
@@ -366,6 +467,15 @@ addGrayStrip(-3.15, -0.15, -8.15, 10.15, gap);   /* диагональ сниз�
 addGrayStrip(-0.15, 30.75, -3.15, 30.75, gap);   /* горизонталь: corner 0-1-2-3 → (-3.15, 30.75) */
 addGrayStrip(-3.15, 30.75, -8.15, 20.75, gap);   /* диагональ от (-3.15, 30.75) к вершине трапеции */
 addGrayStrip(-8.15, 10.15, -8.15, 20.75, gap);
+/* Разделители между дюжинами и вертикаль до низа при нескольких дюжинах */
+if (arVisibleDozens.length > 1) {
+	const lowY = (arVisibleDozens.length - 1) * -(BLOCK_HEIGHT + BLOCK_GAP) + gridBottom - BLOCK_GAP;
+	addGrayStrip(-0.15, -0.15, -0.15, lowY, gap);
+	for (let k = 1; k < arVisibleDozens.length; k++) {
+		const stripY = ((-(2 * k - 1) * (BLOCK_HEIGHT + BLOCK_GAP) + gridBottom + 36) / 2);
+		addGrayStrip(0, stripY, dozRight, stripY, gap);
+	}
+}
 const topRectBottom = gridTop + 0.3;  /* зазор 0.3 между полем 1-12 и 1st Dozen */
 
 const trapezoidShape = new THREE.Shape();
@@ -381,51 +491,6 @@ trapezoid.name = 'blue-trapezoid';
 trapezoid.position.set(0, 0, -0.01);
 scene.add(trapezoid);
 
-const dozRight = 33.05 - 0.15;
-const topRectShape = new THREE.Shape();
-topRectShape.moveTo(0, topRectBottom);
-topRectShape.lineTo(dozRight, topRectBottom);
-topRectShape.lineTo(dozRight, 36);
-topRectShape.lineTo(0, 36);
-topRectShape.closePath();
-const topRect = new THREE.Mesh(new THREE.ShapeGeometry(topRectShape), blueMat);
-topRect.name = 'blue-top-rect';
-topRect.position.set(0, 0, -0.01);
-scene.add(topRect);
-
-/* Белая рамка 1st Dozen — низ не опускается в зазор, чтобы оставался gap 0.3 */
-const topRectBorderThickness = gap;
-const dozOut = new THREE.Shape();
-dozOut.moveTo(-0.3, topRectBottom);
-dozOut.lineTo(dozRight + topRectBorderThickness, topRectBottom);
-dozOut.lineTo(dozRight + topRectBorderThickness, 36 + topRectBorderThickness);
-dozOut.lineTo(-0.3, 36 + topRectBorderThickness);
-dozOut.closePath();
-const dozHole = new THREE.Path();
-dozHole.moveTo(-0.3 + topRectBorderThickness, topRectBottom + topRectBorderThickness);
-dozHole.lineTo(dozRight, topRectBottom + topRectBorderThickness);
-dozHole.lineTo(dozRight, 36);
-dozHole.lineTo(-0.3 + topRectBorderThickness, 36);
-dozHole.closePath();
-dozOut.holes.push(dozHole);
-const topRectBorder = new THREE.Mesh(new THREE.ShapeGeometry(dozOut), whiteStripMat);
-topRectBorder.position.set(0, 0, 0.001);
-topRectBorder.name = 'top-rect-border';
-scene.add(topRectBorder);
-
-const dozenLabel = new THREE.Mesh(
-	new THREE.PlaneGeometry(12, 5),
-	new THREE.MeshBasicMaterial({
-		map: makeTextTexture('1st Dozen', '#000000'),
-		transparent: true,
-		side: THREE.DoubleSide
-	})
-);
-dozenLabel.position.set(16.45, (topRectBottom + 36) / 2, 0.02);
-dozenLabel.rotation.z = 0;
-dozenLabel.name = 'label 1st Dozen';
-scene.add(dozenLabel);
-
 const zeroLabel = new THREE.Mesh(
 	new THREE.PlaneGeometry(7.2, 7.2),
 	new THREE.MeshBasicMaterial({
@@ -439,17 +504,6 @@ zeroLabel.rotation.z = Math.PI / 2;
 zeroLabel.name = 'label 0';
 scene.add(zeroLabel);
 
-
-vertX.forEach(function (x) {
-	horzY.forEach(function (y) {
-		const corner = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), whiteStripMat);
-		corner.name = 'corner';
-		corner.position.set(x, y, 0);
-		corner.scale.set(cornerScale, cornerScale, 1);
-		scene.add(corner);
-	});
-});
-
 const spawnZ = 0.175;
 const chipStep = 0.35;
 const spawnZ2 = spawnZ + chipStep;
@@ -461,8 +515,15 @@ const spawnZ7 = spawnZ + chipStep * 6;
 const spawnZ8 = spawnZ + chipStep * 7;
 const spawnZ9 = spawnZ + chipStep * 8;
 const spawnZ10 = spawnZ + chipStep * 9;
-const firstLadderOffset = 0.6; /* стопка -> первая фишка лесенки */
-const ladderStep = 0.3;       /* шаг между фишками лесенки */
+const spawnZ11 = spawnZ + chipStep * 10;
+const spawnZ12 = spawnZ + chipStep * 11;
+const spawnZ13 = spawnZ + chipStep * 12;
+const spawnZ14 = spawnZ + chipStep * 13;
+const spawnZ15 = spawnZ + chipStep * 14;
+const ladderStep = 0.3;       /* шаг лесенки (2–4 фишки) */
+const chip11OffsetX = 0.3;   /* смещение фишек 11–14 по x */
+const firstLadderOffset = 0.6; /* отступ лесенки 6–10 от стопки 1–5 */
+const secondColOffset = 2.5;  /* смещение второй колонки при 11–20 фишках */
 const zeroCenter = { x: -4.15, y: 15.3 };
 const zeroSplitX = -0.15;
 const zeroCornerX = -0.15;
@@ -749,7 +810,7 @@ function doSpawn() {
 				const spawnIdx = available[idx];
 				chipCounts[spawnIdx] += 1;
 				chips -= 1;
-				if (chipCounts[spawnIdx] === 10) {
+				if (chipCounts[spawnIdx] >= 20) {
 					available.splice(idx, 1);
 				}
 			}
@@ -759,40 +820,56 @@ function doSpawn() {
 			const range = maxChips - minChips + 1;
 			for (let i = 0; i < spawnPoints.length; i++) {
 				if (allowedSpawnIdx.indexOf(i) === -1) continue;
-				const count = range > 0 ? minChips + Math.floor(Math.random() * range) : minChips;
+				const count = Math.min(20, range > 0 ? minChips + Math.floor(Math.random() * range) : minChips);
 				chipCounts[i] = count;
 			}
 		}
-		for (let i = 0; i < spawnPoints.length; i++) {
+		function drawColumn(material, bx, by, n) {
+			if (n <= 0) return;
+			var isStack = n >= 5;
+			var isLadder = n >= 2 && n <= 4;
+			addCylinder(material, bx, by, spawnZ);
+			if (n >= 2 && (isStack || isLadder)) {
+				if (isStack) addCylinder(material, bx, by, spawnZ2);
+				else addCylinder(material, bx, by + ladderStep, spawnZ2, (Math.random() - 0.5) * 0.4);
+			}
+			if (n >= 3 && (isStack || isLadder)) {
+				if (isStack) addCylinder(material, bx, by, spawnZ3);
+				else addCylinder(material, bx, by + ladderStep * 2, spawnZ3, (Math.random() - 0.5) * 0.4);
+			}
+			if (n >= 4 && (isStack || isLadder)) {
+				if (isStack) addCylinder(material, bx, by, spawnZ4);
+				else addCylinder(material, bx, by + ladderStep * 3, spawnZ4, (Math.random() - 0.5) * 0.4);
+			}
+			if (n >= 5) addCylinder(material, bx, by, spawnZ5);
+			if (n >= 6 && n < 10) addCylinder(material, bx, by + firstLadderOffset, spawnZ6, (Math.random() - 0.5) * 0.4);
+			if (n >= 7 && n < 10) addCylinder(material, bx, by + firstLadderOffset + ladderStep, spawnZ7, (Math.random() - 0.5) * 0.4);
+			if (n >= 8 && n < 10) addCylinder(material, bx, by + firstLadderOffset + ladderStep * 2, spawnZ8, (Math.random() - 0.5) * 0.4);
+			if (n >= 9 && n < 10) addCylinder(material, bx, by + firstLadderOffset + ladderStep * 3, spawnZ9, (Math.random() - 0.5) * 0.4);
+			if (n === 10) {
+				var zLadder = [spawnZ6, spawnZ7, spawnZ8, spawnZ9, spawnZ10];
+				for (var k = 0; k < 5; k++) {
+					addCylinder(material, bx, by + firstLadderOffset, zLadder[k]);
+				}
+			}
+		}
+		for (var i = 0; i < spawnPoints.length; i++) {
 			const count = chipCounts[i];
 			if (count === 0) continue;
 			const x = spawnPoints[i][0], y = spawnPoints[i][1];
-			const firstStackColumn = count >= 5;
-			const firstStackLadder = count >= 2 && count <= 4;
-			addCylinder(material, x, y, spawnZ);
-			if (count >= 2 && (firstStackColumn || firstStackLadder)) {
-				if (firstStackColumn) addCylinder(material, x, y, spawnZ2);
-				else addCylinder(material, x, y + ladderStep, spawnZ2, (Math.random() - 0.5) * 0.4);
+			const col1 = Math.min(count, 10);
+			drawColumn(material, x, y, col1);
+			if (count >= 15) {
+				/* 11–15 стопкой: x,y как у первой фишки */
+				var zStack = [spawnZ11, spawnZ12, spawnZ13, spawnZ14, spawnZ15];
+				for (var k = 0; k < 5; k++) addCylinder(material, x, y, zStack[k]);
+			} else {
+				if (count >= 11) addCylinder(material, x + chip11OffsetX, y, spawnZ11);
+				if (count >= 12) addCylinder(material, x + chip11OffsetX, y + chipStep, spawnZ12);
+				if (count >= 13) addCylinder(material, x + chip11OffsetX, y + chipStep * 2, spawnZ13);
+				if (count >= 14) addCylinder(material, x + chip11OffsetX, y + chipStep * 3, spawnZ14);
 			}
-			if (count >= 3 && (firstStackColumn || firstStackLadder)) {
-				if (firstStackColumn) addCylinder(material, x, y, spawnZ3);
-				else addCylinder(material, x, y + ladderStep * 2, spawnZ3, (Math.random() - 0.5) * 0.4);
-			}
-			if (count >= 4 && (firstStackColumn || firstStackLadder)) {
-				if (firstStackColumn) addCylinder(material, x, y, spawnZ4);
-				else addCylinder(material, x, y + ladderStep * 3, spawnZ4, (Math.random() - 0.5) * 0.4);
-			}
-			if (count >= 5) addCylinder(material, x, y, spawnZ5);
-			if (count >= 6 && count < 10) addCylinder(material, x, y + firstLadderOffset, spawnZ6, (Math.random() - 0.5) * 0.4);
-			if (count >= 7 && count < 10) addCylinder(material, x, y + firstLadderOffset + ladderStep, spawnZ7, (Math.random() - 0.5) * 0.4);
-			if (count >= 8 && count < 10) addCylinder(material, x, y + firstLadderOffset + ladderStep * 2, spawnZ8, (Math.random() - 0.5) * 0.4);
-			if (count >= 9 && count < 10) addCylinder(material, x, y + firstLadderOffset + ladderStep * 3, spawnZ9, (Math.random() - 0.5) * 0.4);
-			if (count === 10) {
-				const zLevels = [spawnZ6, spawnZ7, spawnZ8, spawnZ9, spawnZ10];
-				for (let k = 0; k < 5; k++) {
-					addCylinder(material, x, y + firstLadderOffset, zLevels[k]);
-				}
-			}
+			if (count >= 16) drawColumn(material, x + secondColOffset, y, count - 15);
 		}
 		const multipliers = new Array(spawnPoints.length).fill(0);
 		const payoutsIdx = payoutsByNumberIndex[arSelectedNumber];
@@ -861,6 +938,9 @@ function doCheck() {
 		return;
 	}
 	if (userVal === correctAnswer) {
+		/* Останавливаем фитиль, чтобы по истечении времени не показалось «Время вышло!» */
+		window._fuseTimerGen = window._fuseTimerGen || {};
+		window._fuseTimerGen['ar-bets'] = (window._fuseTimerGen['ar-bets'] || 0) + 1;
 		input.blur();
 		var answerRow = document.querySelector('.ar-answer-row');
 		var answerDisplay = document.getElementById('answer-display');
@@ -944,6 +1024,8 @@ function loadArSettings() {
 	document.getElementById('ar-stacks-select').value = String(arStacksCount);
 	document.getElementById('ar-number-select').value = String(arSelectedNumber);
 	document.getElementById('ar-hints-disabled').checked = arHintsDisabled;
+	var dozSel = document.getElementById('ar-visible-dozens');
+	if (dozSel) dozSel.value = arVisibleDozens.join(',');
 	var timerCheckbox = document.querySelector('#ar-settings-overlay input[name="timer_enabled"]');
 	var secInput = document.querySelector('#ar-settings-overlay input[name="timer_seconds"]');
 	if (timerCheckbox) {
@@ -986,13 +1068,23 @@ function saveArSettings() {
 	}
 	if (secInput) localStorage.setItem('ar_timer_seconds', secInput.value);
 	if (minEl && maxEl && !useStacks) {
-		arMinChips = Math.max(0, Math.min(10, parseInt(minEl.value, 10) || 0));
-		arMaxChips = Math.max(0, Math.min(10, parseInt(maxEl.value, 10) || 0));
+		arMinChips = Math.max(0, Math.min(20, parseInt(minEl.value, 10) || 0));
+		arMaxChips = Math.max(0, Math.min(20, parseInt(maxEl.value, 10) || 0));
 		localStorage.setItem('ar_chips_range', JSON.stringify({ min: arMinChips, max: arMaxChips }));
 		setCookie('ar_chips_range', JSON.stringify({ min: arMinChips, max: arMaxChips }), 365);
 	}
 	localStorage.setItem('ar_stacks_mode', JSON.stringify({ enabled: arUseStacks, stacks: arStacksCount }));
 	localStorage.setItem('ar_number_select', String(arSelectedNumber));
+	var dozSel = document.getElementById('ar-visible-dozens');
+	if (dozSel) {
+		const arr = (dozSel.value || '1,2').split(',').map(function (s) { return parseInt(s.trim(), 10); }).filter(function (n) { return n >= 1 && n <= 3; }).sort(function (a, b) { return a - b; });
+		if (arr.length) {
+			const prevKey = JSON.stringify(arVisibleDozens);
+			arVisibleDozens = arr;
+			localStorage.setItem('ar_visible_dozens', JSON.stringify(arVisibleDozens));
+			if (prevKey !== JSON.stringify(arVisibleDozens)) window.location.reload();
+		}
+	}
 	setCookie('ar_stacks_mode', JSON.stringify({ enabled: arUseStacks, stacks: arStacksCount }), 365);
 	setCookie('ar_number_select', String(arSelectedNumber), 365);
 	updateRotateHint();
@@ -1053,7 +1145,7 @@ window.addEventListener('resize', function () {
 	if (containerH < 100) containerH = 360;
 	w = containerW;
 	h = containerH;
-	camera.aspect = w / h;
+	camera.aspect = (h > 0) ? w / h : 16 / 9;
 	camera.updateProjectionMatrix();
 	renderer.setSize(w, h);
 });
