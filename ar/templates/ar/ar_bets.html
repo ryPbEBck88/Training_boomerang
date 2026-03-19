@@ -216,12 +216,13 @@ dir.position.set(20, 25, 20);
 scene.add(dir);
 
 const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
-const whiteStripMat = new THREE.MeshBasicMaterial({ color: 0xffffff }); /* полоски — всегда белые */
+const whiteStripMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 }); /* полоски — всегда белые, DoubleSide для AR */
 const blueMat = new THREE.MeshStandardMaterial({ color: 0x2563eb });
 const cellW = 8, cellH = 10;
 const gap = 0.3;
 const edge = 0.15;
 const cornerScale = 0.3;
+const lineDepth = 0.12;  /* глубина линий — одинаковая толщина при любом угле (AR) */
 
 function makeNumberTexture(num, color) {
 	const size = 768;
@@ -312,59 +313,72 @@ const horzY = [gridBottom, cellH + gap / 2, cellH + gap + cellH + gap / 2, gridT
 
 const dozRight = 33.05 - 0.15;
 const topRectBorderThickness = gap;
+const BLOCK_WIDTH = dozRight + BLOCK_GAP;  /* ширина блока дюжины по x */
 
 function createDozenBlock(opts) {
-	const { offsetY, numbers, label, red } = opts;
+	const offsetX = opts.offsetX || 0;
+	const offsetY = opts.offsetY || 0;
+	const skipLeftEdge = opts.skipLeftEdge || false;
+	const skipRightEdge = opts.skipRightEdge || false;
+	const { numbers, label, red } = opts;
 	/* Ячейки */
 	centers.forEach(function (c, i) {
-		addCell(scene, c[0], c[1] + offsetY, numbers[i], red);
+		addCell(scene, c[0] + offsetX, c[1] + offsetY, numbers[i], red);
 	});
-	/* Сетка линий */
+	/* Сетка линий — все вертикали рисуем всегда для ровного вида (skip только для рамки) */
 	const vertLineH = gridTop - gridBottom;
 	const horzLineW = gridRight - gridLeft;
 	vertX.forEach(function (x) {
-		const line = new THREE.Mesh(new THREE.PlaneGeometry(gap, vertLineH), whiteStripMat);
+		const line = new THREE.Mesh(new THREE.BoxGeometry(gap, vertLineH, lineDepth), whiteStripMat);
 		line.name = 'split';
-		line.position.set(x, (gridTop + gridBottom) / 2 + offsetY, 0);
+		line.position.set(x + offsetX, (gridTop + gridBottom) / 2 + offsetY, 0);
 		scene.add(line);
 	});
-	horzY.forEach(function (y) {
-		const line = new THREE.Mesh(new THREE.PlaneGeometry(horzLineW, gap), whiteStripMat);
+	/* Пропускаем верхнюю линию (gridTop) — она накладывается на нижнюю границу рамки 1st Dozen */
+	const horzYFiltered = horzY.slice(0, -1);
+	horzYFiltered.forEach(function (y) {
+		const line = new THREE.Mesh(new THREE.BoxGeometry(horzLineW, gap, lineDepth), whiteStripMat);
 		line.name = 'split';
-		line.position.set((gridLeft + gridRight) / 2, y + offsetY, 0);
+		line.position.set((gridLeft + gridRight) / 2 + offsetX, y + offsetY, 0);
 		scene.add(line);
 	});
 	/* Прямоугольник дюжины */
 	const localTopRectBottom = gridTop + 0.3;
 	const localTop = 36;
 	const rectShape = new THREE.Shape();
-	rectShape.moveTo(0, localTopRectBottom + offsetY);
-	rectShape.lineTo(dozRight, localTopRectBottom + offsetY);
-	rectShape.lineTo(dozRight, localTop + offsetY);
-	rectShape.lineTo(0, localTop + offsetY);
+	rectShape.moveTo(offsetX, localTopRectBottom + offsetY);
+	rectShape.lineTo(offsetX + dozRight, localTopRectBottom + offsetY);
+	rectShape.lineTo(offsetX + dozRight, localTop + offsetY);
+	rectShape.lineTo(offsetX, localTop + offsetY);
 	rectShape.closePath();
 	const rect = new THREE.Mesh(new THREE.ShapeGeometry(rectShape), blueMat);
 	rect.name = 'blue-top-rect';
 	rect.position.set(0, 0, -0.01);
 	scene.add(rect);
-	/* Белая рамка */
-	const dozOut = new THREE.Shape();
-	dozOut.moveTo(-0.3, localTopRectBottom + offsetY);
-	dozOut.lineTo(dozRight + topRectBorderThickness, localTopRectBottom + offsetY);
-	dozOut.lineTo(dozRight + topRectBorderThickness, localTop + offsetY + topRectBorderThickness);
-	dozOut.lineTo(-0.3, localTop + offsetY + topRectBorderThickness);
-	dozOut.closePath();
-	const dozHole = new THREE.Path();
-	dozHole.moveTo(-0.3 + topRectBorderThickness, localTopRectBottom + offsetY + topRectBorderThickness);
-	dozHole.lineTo(dozRight, localTopRectBottom + offsetY + topRectBorderThickness);
-	dozHole.lineTo(dozRight, localTop + offsetY);
-	dozHole.lineTo(-0.3 + topRectBorderThickness, localTop + offsetY);
-	dozHole.closePath();
-	dozOut.holes.push(dozHole);
-	const border = new THREE.Mesh(new THREE.ShapeGeometry(dozOut), whiteStripMat);
-	border.position.set(0, 0, 0.001);
-	border.name = 'top-rect-border';
-	scene.add(border);
+	/* Белая рамка дюжины — границы по gridLeft/gridRight (выровнено с сеткой) */
+	const leftOut = offsetX + gridLeft;  /* выровнено с ориентиром (линия трапеция/сетка под ней) */
+	const isRightmost = opts.isRightmost || false;
+	const rightOut = skipRightEdge ? (offsetX + gridRight) : (offsetX + gridRight + (isRightmost ? topRectBorderThickness : 0));
+	const topY = localTop + offsetY + (skipRightEdge ? 0 : topRectBorderThickness);
+	const botY = localTopRectBottom + offsetY;
+	const bw = rightOut - leftOut;
+	const bh = topY - botY;
+	const bottomLine = new THREE.Mesh(new THREE.BoxGeometry(bw, gap, lineDepth), whiteStripMat);
+	bottomLine.position.set((leftOut + rightOut) / 2, botY, 0.002);
+	scene.add(bottomLine);
+	const topLine = new THREE.Mesh(new THREE.BoxGeometry(bw, gap, lineDepth), whiteStripMat);
+	topLine.position.set((leftOut + rightOut) / 2, topY, 0.002);
+	scene.add(topLine);
+	if (!skipLeftEdge) {
+		const leftLine = new THREE.Mesh(new THREE.BoxGeometry(gap, bh, lineDepth), whiteStripMat);
+		leftLine.position.set(leftOut, (botY + topY) / 2, 0.002);
+		scene.add(leftLine);
+	}
+	if (!skipRightEdge) {
+		const rightLine = new THREE.Mesh(new THREE.BoxGeometry(gap, bh, lineDepth), whiteStripMat);
+		rightLine.position.set(rightOut, (botY + topY) / 2, 0.002);
+		scene.add(rightLine);
+	}
 	/* Надпись дюжины */
 	const labelMesh = new THREE.Mesh(
 		new THREE.PlaneGeometry(12, 5),
@@ -374,28 +388,37 @@ function createDozenBlock(opts) {
 			side: THREE.DoubleSide
 		})
 	);
-	labelMesh.position.set(16.45, (localTopRectBottom + localTop) / 2 + offsetY, 0.02);
+	labelMesh.position.set(offsetX + 16.45, (localTopRectBottom + localTop) / 2 + offsetY, 0.02);
 	labelMesh.name = 'label ' + label;
 	scene.add(labelMesh);
-	/* Углы сетки */
+	/* Углы сетки (без верхнего ряда — иначе двойная линия с рамкой 1st Dozen) */
 	vertX.forEach(function (x) {
-		horzY.forEach(function (y) {
-			const corner = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), whiteStripMat);
+		horzYFiltered.forEach(function (y) {
+			const corner = new THREE.Mesh(new THREE.BoxGeometry(cornerScale, cornerScale, lineDepth), whiteStripMat);
 			corner.name = 'corner';
-			corner.position.set(x, y + offsetY, 0);
-			corner.scale.set(cornerScale, cornerScale, 1);
+			corner.position.set(x + offsetX, y + offsetY, 0);
 			scene.add(corner);
 		});
 	});
 }
 
-/* Рисуем выбранные дюжины */
-arVisibleDozens.forEach(function (dozIdx) {
+/* Рисуем выбранные дюжины: 1-я по центру, 2-я и 3-я — справа по оси x */
+arVisibleDozens.forEach(function (dozIdx, idx) {
 	const cfg = DOZEN_CONFIG[dozIdx];
 	if (!cfg) return;
-	const offsetY = (dozIdx - 1) * -(BLOCK_HEIGHT + BLOCK_GAP);
-	createDozenBlock({ offsetY, numbers: cfg.numbers, label: cfg.label, red: cfg.red });
+	const offsetX = (dozIdx - 1) * BLOCK_WIDTH;  /* 2-я и 3-я дюжины справа */
+	const offsetY = 0;
+	/* На стыках: левый блок рисует границу, правый пропускает свою левую — иначе двойная толщина */
+	const skipLeftEdge = arVisibleDozens.indexOf(dozIdx - 1) !== -1;
+	const skipRightEdge = false;  /* всегда рисуем правую границу (стык между блоками) */
+	createDozenBlock({ offsetX, offsetY, skipLeftEdge, skipRightEdge, numbers: cfg.numbers, label: cfg.label, red: cfg.red });
 });
+/* Верхняя белая граница: от верхней правой точки 0 до верхней правой точки 36 */
+if (arVisibleDozens.length > 0) {
+	const maxDozIdx = Math.max.apply(null, arVisibleDozens);
+	const rightEdgeX = (maxDozIdx - 1) * BLOCK_WIDTH + dozRight + topRectBorderThickness;
+	addGrayStrip(-0.15, 30.75, rightEdgeX, 30.75, gap, 0.003);  /* горизонталь: y как у первой точки */
+}
 
 const centerCell = [cx1, cy1];
 const halfW = cellW / 2, halfH = cellH / 2;
@@ -452,31 +475,23 @@ axisAbove8Right.position.set(cx1 + halfW + splitCenter, cy2 + halfH + splitCente
 axisAbove8Right.visible = false;
 scene.add(axisAbove8Right);
 
-function addGrayStrip(x1, y1, x2, y2, thickness) {
+function addGrayStrip(x1, y1, x2, y2, thickness, z) {
 	const dx = x2 - x1;
 	const dy = y2 - y1;
 	const length = Math.hypot(dx, dy);
-	const strip = new THREE.Mesh(new THREE.PlaneGeometry(length, thickness), whiteStripMat);
+	const strip = new THREE.Mesh(new THREE.BoxGeometry(length, thickness, lineDepth), whiteStripMat);
 	strip.name = 'white-strip';
-	strip.position.set((x1 + x2) / 2, (y1 + y2) / 2, 0);
+	strip.position.set((x1 + x2) / 2, (y1 + y2) / 2, z !== undefined ? z : 0);
 	strip.rotation.z = Math.atan2(dy, dx);
 	scene.add(strip);
 }
 addGrayStrip(-0.15, -0.15, -3.15, -0.15, gap);   /* горизонталь снизу: (-0.15,-0.15) → (-3.15,-0.15) */
 addGrayStrip(-3.15, -0.15, -8.15, 10.15, gap);   /* диагональ снизу от (-3.15,-0.15) к вершине */
-addGrayStrip(-0.15, 30.75, -3.15, 30.75, gap);   /* горизонталь: corner 0-1-2-3 → (-3.15, 30.75) */
-addGrayStrip(-3.15, 30.75, -8.15, 20.75, gap);   /* диагональ от (-3.15, 30.75) к вершине трапеции */
+addGrayStrip(-0.15, 30.75, -3.15, 30.75, gap);
+addGrayStrip(-3.15, 30.75, -8.15, 20.75, gap);
 addGrayStrip(-8.15, 10.15, -8.15, 20.75, gap);
-/* Разделители между дюжинами и вертикаль до низа при нескольких дюжинах */
-if (arVisibleDozens.length > 1) {
-	const lowY = (arVisibleDozens.length - 1) * -(BLOCK_HEIGHT + BLOCK_GAP) + gridBottom - BLOCK_GAP;
-	addGrayStrip(-0.15, -0.15, -0.15, lowY, gap);
-	for (let k = 1; k < arVisibleDozens.length; k++) {
-		const stripY = ((-(2 * k - 1) * (BLOCK_HEIGHT + BLOCK_GAP) + gridBottom + 36) / 2);
-		addGrayStrip(0, stripY, dozRight, stripY, gap);
-	}
-}
-const topRectBottom = gridTop + 0.3;  /* зазор 0.3 между полем 1-12 и 1st Dozen */
+/* Разделители между дюжинами убраны — рамки блоков уже дают границу, отдельные полоски вызывали наложение */
+const topRectBottom = gridTop + 0.3;  /* зазор между полем 1-12 и 1st Dozen */
 
 const trapezoidShape = new THREE.Shape();
 trapezoidShape.moveTo(-0.15, -0.15);
