@@ -260,7 +260,7 @@ function makeTextTexture(text, color) {
 /* Конфиг дюжин: порядок чисел в сетке 4×3 (сверху вниз: 1-4-7-10, 2-5-8-11, 3-6-9-12) */
 const DOZEN_CONFIG = {
 	1: { numbers: [1, 4, 7, 10, 2, 5, 8, 11, 3, 6, 9, 12], label: '1st Dozen', red: [1, 3, 5, 7, 9, 12] },
-	2: { numbers: [13, 16, 19, 22, 14, 17, 20, 23, 15, 18, 21, 24], label: '2nd Dozen', red: [14, 16, 17, 19, 21, 23] },
+	2: { numbers: [13, 16, 19, 22, 14, 17, 20, 23, 15, 18, 21, 24], label: '2nd Dozen', red: [14, 16, 18, 19, 21, 23] },
 	3: { numbers: [25, 28, 31, 34, 26, 29, 32, 35, 27, 30, 33, 36], label: '3rd Dozen', red: [25, 27, 30, 32, 34, 36] }
 };
 const BLOCK_HEIGHT = 36.15;
@@ -311,6 +311,12 @@ const vertX = [
 ];
 const horzY = [gridBottom, cellH + gap / 2, cellH + gap + cellH + gap / 2, gridTop];
 
+/* Дюжина: зазор от поля чисел до нижнего края синей полосы */
+const DOZEN_GAP_FROM_GRID = 0.6;
+const dozenStripHeight = 36 - (gridTop + DOZEN_GAP_FROM_GRID); /* верх полосы на y=36 */
+const dozenRectBottom = gridTop + DOZEN_GAP_FROM_GRID;
+const dozenRectTop = dozenRectBottom + dozenStripHeight;
+
 const dozRight = 33.05 - 0.15;
 const topRectBorderThickness = gap;
 const BLOCK_WIDTH = dozRight + BLOCK_GAP;  /* ширина блока дюжины по x */
@@ -320,31 +326,35 @@ function createDozenBlock(opts) {
 	const offsetY = opts.offsetY || 0;
 	const skipLeftEdge = opts.skipLeftEdge || false;
 	const skipRightEdge = opts.skipRightEdge || false;
+	const skipRightCorner = opts.skipRightCorner || false;  /* стык справа: угол рисует левый блок */
 	const { numbers, label, red } = opts;
 	/* Ячейки */
 	centers.forEach(function (c, i) {
 		addCell(scene, c[0] + offsetX, c[1] + offsetY, numbers[i], red);
 	});
-	/* Сетка линий — все вертикали рисуем всегда для ровного вида (skip только для рамки) */
+	/* Сетка линий — вертикали только по полю чисел; зазор до дюжины (gridTop…dozenRectBottom) без вертикалей */
+	const stripZ = 0.002;
 	const vertLineH = gridTop - gridBottom;
 	const horzLineW = gridRight - gridLeft;
-	vertX.forEach(function (x) {
+	vertX.forEach(function (x, vi) {
+		/* Стык слева: левая дюжина уже рисует vertX[4], не дублировать линию */
+		if (skipLeftEdge && vi === 0) return;
 		const line = new THREE.Mesh(new THREE.BoxGeometry(gap, vertLineH, lineDepth), whiteStripMat);
 		line.name = 'split';
-		line.position.set(x + offsetX, (gridTop + gridBottom) / 2 + offsetY, 0);
+		line.position.set(x + offsetX, (gridTop + gridBottom) / 2 + offsetY, stripZ);
 		scene.add(line);
 	});
-	/* Пропускаем верхнюю линию (gridTop) — она накладывается на нижнюю границу рамки 1st Dozen */
+	/* Пропускаем верхнюю линию (gridTop) — иначе двойная линия с нижней границей дюжины */
 	const horzYFiltered = horzY.slice(0, -1);
 	horzYFiltered.forEach(function (y) {
 		const line = new THREE.Mesh(new THREE.BoxGeometry(horzLineW, gap, lineDepth), whiteStripMat);
 		line.name = 'split';
-		line.position.set((gridLeft + gridRight) / 2 + offsetX, y + offsetY, 0);
+		line.position.set((gridLeft + gridRight) / 2 + offsetX, y + offsetY, stripZ);
 		scene.add(line);
 	});
 	/* Прямоугольник дюжины */
-	const localTopRectBottom = gridTop + 0.3;
-	const localTop = 36;
+	const localTopRectBottom = dozenRectBottom;
+	const localTop = dozenRectTop;
 	const rectShape = new THREE.Shape();
 	rectShape.moveTo(offsetX, localTopRectBottom + offsetY);
 	rectShape.lineTo(offsetX + dozRight, localTopRectBottom + offsetY);
@@ -363,22 +373,48 @@ function createDozenBlock(opts) {
 	const botY = localTopRectBottom + offsetY;
 	const bw = rightOut - leftOut;
 	const bh = topY - botY;
-	const bottomLine = new THREE.Mesh(new THREE.BoxGeometry(bw, gap, lineDepth), whiteStripMat);
-	bottomLine.position.set((leftOut + rightOut) / 2, botY, 0.002);
-	scene.add(bottomLine);
-	const topLine = new THREE.Mesh(new THREE.BoxGeometry(bw, gap, lineDepth), whiteStripMat);
-	topLine.position.set((leftOut + rightOut) / 2, topY, 0.002);
+	const frameSideH = Math.max(0, bh - gap);
+	/* Нижняя граница — сегменты между вертикалями + углы (как у сетки чисел), без утолщения на пересечениях */
+	for (let vi = 0; vi < vertX.length - 1; vi++) {
+		const segLen = vertX[vi + 1] - vertX[vi] - gap;
+		if (segLen > 0) {
+			const seg = new THREE.Mesh(new THREE.BoxGeometry(segLen, gap, lineDepth), whiteStripMat);
+			seg.name = 'dozen-bottom-seg';
+			seg.position.set((vertX[vi] + vertX[vi + 1]) / 2 + offsetX, botY, stripZ);
+			scene.add(seg);
+		}
+	}
+	/* Угол на стыке: левый блок пропускает правый нижний угол (skipRightCorner), правый рисует левый — не skipLeftEdge */
+	vertX.forEach(function (x, vi) {
+		if (skipRightCorner && vi === vertX.length - 1) return;
+		const c = new THREE.Mesh(new THREE.BoxGeometry(cornerScale, cornerScale, lineDepth), whiteStripMat);
+		c.name = 'dozen-bottom-corner';
+		c.position.set(x + offsetX, botY, stripZ);
+		scene.add(c);
+	});
+	/* Верхняя граница — короче на толщину слева/справа; углы отдельно */
+	const topLine = new THREE.Mesh(new THREE.BoxGeometry(bw - gap, gap, lineDepth), whiteStripMat);
+	topLine.name = 'dozen-top';
+	topLine.position.set((leftOut + rightOut) / 2, topY, stripZ);
 	scene.add(topLine);
 	if (!skipLeftEdge) {
-		const leftLine = new THREE.Mesh(new THREE.BoxGeometry(gap, bh, lineDepth), whiteStripMat);
-		leftLine.position.set(leftOut, (botY + topY) / 2, 0.002);
+		const leftLine = new THREE.Mesh(new THREE.BoxGeometry(gap, frameSideH, lineDepth), whiteStripMat);
+		leftLine.name = 'dozen-left';
+		leftLine.position.set(leftOut, (botY + topY) / 2, stripZ);
 		scene.add(leftLine);
 	}
 	if (!skipRightEdge) {
-		const rightLine = new THREE.Mesh(new THREE.BoxGeometry(gap, bh, lineDepth), whiteStripMat);
-		rightLine.position.set(rightOut, (botY + topY) / 2, 0.002);
+		const rightLine = new THREE.Mesh(new THREE.BoxGeometry(gap, frameSideH, lineDepth), whiteStripMat);
+		rightLine.name = 'dozen-right';
+		rightLine.position.set(rightOut, (botY + topY) / 2, stripZ);
 		scene.add(rightLine);
 	}
+	[[leftOut, topY], [rightOut, topY]].forEach(function (pt) {
+		const c = new THREE.Mesh(new THREE.BoxGeometry(cornerScale, cornerScale, lineDepth), whiteStripMat);
+		c.name = 'dozen-top-corner';
+		c.position.set(pt[0], pt[1], stripZ);
+		scene.add(c);
+	});
 	/* Надпись дюжины */
 	const labelMesh = new THREE.Mesh(
 		new THREE.PlaneGeometry(12, 5),
@@ -391,12 +427,12 @@ function createDozenBlock(opts) {
 	labelMesh.position.set(offsetX + 16.45, (localTopRectBottom + localTop) / 2 + offsetY, 0.02);
 	labelMesh.name = 'label ' + label;
 	scene.add(labelMesh);
-	/* Углы сетки (без верхнего ряда — иначе двойная линия с рамкой 1st Dozen) */
+	/* Углы сетки (без верхнего ряда — иначе двойная линия с рамкой дюжины) */
 	vertX.forEach(function (x) {
 		horzYFiltered.forEach(function (y) {
 			const corner = new THREE.Mesh(new THREE.BoxGeometry(cornerScale, cornerScale, lineDepth), whiteStripMat);
 			corner.name = 'corner';
-			corner.position.set(x + offsetX, y + offsetY, 0);
+			corner.position.set(x + offsetX, y + offsetY, stripZ);
 			scene.add(corner);
 		});
 	});
@@ -411,7 +447,8 @@ arVisibleDozens.forEach(function (dozIdx, idx) {
 	/* На стыках: левый блок рисует границу, правый пропускает свою левую — иначе двойная толщина */
 	const skipLeftEdge = arVisibleDozens.indexOf(dozIdx - 1) !== -1;
 	const skipRightEdge = false;  /* всегда рисуем правую границу (стык между блоками) */
-	createDozenBlock({ offsetX, offsetY, skipLeftEdge, skipRightEdge, numbers: cfg.numbers, label: cfg.label, red: cfg.red });
+	const skipRightCorner = arVisibleDozens.indexOf(dozIdx + 1) !== -1;
+	createDozenBlock({ offsetX, offsetY, skipLeftEdge, skipRightEdge, skipRightCorner, numbers: cfg.numbers, label: cfg.label, red: cfg.red });
 });
 /* Верхняя белая граница: от верхней правой точки 0 до верхней правой точки 36 */
 if (arVisibleDozens.length > 0) {
@@ -491,7 +528,7 @@ addGrayStrip(-0.15, 30.75, -3.15, 30.75, gap);
 addGrayStrip(-3.15, 30.75, -8.15, 20.75, gap);
 addGrayStrip(-8.15, 10.15, -8.15, 20.75, gap);
 /* Разделители между дюжинами убраны — рамки блоков уже дают границу, отдельные полоски вызывали наложение */
-const topRectBottom = gridTop + 0.3;  /* зазор между полем 1-12 и 1st Dozen */
+const topRectBottom = dozenRectBottom;  /* нижний край зоны дюжины (как dozenRectBottom) */
 
 const trapezoidShape = new THREE.Shape();
 trapezoidShape.moveTo(-0.15, -0.15);
@@ -552,19 +589,39 @@ const twoStreetY = cy2 + halfH + splitCenter;
 const twoSplitX = vertX[1];
 const twoCornerY01 = horzY[1];
 const twoCornerY12 = horzY[2];
+/*
+ * 12 спаунов ставок на число 5 (индексы 0…11 в spawnPoints).
+ * cellW=8, cellH=10, gap=0.3, edge=0.15 → halfW=4, halfH=5, splitCenter=0.15
+ * cx1=12.3, cy1=15.3, cy2=25.6, y_над_верхним_рядом = cy2+halfH+splitCenter = 30.75
+ *
+ * idx | ставка (spawnNameByIndex)     | формула (x, y)                                      | численно [x, y]
+ * ----|------------------------------|-----------------------------------------------------|------------------
+ *  0 | 5                            | [cx1, cy1]                                          | [12.30, 15.30]
+ *  1 | split 2-5                    | [cx1 - halfW - splitCenter, cy1]                     | [ 8.15, 15.30]
+ *  2 | split 5-8                    | [cx1 + halfW + splitCenter, cy1]                     | [16.45, 15.30]
+ *  3 | split 5-6                    | [cx1, cy1 + halfH + splitCenter]                     | [12.30, 20.45]
+ *  4 | split 4-5                    | [cx1, cy1 - halfH - splitCenter]                     | [12.30, 10.15]
+ *  5 | corner 2-3-5-6               | [cx1 - halfW - splitCenter, cy1 + halfH + splitCenter] | [ 8.15, 20.45]
+ *  6 | corner 5-6-8-9               | [cx1 + halfW + splitCenter, cy1 + halfH + splitCenter] | [16.45, 20.45]
+ *  7 | corner 1-2-4-5               | [cx1 - halfW - splitCenter, cy1 - halfH - splitCenter] | [ 8.15, 10.15]
+ *  8 | corner 4-5-7-8               | [cx1 + halfW + splitCenter, cy1 - halfH - splitCenter] | [16.45, 10.15]
+ *  9 | street 4-5-6                 | [cx1, cy2 + halfH + splitCenter]                     | [12.30, 30.75]
+ * 10 | sixline 1-6 (между 4-5-6 и 7-8-9) | [cx1 + halfW + splitCenter, cy2 + halfH + splitCenter] | [16.45, 30.75]
+ * 11 | sixline 5-9 (между 1-2-3 и 4-5-6) | [cx1 - halfW - splitCenter, cy2 + halfH + splitCenter] | [ 8.15, 30.75]
+ */
 const spawnPoints = [
 	[centerCell[0], centerCell[1]],
-	[cx1 - halfW - splitCenter, cy1],
-	[cx1 + halfW + splitCenter, cy1],
-	[cx1, cy1 + halfH + splitCenter],
-	[cx1, cy1 - halfH - splitCenter],
-	[cx1 - halfW - splitCenter, cy1 + halfH + splitCenter],
+	[cx1 - halfW - splitCenter, cy1],  /* между 2 и 5 (слева от 5) */
+	[cx1 + halfW + splitCenter, cy1],  /* между 5 и 8 (справа от 5) */
+	[cx1, cy1 + halfH + splitCenter],  /* между 5 и 6 (над 5 в колонке) */
+	[cx1, cy1 - halfH - splitCenter],        /* между 4 и 5 (под 5 в колонке) */
+	[cx1 - halfW - splitCenter, cy1 + halfH + splitCenter], /* TL ячейки 5: угол 2-3-5-6 */
 	[cx1 + halfW + splitCenter, cy1 + halfH + splitCenter],
-	[cx1 - halfW - splitCenter, cy1 - halfH - splitCenter],
-	[cx1 + halfW + splitCenter, cy1 - halfH - splitCenter],
-	[cx1, cy2 + halfH + splitCenter],
-	[cx1 - halfW - splitCenter, cy2 + halfH + splitCenter],
-	[cx1 + halfW + splitCenter, cy2 + halfH + splitCenter],
+	[cx1 - halfW - splitCenter, cy1 - halfH - splitCenter], /* BL: угол 1-2-4-5 */
+	[cx1 + halfW + splitCenter, cy1 - halfH - splitCenter], /* BR ячейки 5: угол 4-5-7-8 */
+	[cx1, cy2 + halfH + splitCenter],       /* street 4-5-6 (колонка 4–5–6) */
+	[cx1 + halfW + splitCenter, cy2 + halfH + splitCenter], /* sixline 1-6 */
+	[cx1 - halfW - splitCenter, cy2 + halfH + splitCenter], /* sixline 5-9 */
 	[zeroCenter.x, zeroCenter.y],           /* 0 straight */
 	[zeroSplitX, cy0],                      /* split 0-1 */
 	[zeroSplitX, cy1],                      /* split 0-2 */
@@ -579,21 +636,21 @@ const spawnPoints = [
 	[twoSplitX, twoCornerY01],              /* corner 1-2-4-5 */
 	[twoSplitX, cy1],                       /* split 2-5 */
 	[twoSplitX, twoCornerY12],              /* split 2-6 */
-	[twoSplitX, horzY[3]]                   /* sixline 1-6 */
+	[twoSplitX, horzY[3]]                   /* sixline 4-9 */
 ];
 
 const spawnNameByIndex = [
 	'5',
-	'split 4-5',
-	'split 5-6',
-	'split 5-8',
 	'split 2-5',
-	'corner 4-5-7-8',
+	'split 5-8',
+	'split 5-6',
+	'split 4-5',
+	'corner 2-3-5-6',
 	'corner 5-6-8-9',
 	'corner 1-2-4-5',
-	'corner 2-3-5-6',
-	'street 7-8-9',
-	'sixline 4-9',
+	'corner 4-5-7-8',
+	'street 4-5-6',
+	'sixline 1-6',
 	'sixline 5-9',
 	'0',
 	'split 0-1',
@@ -609,7 +666,7 @@ const spawnNameByIndex = [
 	'corner 1-2-4-5',
 	'split 2-5',
 	'corner 2-3-5-6',
-	'sixline 1-6'
+	'sixline 4-9'
 ];
 const spawnIndicesByName = spawnNameByIndex.reduce(function (acc, name, idx) {
 	if (!acc[name]) acc[name] = [];
@@ -630,7 +687,7 @@ const spawnNamesByNumber = {
 		'corner 1-2-4-5',
 		'corner 2-3-5-6',
 		'corner 0-1-2-3',
-		'sixline 1-6'
+		'sixline 4-9'
 	],
 	5: [
 		'5',
@@ -642,8 +699,8 @@ const spawnNamesByNumber = {
 		'corner 5-6-8-9',
 		'corner 1-2-4-5',
 		'corner 2-3-5-6',
-		'street 7-8-9',
-		'sixline 4-9',
+		'street 4-5-6',
+		'sixline 1-6',
 		'sixline 5-9'
 	]
 };
@@ -674,7 +731,7 @@ const payoutsByNumber = {
 		'corner 1-2-4-5': 8,
 		'corner 2-3-5-6': 8,
 		'corner 0-1-2-3': 8,
-		'sixline 1-6': 5
+		'sixline 4-9': 5
 	},
 	5: {
 		'5': 35,
@@ -686,8 +743,8 @@ const payoutsByNumber = {
 		'corner 5-6-8-9': 8,
 		'corner 1-2-4-5': 8,
 		'corner 2-3-5-6': 8,
-		'street 7-8-9': 11,
-		'sixline 4-9': 5,
+		'street 4-5-6': 11,
+		'sixline 1-6': 5,
 		'sixline 5-9': 5
 	}
 };
@@ -704,7 +761,7 @@ const payoutsByNumberIndex = {
 		23: 8,  /* corner 1-2-4-5 */
 		25: 8,  /* corner 2-3-5-6 */
 		18: 8,  /* corner 0-1-2-3 */
-		26: 5   /* sixline 1-6 */
+		26: 5   /* sixline 4-9 */
 	}
 };
 
@@ -963,7 +1020,7 @@ function doCheck() {
 		if (answerDisplay) answerDisplay.style.display = 'none';
 		document.getElementById('ar-success-overlay').style.display = 'flex';
 		el.textContent = 'Верно!';
-		el.style.color = 'green';
+		el.style.color = '';
 	} else {
 		showErrorOverlay(false);
 		el.textContent = '';

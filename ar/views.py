@@ -48,6 +48,16 @@ def index(request):
     return render(request, 'ar/index.html')
 
 
+def ar_bet_reveal(request):
+    """Тренажёр: стопки на поле — клик в порядке раскрытия (напр. выигрышное число 5)."""
+    timer_enabled = request.session.get('timer_enabled', True)
+    timer_seconds = request.session.get('timer_seconds', 10)
+    return render(request, 'ar/ar_bet_reveal.html', {
+        'timer_enabled': timer_enabled,
+        'timer_seconds': timer_seconds,
+    })
+
+
 def ar_bets(request):
     mix_mode = request.GET.get('mode') == 'mix'
     timer_enabled = request.session.get('timer_enabled', True)

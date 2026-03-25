@@ -26,6 +26,7 @@ SITEMAP_URLS = [
     ('ar_color_in_cash', '0.8'),
     ('ar_payout_through_cash', '0.8'),
     ('ar_mix', '0.8'),
+    ('ar_bet_reveal', '0.8'),
 ]
 
 
