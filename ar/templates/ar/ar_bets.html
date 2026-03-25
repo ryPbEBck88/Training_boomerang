@@ -51,11 +51,7 @@
 			</label>
 			-->
 			<label>номер:
-				<select id="ar-number-select">
-					<option value="0">0</option>
-					<option value="2">2</option>
-					<option value="5" selected>5</option>
-				</select>
+				<select id="ar-number-select" aria-label="Номер на столе"></select>
 			</label>
 			<label>min: <input type="number" id="ar-min-chips" min="0" max="20" value="0"></label>
 			<label>max: <input type="number" id="ar-max-chips" min="0" max="20" value="5"></label>
@@ -116,6 +112,17 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const canvas = document.getElementById('ar-canvas');
 if (!canvas) throw new Error('canvas not found');
+(function populateNumberSelect() {
+	const sel = document.getElementById('ar-number-select');
+	if (!sel) return;
+	sel.innerHTML = '';
+	for (let n = 0; n <= 36; n++) {
+		const opt = document.createElement('option');
+		opt.value = String(n);
+		opt.textContent = String(n);
+		sel.appendChild(opt);
+	}
+})();
 
 function setCookie(name, value, days) {
 	const maxAge = days ? days * 24 * 60 * 60 : 31536000;
@@ -135,7 +142,7 @@ let arMinChips = 0;
 let arMaxChips = 5;
 let arUseStacks = true;
 let arStacksCount = 1;
-let arSelectedNumber = 5;
+let arSelectedNumber = 0;
 let arHintsDisabled = false;
 let arVisibleDozens = [1, 2];
 try {
@@ -154,10 +161,10 @@ try {
 		const sc = parseInt(q.stacks, 10);
 		if (!isNaN(sc) && sc >= 1 && sc <= 3) arStacksCount = sc;
 	}
-	const numberStored = getCookie('ar_number_select');
-	if (numberStored) {
+	const numberStored = getCookie('ar_number_select') || localStorage.getItem('ar_number_select');
+	if (numberStored !== null && numberStored !== undefined && numberStored !== '') {
 		const n = parseInt(numberStored, 10);
-		if (n === 0 || n === 2 || n === 5) arSelectedNumber = n;
+		if (!isNaN(n) && n >= 0 && n <= 36) arSelectedNumber = n;
 	}
 	const hintsStored = getCookie('ar_hints_disabled') || localStorage.getItem('ar_hints_disabled');
 	arHintsDisabled = hintsStored === '1' || hintsStored === 'true';
@@ -457,61 +464,6 @@ if (arVisibleDozens.length > 0) {
 	addGrayStrip(-0.15, 30.75, rightEdgeX, 30.75, gap, 0.003);  /* горизонталь: y как у первой точки */
 }
 
-const centerCell = [cx1, cy1];
-const halfW = cellW / 2, halfH = cellH / 2;
-const splitCenter = gap / 2;
-const axesCenter = new THREE.AxesHelper(2);
-axesCenter.position.set(centerCell[0], centerCell[1], 0.1);
-axesCenter.visible = false;
-scene.add(axesCenter);
-
-const axesLeft = new THREE.AxesHelper(1.2);
-axesLeft.position.set(cx1 - halfW - splitCenter, cy1, 0.1);
-axesLeft.visible = false;
-scene.add(axesLeft);
-const axesRight = new THREE.AxesHelper(1.2);
-axesRight.position.set(cx1 + halfW + splitCenter, cy1, 0.1);
-axesRight.visible = false;
-scene.add(axesRight);
-const axesTop = new THREE.AxesHelper(1.2);
-axesTop.position.set(cx1, cy1 + halfH + splitCenter, 0.1);
-axesTop.visible = false;
-scene.add(axesTop);
-const axesBottom = new THREE.AxesHelper(1.2);
-axesBottom.position.set(cx1, cy1 - halfH - splitCenter, 0.1);
-axesBottom.visible = false;
-scene.add(axesBottom);
-
-const cornerTL = new THREE.AxesHelper(1.2);
-cornerTL.position.set(cx1 - halfW - splitCenter, cy1 + halfH + splitCenter, 0.1);
-cornerTL.visible = false;
-scene.add(cornerTL);
-const cornerTR = new THREE.AxesHelper(1.2);
-cornerTR.position.set(cx1 + halfW + splitCenter, cy1 + halfH + splitCenter, 0.1);
-cornerTR.visible = false;
-scene.add(cornerTR);
-const cornerBL = new THREE.AxesHelper(1.2);
-cornerBL.position.set(cx1 - halfW - splitCenter, cy1 - halfH - splitCenter, 0.1);
-cornerBL.visible = false;
-scene.add(cornerBL);
-const cornerBR = new THREE.AxesHelper(1.2);
-cornerBR.position.set(cx1 + halfW + splitCenter, cy1 - halfH - splitCenter, 0.1);
-cornerBR.visible = false;
-scene.add(cornerBR);
-
-const axisAbove8 = new THREE.AxesHelper(1.2);
-axisAbove8.position.set(cx1, cy2 + halfH + splitCenter, 0.1);
-axisAbove8.visible = false;
-scene.add(axisAbove8);
-const axisAbove8Left = new THREE.AxesHelper(1.2);
-axisAbove8Left.position.set(cx1 - halfW - splitCenter, cy2 + halfH + splitCenter, 0.1);
-axisAbove8Left.visible = false;
-scene.add(axisAbove8Left);
-const axisAbove8Right = new THREE.AxesHelper(1.2);
-axisAbove8Right.position.set(cx1 + halfW + splitCenter, cy2 + halfH + splitCenter, 0.1);
-axisAbove8Right.visible = false;
-scene.add(axisAbove8Right);
-
 function addGrayStrip(x1, y1, x2, y2, thickness, z) {
 	const dx = x2 - x1;
 	const dy = y2 - y1;
@@ -582,251 +534,178 @@ const zeroCornerX = -0.15;
 const zeroTrioX = -0.15;
 const zeroTrioY01 = horzY[1];
 const zeroTrioY12 = horzY[2];
-const twoCenter = { x: cx0, y: cy1 };
-const twoSplitY01 = horzY[1];
-const twoSplitY12 = horzY[2];
-const twoStreetY = cy2 + halfH + splitCenter;
-const twoSplitX = vertX[1];
-const twoCornerY01 = horzY[1];
-const twoCornerY12 = horzY[2];
-/*
- * 12 спаунов ставок на число 5 (индексы 0…11 в spawnPoints).
- * cellW=8, cellH=10, gap=0.3, edge=0.15 → halfW=4, halfH=5, splitCenter=0.15
- * cx1=12.3, cy1=15.3, cy2=25.6, y_над_верхним_рядом = cy2+halfH+splitCenter = 30.75
- *
- * idx | ставка (spawnNameByIndex)     | формула (x, y)                                      | численно [x, y]
- * ----|------------------------------|-----------------------------------------------------|------------------
- *  0 | 5                            | [cx1, cy1]                                          | [12.30, 15.30]
- *  1 | split 2-5                    | [cx1 - halfW - splitCenter, cy1]                     | [ 8.15, 15.30]
- *  2 | split 5-8                    | [cx1 + halfW + splitCenter, cy1]                     | [16.45, 15.30]
- *  3 | split 5-6                    | [cx1, cy1 + halfH + splitCenter]                     | [12.30, 20.45]
- *  4 | split 4-5                    | [cx1, cy1 - halfH - splitCenter]                     | [12.30, 10.15]
- *  5 | corner 2-3-5-6               | [cx1 - halfW - splitCenter, cy1 + halfH + splitCenter] | [ 8.15, 20.45]
- *  6 | corner 5-6-8-9               | [cx1 + halfW + splitCenter, cy1 + halfH + splitCenter] | [16.45, 20.45]
- *  7 | corner 1-2-4-5               | [cx1 - halfW - splitCenter, cy1 - halfH - splitCenter] | [ 8.15, 10.15]
- *  8 | corner 4-5-7-8               | [cx1 + halfW + splitCenter, cy1 - halfH - splitCenter] | [16.45, 10.15]
- *  9 | street 4-5-6                 | [cx1, cy2 + halfH + splitCenter]                     | [12.30, 30.75]
- * 10 | sixline 1-6 (между 4-5-6 и 7-8-9) | [cx1 + halfW + splitCenter, cy2 + halfH + splitCenter] | [16.45, 30.75]
- * 11 | sixline 5-9 (между 1-2-3 и 4-5-6) | [cx1 - halfW - splitCenter, cy2 + halfH + splitCenter] | [ 8.15, 30.75]
+const halfW = cellW / 2;
+const halfH = cellH / 2;
+const splitCenter = gap / 2;
+/**
+ * 0 — вручную. 1–36 строятся из DOZEN_CONFIG + геометрия (сплиты, углы, стрит колонки, шестилистии).
+ * Зона 0: сплит 0–n, стриты 0-1-2 / 0-2-3, угол 0-1-2-3 — только для 1–3 (первая дюжина, колонка 0).
  */
-const spawnPoints = [
-	[centerCell[0], centerCell[1]],
-	[cx1 - halfW - splitCenter, cy1],  /* между 2 и 5 (слева от 5) */
-	[cx1 + halfW + splitCenter, cy1],  /* между 5 и 8 (справа от 5) */
-	[cx1, cy1 + halfH + splitCenter],  /* между 5 и 6 (над 5 в колонке) */
-	[cx1, cy1 - halfH - splitCenter],        /* между 4 и 5 (под 5 в колонке) */
-	[cx1 - halfW - splitCenter, cy1 + halfH + splitCenter], /* TL ячейки 5: угол 2-3-5-6 */
-	[cx1 + halfW + splitCenter, cy1 + halfH + splitCenter],
-	[cx1 - halfW - splitCenter, cy1 - halfH - splitCenter], /* BL: угол 1-2-4-5 */
-	[cx1 + halfW + splitCenter, cy1 - halfH - splitCenter], /* BR ячейки 5: угол 4-5-7-8 */
-	[cx1, cy2 + halfH + splitCenter],       /* street 4-5-6 (колонка 4–5–6) */
-	[cx1 + halfW + splitCenter, cy2 + halfH + splitCenter], /* sixline 1-6 */
-	[cx1 - halfW - splitCenter, cy2 + halfH + splitCenter], /* sixline 5-9 */
-	[zeroCenter.x, zeroCenter.y],           /* 0 straight */
-	[zeroSplitX, cy0],                      /* split 0-1 */
-	[zeroSplitX, cy1],                      /* split 0-2 */
-	[zeroSplitX, cy2],                      /* split 0-3 */
-	[zeroTrioX, zeroTrioY01],               /* trio 0-1-2 */
-	[zeroTrioX, zeroTrioY12],               /* trio 0-2-3 */
-	[zeroCornerX, horzY[3]],                /* corner 0-1-2-3 */
-	[twoCenter.x, twoCenter.y],             /* 2 straight */
-	[twoCenter.x, twoSplitY01],             /* split 1-2 */
-	[twoCenter.x, twoSplitY12],             /* split 2-3 */
-	[twoCenter.x, twoStreetY],              /* street 1-3 */
-	[twoSplitX, twoCornerY01],              /* corner 1-2-4-5 */
-	[twoSplitX, cy1],                       /* split 2-5 */
-	[twoSplitX, twoCornerY12],              /* split 2-6 */
-	[twoSplitX, horzY[3]]                   /* sixline 4-9 */
-];
-
-const spawnNameByIndex = [
-	'5',
-	'split 2-5',
-	'split 5-8',
-	'split 5-6',
-	'split 4-5',
-	'corner 2-3-5-6',
-	'corner 5-6-8-9',
-	'corner 1-2-4-5',
-	'corner 4-5-7-8',
-	'street 4-5-6',
-	'sixline 1-6',
-	'sixline 5-9',
-	'0',
-	'split 0-1',
-	'split 0-2',
-	'split 0-3',
-	'street 0-1-2',
-	'street 0-2-3',
-	'corner 0-1-2-3',
-	'2',
-	'split 1-2',
-	'split 2-3',
-	'street 1-2-3',
-	'corner 1-2-4-5',
-	'split 2-5',
-	'corner 2-3-5-6',
-	'sixline 4-9'
-];
-const spawnIndicesByName = spawnNameByIndex.reduce(function (acc, name, idx) {
-	if (!acc[name]) acc[name] = [];
-	acc[name].push(idx);
-	return acc;
-}, {});
-const spawnNamesByNumber = {
-	0: ['0', 'split 0-1', 'split 0-2', 'split 0-3', 'street 0-1-2', 'street 0-2-3', 'corner 0-1-2-3'],
-	2: [
-		'2',
-		'split 0-2',
-		'split 1-2',
-		'split 2-3',
-		'split 2-5',
-		'street 0-1-2',
-		'street 0-2-3',
-		'street 1-2-3',
-		'corner 1-2-4-5',
-		'corner 2-3-5-6',
-		'corner 0-1-2-3',
-		'sixline 4-9'
-	],
-	5: [
-		'5',
-		'split 4-5',
-		'split 5-6',
-		'split 5-8',
-		'split 2-5',
-		'corner 4-5-7-8',
-		'corner 5-6-8-9',
-		'corner 1-2-4-5',
-		'corner 2-3-5-6',
-		'street 4-5-6',
-		'sixline 1-6',
-		'sixline 5-9'
-	]
-};
-const spawnIndicesByNumber = {
-	0: [12, 13, 14, 15, 16, 17, 18],
-	2: [14, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26],
-	5: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-};
-const payoutsByNumber = {
+const CHIP_SPAWNS_BY_NUMBER = {
 	0: {
-		'0': 35,
-		'split 0-1': 17,
-		'split 0-2': 17,
-		'split 0-3': 17,
-		'street 0-1-2': 11,
-		'street 0-2-3': 11,
-		'corner 0-1-2-3': 8
-	},
-	2: {
-		'2': 35,
-		'split 0-2': 35,
-		'split 1-2': 35,
-		'split 2-3': 35,
-		'split 2-5': 35,
-		'street 0-1-2': 11,
-		'street 0-2-3': 11,
-		'street 1-2-3': 11,
-		'corner 1-2-4-5': 8,
-		'corner 2-3-5-6': 8,
-		'corner 0-1-2-3': 8,
-		'sixline 4-9': 5
-	},
-	5: {
-		'5': 35,
-		'split 4-5': 17,
-		'split 5-6': 17,
-		'split 5-8': 17,
-		'split 2-5': 17,
-		'corner 4-5-7-8': 8,
-		'corner 5-6-8-9': 8,
-		'corner 1-2-4-5': 8,
-		'corner 2-3-5-6': 8,
-		'street 4-5-6': 11,
-		'sixline 1-6': 5,
-		'sixline 5-9': 5
-	}
-};
-const payoutsByNumberIndex = {
-	2: {
-		19: 35, /* 2 */
-		14: 17, /* 0-2 */
-		20: 17, /* 1-2 */
-		21: 17, /* 2-3 */
-		24: 17, /* 2-5 */
-		16: 11, /* 0-1-2 */
-		17: 11, /* 0-2-3 */
-		22: 11, /* 1-2-3 */
-		23: 8,  /* corner 1-2-4-5 */
-		25: 8,  /* corner 2-3-5-6 */
-		18: 8,  /* corner 0-1-2-3 */
-		26: 5   /* sixline 4-9 */
+		points: [
+			[zeroCenter.x, zeroCenter.y],
+			[zeroSplitX, cy0],
+			[zeroSplitX, cy1],
+			[zeroSplitX, cy2],
+			[zeroTrioX, zeroTrioY01],
+			[zeroTrioX, zeroTrioY12],
+			[zeroCornerX, horzY[3]]
+		],
+		names: [
+			'0',
+			'split 0-1',
+			'split 0-2',
+			'split 0-3',
+			'street 0-1-2',
+			'street 0-2-3',
+			'corner 0-1-2-3'
+		],
+		payouts: {
+			'0': 35,
+			'split 0-1': 17,
+			'split 0-2': 17,
+			'split 0-3': 17,
+			'street 0-1-2': 11,
+			'street 0-2-3': 11,
+			'corner 0-1-2-3': 8
+		}
 	}
 };
 
-const zeroSpawnMat = new THREE.MeshBasicMaterial({ color: 0x16a34a });
-const zeroSpawnGeom = new THREE.CircleGeometry(0.6, 24);
-for (let i = 12; i <= 18; i++) {
-	const marker = new THREE.Mesh(zeroSpawnGeom, zeroSpawnMat);
-	marker.position.set(spawnPoints[i][0], spawnPoints[i][1], 0.03);
-	marker.name = 'zero-spawn-marker';
-	marker.visible = false;
-	scene.add(marker);
+(function initChipSpawns1to36() {
+	const colCX = [cx0, cx1, cx2, cx3];
+	const rowCY = [cy0, cy1, cy2];
+
+	function cellAt(doz, col, row) {
+		return DOZEN_CONFIG[doz].numbers[col + row * 4];
+	}
+	const layoutByNum = {};
+	for (let doz = 1; doz <= 3; doz++) {
+		const ox = (doz - 1) * BLOCK_WIDTH;
+		const nums = DOZEN_CONFIG[doz].numbers;
+		for (let idx = 0; idx < 12; idx++) {
+			const col = idx % 4;
+			const row = (idx / 4) | 0;
+			const num = nums[idx];
+			layoutByNum[num] = { doz: doz, col: col, row: row, offsetX: ox, cx: colCX[col] + ox, cy: rowCY[row] };
+		}
+	}
+
+	function cornerName(a, b, c, d) {
+		const arr = [a, b, c, d].sort(function (x, y) { return x - y; });
+		return 'corner ' + arr[0] + '-' + arr[1] + '-' + arr[2] + '-' + arr[3];
+	}
+	function streetName(doz, col) {
+		const arr = [cellAt(doz, col, 0), cellAt(doz, col, 1), cellAt(doz, col, 2)].sort(function (x, y) { return x - y; });
+		return 'street ' + arr[0] + '-' + arr[1] + '-' + arr[2];
+	}
+	function sixlineName(doz, leftCol) {
+		const nums = [];
+		for (let row = 0; row < 3; row++) {
+			nums.push(cellAt(doz, leftCol, row), cellAt(doz, leftCol + 1, row));
+		}
+		nums.sort(function (x, y) { return x - y; });
+		return 'sixline ' + nums[0] + '-' + nums[nums.length - 1];
+	}
+	function splitNm(p, q) {
+		return p < q ? ('split ' + p + '-' + q) : ('split ' + q + '-' + p);
+	}
+
+	function buildMain(n) {
+		const L = layoutByNum[n];
+		const pts = [];
+		const names = [];
+		const payouts = {};
+		const doz = L.doz;
+		const col = L.col;
+		const row = L.row;
+		const ox = L.offsetX;
+
+		function add(nm, xy, mult) {
+			if (Object.prototype.hasOwnProperty.call(payouts, nm)) return;
+			payouts[nm] = mult;
+			names.push(nm);
+			pts.push(xy);
+		}
+
+		add(String(n), [L.cx, L.cy], 35);
+
+		if (doz === 1 && col === 0) {
+			add('split 0-' + n, [zeroSplitX, rowCY[row]], 17);
+			if (n >= 1 && n <= 3) {
+				add('corner 0-1-2-3', [zeroCornerX, horzY[3]], 8);
+			}
+			if (n === 1 || n === 2) {
+				add('street 0-1-2', [zeroTrioX, zeroTrioY01], 11);
+			}
+			if (n === 2 || n === 3) {
+				add('street 0-2-3', [zeroTrioX, zeroTrioY12], 11);
+			}
+		}
+
+		if (col > 0) {
+			add(splitNm(n, cellAt(doz, col - 1, row)), [L.cx - halfW - splitCenter, L.cy], 17);
+		}
+		if (col < 3) {
+			add(splitNm(n, cellAt(doz, col + 1, row)), [L.cx + halfW + splitCenter, L.cy], 17);
+		}
+		if (row > 0) {
+			add(splitNm(n, cellAt(doz, col, row - 1)), [L.cx, L.cy - halfH - splitCenter], 17);
+		}
+		if (row < 2) {
+			add(splitNm(n, cellAt(doz, col, row + 1)), [L.cx, L.cy + halfH + splitCenter], 17);
+		}
+
+		for (let c = 0; c < 3; c++) {
+			for (let r = 0; r < 2; r++) {
+				const a = cellAt(doz, c, r);
+				const b = cellAt(doz, c + 1, r);
+				const c3 = cellAt(doz, c, r + 1);
+				const d = cellAt(doz, c + 1, r + 1);
+				if (a !== n && b !== n && c3 !== n && d !== n) continue;
+				add(cornerName(a, b, c3, d), [colCX[c] + halfW + splitCenter + ox, rowCY[r] + halfH + splitCenter], 8);
+			}
+		}
+
+		add(streetName(doz, col), [colCX[col] + ox, cy2 + halfH + splitCenter], 11);
+
+		for (let leftCol = 0; leftCol < 3; leftCol++) {
+			const sixNums = [
+				cellAt(doz, leftCol, 0), cellAt(doz, leftCol, 1), cellAt(doz, leftCol, 2),
+				cellAt(doz, leftCol + 1, 0), cellAt(doz, leftCol + 1, 1), cellAt(doz, leftCol + 1, 2)
+			];
+			if (sixNums.indexOf(n) === -1) continue;
+			add(sixlineName(doz, leftCol), [colCX[leftCol] + halfW + splitCenter + ox, cy2 + halfH + splitCenter], 5);
+		}
+
+		return { points: pts, names: names, payouts: payouts };
+	}
+
+	for (let num = 1; num <= 36; num++) {
+		CHIP_SPAWNS_BY_NUMBER[num] = buildMain(num);
+	}
+})();
+
+function getChipSpawnSpec(rouletteNumber) {
+	const def = CHIP_SPAWNS_BY_NUMBER[rouletteNumber];
+	if (!def) {
+		return { points: [], nameByIndex: [], payouts: {}, indicesByName: {} };
+	}
+	const nameByIndex = def.names.slice();
+	const indicesByName = {};
+	for (let i = 0; i < nameByIndex.length; i++) {
+		const nm = nameByIndex[i];
+		if (!indicesByName[nm]) indicesByName[nm] = [];
+		indicesByName[nm].push(i);
+	}
+	return {
+		points: def.points,
+		nameByIndex: nameByIndex,
+		payouts: def.payouts,
+		indicesByName: indicesByName
+	};
 }
-
-const twoSpawnMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
-const twoSpawnGeom = new THREE.CircleGeometry(0.6, 24);
-const twoSpawnIdx = [14, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26];
-twoSpawnIdx.forEach(function (i) {
-	const marker = new THREE.Mesh(twoSpawnGeom, twoSpawnMat);
-	marker.position.set(spawnPoints[i][0], spawnPoints[i][1], 0.03);
-	marker.name = 'two-spawn-marker';
-	marker.visible = false;
-	scene.add(marker);
-});
-
-const twoNumberMarker = new THREE.Mesh(twoSpawnGeom, twoSpawnMat);
-twoNumberMarker.position.set(spawnPoints[19][0], spawnPoints[19][1], 0.03);
-twoNumberMarker.name = 'two-number-marker';
-twoNumberMarker.visible = false;
-scene.add(twoNumberMarker);
-
-const twoSplitIdx = [14, 20, 21, 24];
-twoSplitIdx.forEach(function (i) {
-	const marker = new THREE.Mesh(twoSpawnGeom, twoSpawnMat);
-	marker.position.set(spawnPoints[i][0], spawnPoints[i][1], 0.03);
-	marker.name = 'two-split-marker';
-	marker.visible = false;
-	scene.add(marker);
-});
-
-const twoCornerIdx = [23, 25, 18];
-twoCornerIdx.forEach(function (i) {
-	const marker = new THREE.Mesh(twoSpawnGeom, twoSpawnMat);
-	marker.position.set(spawnPoints[i][0], spawnPoints[i][1], 0.03);
-	marker.name = 'two-corner-marker';
-	marker.visible = false;
-	scene.add(marker);
-});
-
-const twoStreetIdx = [16, 17, 22];
-twoStreetIdx.forEach(function (i) {
-	const marker = new THREE.Mesh(twoSpawnGeom, twoSpawnMat);
-	marker.position.set(spawnPoints[i][0], spawnPoints[i][1], 0.03);
-	marker.name = 'two-street-marker';
-	marker.visible = false;
-	scene.add(marker);
-});
-
-const twoSixlineIdx = [26];
-twoSixlineIdx.forEach(function (i) {
-	const marker = new THREE.Mesh(twoSpawnGeom, twoSpawnMat);
-	marker.position.set(spawnPoints[i][0], spawnPoints[i][1], 0.03);
-	marker.name = 'two-sixline-marker';
-	marker.visible = false;
-	scene.add(marker);
-});
 
 const chipsGroup = new THREE.Group();
 chipsGroup.name = 'chips';
@@ -866,14 +745,11 @@ function doSpawn() {
 		}
 	}
 	function runSpawns(material) {
-		const chipCounts = new Array(spawnPoints.length).fill(0);
-		const idxForNumber = spawnIndicesByNumber[arSelectedNumber];
-		const namesForNumber = spawnNamesByNumber[arSelectedNumber] || spawnNamesByNumber[5];
-		const allowedSpawnIdx = idxForNumber
-			? idxForNumber.slice()
-			: Array.from(new Set(
-				namesForNumber.flatMap(function (name) { return spawnIndicesByName[name] || []; })
-			));
+		const spec = getChipSpawnSpec(arSelectedNumber);
+		const nPts = spec.points.length;
+		const chipCounts = new Array(nPts).fill(0);
+		const allowedSpawnIdx = [];
+		for (let i = 0; i < nPts; i++) allowedSpawnIdx.push(i);
 		if (arUseStacks) {
 			let chips = 20 * arStacksCount;
 			let available = allowedSpawnIdx.slice();
@@ -890,7 +766,7 @@ function doSpawn() {
 			const minChips = Math.min(arMinChips, arMaxChips);
 			const maxChips = Math.max(arMinChips, arMaxChips);
 			const range = maxChips - minChips + 1;
-			for (let i = 0; i < spawnPoints.length; i++) {
+			for (let i = 0; i < nPts; i++) {
 				if (allowedSpawnIdx.indexOf(i) === -1) continue;
 				const count = Math.min(20, range > 0 ? minChips + Math.floor(Math.random() * range) : minChips);
 				chipCounts[i] = count;
@@ -925,10 +801,10 @@ function doSpawn() {
 				}
 			}
 		}
-		for (var i = 0; i < spawnPoints.length; i++) {
+		for (var i = 0; i < nPts; i++) {
 			const count = chipCounts[i];
 			if (count === 0) continue;
-			const x = spawnPoints[i][0], y = spawnPoints[i][1];
+			const x = spec.points[i][0], y = spec.points[i][1];
 			const col1 = Math.min(count, 10);
 			drawColumn(material, x, y, col1);
 			if (count >= 15) {
@@ -943,19 +819,12 @@ function doSpawn() {
 			}
 			if (count >= 16) drawColumn(material, x + secondColOffset, y, count - 15);
 		}
-		const multipliers = new Array(spawnPoints.length).fill(0);
-		const payoutsIdx = payoutsByNumberIndex[arSelectedNumber];
-		if (payoutsIdx) {
-			Object.keys(payoutsIdx).forEach(function (idx) {
-				multipliers[parseInt(idx, 10)] = payoutsIdx[idx];
-			});
-		} else {
-			const payouts = payoutsByNumber[arSelectedNumber] || payoutsByNumber[5];
-			Object.keys(payouts).forEach(function (name) {
-				const idxList = spawnIndicesByName[name] || [];
-				idxList.forEach(function (idx) { multipliers[idx] = payouts[name]; });
-			});
-		}
+		const multipliers = new Array(nPts).fill(0);
+		Object.keys(spec.payouts).forEach(function (betName) {
+			const mult = spec.payouts[betName];
+			const idxList = spec.indicesByName[betName] || [];
+			idxList.forEach(function (idx) { multipliers[idx] = mult; });
+		});
 		correctAnswer = 0;
 		for (let i = 0; i < chipCounts.length; i++) {
 			correctAnswer += chipCounts[i] * multipliers[i];
@@ -1129,7 +998,9 @@ function saveArSettings() {
 	localStorage.setItem('ar_hints_disabled', arHintsDisabled ? '1' : '0');
 	setCookie('ar_hints_disabled', arHintsDisabled ? '1' : '0', 365);
 	const parsedNumber = parseInt(numberVal, 10);
-	arSelectedNumber = (parsedNumber === 0 || parsedNumber === 2 || parsedNumber === 5) ? parsedNumber : 5;
+	arSelectedNumber = (!isNaN(parsedNumber) && parsedNumber >= 0 && parsedNumber <= 36)
+		? parsedNumber
+		: 0;
 	// показать/скрыть визуальный таймер и сохранить настройки
 	var timerRoot = document.getElementById('ar-bets-fuse-timer');
 	var timerCheckbox = document.querySelector('#ar-settings-overlay input[name="timer_enabled"]');
@@ -1171,15 +1042,15 @@ function focusCameraOnNumber() {
 	if (arSelectedNumber === 0) {
 		camera.position.set(4.095000000000001, 2.566, 20.605);
 		controls.target.set(4.281000000000001, 17.126, 4.1129999999999995);
-	} else if (arSelectedNumber === 2) {
-		camera.position.set(3.795, 2.566, 18.105);
-		controls.target.set(4, 15.3, 0);
+	} else if (arSelectedNumber >= 1 && arSelectedNumber <= 36) {
+		const dozIdx = arSelectedNumber <= 12 ? 0 : (arSelectedNumber <= 24 ? 1 : 2);
+		const shift = dozIdx * BLOCK_WIDTH;
+		camera.position.set(3.795 + shift, 2.566, 18.105);
+		controls.target.set(4 + shift, 15.3, 0);
 	} else {
 		camera.position.set(cameraHomePos.x, cameraHomePos.y, cameraHomePos.z);
 		controls.target.set(cameraHomeTarget.x, cameraHomeTarget.y, cameraHomeTarget.z);
 	}
-	console.log('camera position', camera.position.x, camera.position.y, camera.position.z);
-	console.log('camera target', controls.target.x, controls.target.y, controls.target.z);
 }
 loadArSettings();
 document.getElementById('ar-use-stacks').addEventListener('change', updateStacksUI);
