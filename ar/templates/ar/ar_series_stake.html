@@ -1,0 +1,723 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Ставка на серию — AR | Тренажёры крупье{% endblock %}
+{% block main_class %}payout-main{% endblock %}
+{% block content %}
+<div class="payout-screen">
+<div class="payout-page">
+	<div class="payout-header series-stake-header">
+		<button type="button" class="neighbors-help-btn" id="seriesStakeHelpBtn" aria-label="Справка" title="Справка">
+			<svg class="neighbors-help-icon" viewBox="0 0 24 24">
+				<circle cx="12" cy="12" r="10" fill="#2563eb"/>
+				<text x="12" y="17" text-anchor="middle" fill="white" font-size="14" font-weight="bold" font-family="system-ui,sans-serif">?</text>
+			</svg>
+		</button>
+		<div class="payout-bet series-stake-title">Ставка на серию</div>
+		<button type="button" class="payout-settings-btn series-stake-settings-btn" id="seriesStakeSettingsBtn" title="Настройки" aria-label="Настройки">
+			<svg class="payout-settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+				<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
+			</svg>
+		</button>
+	</div>
+	<div class="series-stake-ux-width series-stake-meta-row" role="status">
+		<span class="series-stake-meta-ar">{{ ar_display_short }}</span>
+		<span class="series-stake-meta-series">{% if round_series_label %}{{ round_series_label }}{% else %}—{% endif %}</span>
+	</div>
+	<div class="payout-settings-overlay" id="seriesStakeSettingsOverlay">
+		<div class="payout-settings-modal series-stake-settings-modal">
+			<h3 class="payout-settings-title">Настройки</h3>
+			<form method="post" autocomplete="off">
+				{% csrf_token %}
+				<input type="hidden" name="action" value="settings">
+				<div class="payout-settings-fields">
+					<div class="series-stake-ar-row">
+						<span class="series-stake-ar-label" id="seriesStakeArLabel">AR</span>
+						<select name="ar_preset" id="seriesStakeArPreset" class="series-stake-ar-select" aria-labelledby="seriesStakeArLabel">
+							<option value="{{ ar_custom_value }}" {% if selected_ar_preset == ar_custom_value %}selected{% endif %}>Пользовательские настройки</option>
+							<option value="{{ ar_random_value }}" {% if selected_ar_preset == ar_random_value %}selected{% endif %}>Рандом</option>
+							{% for p in ar_presets %}
+							<option value="{{ p }}" {% if p == selected_ar_preset %}selected{% endif %}>{{ p }}</option>
+							{% endfor %}
+						</select>
+					</div>
+					<div class="series-stake-params-block">
+						<div class="series-stake-params-heading">Номер</div>
+						<label class="series-stake-param-row">
+							<span class="series-stake-param-label">min</span>
+							<input type="number" name="custom_num_min" id="seriesStakeNumMin" class="series-stake-param-input{% if not ar_params_editable %} series-stake-param-input--locked{% endif %}" min="1" max="9999" required value="{{ num_min }}" {% if not ar_params_editable %}readonly{% endif %} inputmode="numeric">
+						</label>
+						<label class="series-stake-param-row">
+							<span class="series-stake-param-label">max</span>
+							<input type="number" name="custom_num_max" id="seriesStakeNumMax" class="series-stake-param-input{% if not ar_params_editable %} series-stake-param-input--locked{% endif %}" min="1" max="9999" required value="{{ num_max }}" {% if not ar_params_editable %}readonly{% endif %} inputmode="numeric">
+						</label>
+						<div class="series-stake-params-heading">Серии играют</div>
+						<label class="series-stake-param-row">
+							<span class="series-stake-param-label">min по</span>
+							<input type="number" name="custom_series_min_po" id="seriesStakeSeriesMinPo" class="series-stake-param-input{% if not ar_params_editable %} series-stake-param-input--locked{% endif %}" min="1" max="9999" required value="{{ series_min_po }}" {% if not ar_params_editable %}readonly{% endif %} inputmode="numeric">
+						</label>
+						<label class="series-stake-param-row">
+							<span class="series-stake-param-label">step</span>
+							<input type="number" name="custom_series_step" id="seriesStakeSeriesStep" class="series-stake-param-input{% if not ar_params_editable %} series-stake-param-input--locked{% endif %}" min="1" max="9999" required value="{{ series_step }}" {% if not ar_params_editable %}readonly{% endif %} inputmode="numeric">
+						</label>
+						<div class="series-stake-params-heading">Ставка</div>
+						<label class="series-stake-param-row">
+							<span class="series-stake-param-label">min</span>
+							<input type="number" name="stake_min" id="seriesStakeStakeMin" class="series-stake-param-input" min="1" max="999999" required value="{{ stake_min }}" inputmode="numeric">
+						</label>
+						<label class="series-stake-param-row">
+							<span class="series-stake-param-label">max</span>
+							<input type="number" name="stake_max" id="seriesStakeStakeMax" class="series-stake-param-input" min="1" max="999999" required value="{{ stake_max }}" inputmode="numeric">
+						</label>
+						<label class="series-stake-param-row">
+							<span class="series-stake-param-label">step</span>
+							<input type="number" name="stake_step" id="seriesStakeStakeStep" class="series-stake-param-input" min="1" max="999999" required value="{{ stake_step }}" inputmode="numeric">
+						</label>
+					</div>
+					<div class="series-stake-series-block">
+						<div class="series-stake-series-row">
+							<span class="series-stake-ar-label" id="seriesStakeSeriesLabel">Серия</span>
+							<select name="series_mode" id="seriesStakeSeriesMode" class="series-stake-ar-select" aria-labelledby="seriesStakeSeriesLabel">
+								{% for key, label in series_stake_series_choices %}
+								<option value="{{ key }}" {% if key == selected_series_mode %}selected{% endif %}>{{ label }}</option>
+								{% endfor %}
+							</select>
+						</div>
+					</div>
+					<div class="series-stake-params-heading" id="seriesStakeFuseHeading">Фитиль</div>
+					<div class="series-stake-timer-settings" role="group" aria-labelledby="seriesStakeFuseHeading">
+						<span class="series-stake-timer-settings-hint" id="seriesStakeFuseHint">Отсчёт до проверки</span>
+						<button type="button" class="series-stake-timer-switch{% if timer_enabled %} is-on{% endif %}" id="seriesStakeTimerSwitch" role="switch" aria-checked="{% if timer_enabled %}true{% else %}false{% endif %}" aria-labelledby="seriesStakeFuseHint"></button>
+						<input type="hidden" name="timer_enabled" id="seriesStakeTimerEnabled" value="{% if timer_enabled %}1{% else %}0{% endif %}">
+						<label class="series-stake-timer-sec"><span class="series-stake-timer-sec-lbl">сек</span><input type="number" name="timer_seconds" class="series-stake-timer-sec-input series-stake-param-input" min="1" max="120" value="{{ timer_seconds }}" inputmode="numeric" title="Секунд до автопроверки" aria-label="Секунд до автопроверки"></label>
+					</div>
+				</div>
+				<script type="application/json" id="seriesStakePresetData">{{ ar_preset_params_json|safe }}</script>
+				<script type="application/json" id="seriesStakeBoundsData">{{ series_stake_bounds_mul_json|safe }}</script>
+				<div class="payout-settings-actions">
+					<button type="submit" class="btn btn-primary">Сохранить</button>
+					<button type="button" class="btn btn-secondary" id="seriesStakeSettingsClose">Отмена</button>
+				</div>
+			</form>
+		</div>
+	</div>
+	<div class="neighbors-help-overlay" id="seriesStakeHelpOverlay" aria-hidden="true">
+		<div class="neighbors-help-modal">
+			<div class="series-stake-help-content">
+				<p><strong>Ставка min</strong>: сначала <strong>база</strong> = большее из «серии играют по min» и «номер min»; затем min ставки = база × множитель серии (<strong>0-spiel</strong> 4, <strong>Orphelins</strong> 5, <strong>Tiers</strong> 6, <strong>Voisins</strong> 9). <strong>Max</strong> по-прежнему номер max × (7 / 9 / 12 / 17); <strong>Рандом</strong> — min база × 4, max номер max × 17. Шаг по умолчанию 5. Для <strong>Tiers</strong> случайная сумма в вашем диапазоне внутри коридора серии.</p>
+				<p>Для <strong>Tiers</strong>: пакет = <strong>6 × min играет серия</strong> (из AR). <strong>Играет по</strong> = (ставка ÷ пакет, целое) × min. <strong>Сдача</strong> = остаток ставки от пакета. Пример: ставка 160, min 5 → пакет 30 → 160÷30=5 → играет по 25, сдача 10; при min 1 то же, что деление на 6 (15 → 2 и 3).</p>
+				<p><strong>0-spiel</strong> и <strong>Orphelins</strong>: <strong>порог</strong> = номер max × 4 (spiel) или × 5 (orphelins). Если ставка ≤ порог — считаем как Tiers, но пакет <strong>4 × min</strong> или <strong>5 × min</strong> (не 6). Если ставка &gt; порог: на сумму порога — те же пакеты 4 или 5; остаток ставки — пакетами <strong>3 × min</strong> (spiel) или <strong>4 × min</strong> (orphelins). Пример AR 1-100-1, spiel, 500: порог 400 → 400 даёт 100 по пакету 4; остаток 100 по пакету 3 → 33 и сдача 1 → всего <strong>133</strong> и <strong>1</strong>.</p>
+				<p><strong>Voisins</strong>: <strong>порог</strong> = номер max × 1,5 × 9 (в тренажёре целое: max × 27 ÷ 2). До порога — пакет <strong>9 × шаг серии</strong> (из AR); после порога остаток — пакетами <strong>7 × шаг серии</strong>.</p>
+			</div>
+			<button type="button" class="btn btn-primary neighbors-help-close" id="seriesStakeHelpClose">Понятно</button>
+		</div>
+	</div>
+
+	<div class="series-stake-ux-width series-stake-task">
+		{% if task_description|length <= 24 %}
+		<p class="series-stake-amount-label">Ставка</p>
+		{% endif %}
+		<p class="series-stake-description{% if task_description|length > 24 %} series-stake-description--compact{% endif %}">{{ task_description }}</p>
+	</div>
+	{% if timer_enabled and success is None and not skipped %}
+	<div class="series-stake-ux-width series-stake-fuse-wrap">
+		{% include "partials/fuse_timer.html" with prefix="series-stake" %}
+	</div>
+	{% endif %}
+
+	<form method="post" autocomplete="off" class="payout-form neighbors-form">
+		{% csrf_token %}
+		<div class="series-stake-ux-width series-stake-answers" role="group" aria-label="Ответ">
+			<div class="series-stake-answer-slot">
+				<input type="text" name="igraet_po" class="payout-input neighbors-input series-stake-answer-input" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="{{ user_igraet }}" placeholder="Играет по" aria-label="Играет по" {% if success or skipped %}disabled{% endif %} id="seriesStakeIgraet" title="Играет по">
+			</div>
+			<div class="series-stake-answer-slot">
+				<input type="text" name="sdacha" class="payout-input neighbors-input series-stake-answer-input" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="{{ user_sdacha }}" placeholder="Сдача" aria-label="Сдача" {% if success or skipped %}disabled{% endif %} id="seriesStakeSdacha" title="Сдача">
+			</div>
+		</div>
+
+		<div class="payout-entry">
+			<div class="payout-keyboard">
+				<button type="button" class="payout-key" data-val="7">7</button>
+				<button type="button" class="payout-key" data-val="8">8</button>
+				<button type="button" class="payout-key" data-val="9">9</button>
+				<button type="button" class="payout-key payout-key--backspace" data-action="backspace" title="Удалить">⌫</button>
+				<button type="button" class="payout-key" data-val="4">4</button>
+				<button type="button" class="payout-key" data-val="5">5</button>
+				<button type="button" class="payout-key" data-val="6">6</button>
+				{% if not success and not skipped %}
+				<button type="submit" name="action" value="check" class="payout-key payout-key--enter" title="Проверить">↵</button>
+				{% endif %}
+				<button type="button" class="payout-key" data-val="1">1</button>
+				<button type="button" class="payout-key" data-val="2">2</button>
+				<button type="button" class="payout-key" data-val="3">3</button>
+				<button type="button" class="payout-key" data-val="0">0</button>
+				<button type="button" class="payout-key payout-key--nextcell" data-action="nextcell" title="Следующая ячейка">&gt;|</button>
+			</div>
+			{% if not success and not skipped %}
+			<div class="payout-pass-row">
+				<button type="submit" name="action" value="skip" formnovalidate class="btn btn-secondary payout-pass-btn">Pass</button>
+			</div>
+			{% endif %}
+		</div>
+
+	</form>
+
+	{% if success is False %}
+	<div class="payout-success-overlay self-draw-error-overlay" id="seriesStakeErrorOverlay">
+		<button type="button" class="payout-success-tap" id="seriesStakeErrorClose"></button>
+		<div class="self-draw-error-content">
+			<span class="self-draw-error-hand" aria-hidden="true">✋</span>
+			<div class="payout-success-text self-draw-error-text">Стоп!<br><small>Нажмите, чтобы попробовать снова</small></div>
+		</div>
+	</div>
+	{% endif %}
+
+	{% if success or skipped %}
+	<form method="post" class="payout-success-overlay" id="seriesStakeSuccessOverlay">
+		{% csrf_token %}
+		<input type="hidden" name="action" value="next">
+		<button type="submit" class="payout-success-tap"></button>
+		{% if success %}
+		<div class="payout-fireworks" aria-hidden="true">
+			<span></span><span></span><span></span><span></span><span></span><span></span>
+			<span></span><span></span><span></span><span></span><span></span><span></span>
+		</div>
+		{% endif %}
+		<div class="payout-success-text">{% if success %}{% include "partials/payout_check_text.html" %}{% if solve_seconds is not None %}<small class="series-stake-solve-time">Считали: {{ solve_seconds|floatformat:1 }} с</small>{% endif %}{% else %}{{ message }}{% endif %}</div>
+	</form>
+	{% endif %}
+</div>
+</div>
+
+<style>
+.series-stake-header {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+	gap: 0.5rem;
+	min-height: 2.5rem;
+}
+/* Одна ширина с блоком клавиатуры: 4×клавиша + 3×зазор */
+.series-stake-ux-width {
+	width: calc(4 * 52px + 3 * 8px);
+	max-width: min(calc(4 * 52px + 3 * 8px), calc(100vw - 32px));
+	margin-left: auto;
+	margin-right: auto;
+	box-sizing: border-box;
+}
+@media (min-width: 480px) {
+	.series-stake-ux-width {
+		width: calc(4 * 56px + 3 * 10px);
+		max-width: min(calc(4 * 56px + 3 * 10px), calc(100vw - 32px));
+	}
+}
+.series-stake-header .series-stake-title.payout-bet {
+	margin-bottom: 0;
+	font-size: 1.35rem;
+	font-weight: 700;
+	line-height: 1.25;
+	letter-spacing: -0.02em;
+}
+.series-stake-header .neighbors-help-btn,
+.series-stake-header .series-stake-settings-btn {
+	width: 40px;
+	height: 40px;
+	padding: 0;
+	box-sizing: border-box;
+}
+.series-stake-header .neighbors-help-icon {
+	width: 26px;
+	height: 26px;
+}
+.series-stake-title { margin: 0; text-align: center; }
+.series-stake-meta-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	margin: 0.35rem 0 0.25rem;
+	padding: 0;
+	font-size: 0.875rem;
+	line-height: 1.35;
+	color: var(--text-muted, #475569);
+}
+.series-stake-meta-ar {
+	font-weight: 600;
+	color: var(--text, #0f172a);
+	letter-spacing: 0.02em;
+}
+.series-stake-meta-series {
+	text-align: right;
+	font-weight: 500;
+	color: var(--text, #334155);
+}
+.series-stake-fuse-wrap {
+	margin: 0.35rem auto 0.55rem;
+}
+.series-stake-fuse-wrap .fuse-timer {
+	width: 100%;
+	max-width: none;
+	margin: 0;
+}
+.series-stake-timer-settings {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	flex-wrap: wrap;
+	margin: 0 0 10px;
+}
+.series-stake-timer-settings-hint {
+	font-size: 0.875rem;
+	font-weight: 500;
+	color: var(--text-muted, #64748b);
+	flex: 1 1 auto;
+	min-width: 0;
+}
+.series-stake-timer-switch {
+	position: relative;
+	flex-shrink: 0;
+	width: 48px;
+	height: 28px;
+	padding: 0;
+	border: none;
+	border-radius: 14px;
+	background: #cbd5e1;
+	box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.2);
+	cursor: pointer;
+	transition: background 0.22s ease, box-shadow 0.22s ease;
+	-webkit-tap-highlight-color: transparent;
+}
+.series-stake-timer-switch::after {
+	content: '';
+	position: absolute;
+	top: 3px;
+	left: 3px;
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	background: #fff;
+	box-shadow: 0 1px 4px rgba(15, 23, 42, 0.25);
+	transition: transform 0.24s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s;
+}
+.series-stake-timer-switch.is-on {
+	background: linear-gradient(180deg, #34d399 0%, #059669 100%);
+	box-shadow: inset 0 1px 2px rgba(255,255,255,0.35), 0 0 0 1px rgba(5, 150, 105, 0.35);
+}
+.series-stake-timer-switch.is-on::after {
+	transform: translateX(20px);
+}
+.series-stake-timer-switch:focus-visible {
+	outline: 2px solid #3b82f6;
+	outline-offset: 2px;
+}
+.series-stake-timer-sec {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0;
+	flex-shrink: 0;
+}
+.series-stake-timer-sec-lbl {
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: var(--text-muted, #64748b);
+}
+.series-stake-timer-sec-input {
+	width: 4rem !important;
+	max-width: none !important;
+	min-height: 2.25rem !important;
+	text-align: center !important;
+}
+.series-stake-solve-time {
+	display: block;
+	margin-top: 0.65rem;
+	font-size: 1rem;
+	font-weight: 600;
+	opacity: 0.95;
+}
+.series-stake-settings-modal { max-width: 380px; }
+.series-stake-ar-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-top: 4px;
+}
+.series-stake-ar-label {
+	font-weight: 600;
+	flex-shrink: 0;
+}
+.series-stake-ar-select {
+	flex: 1;
+	min-width: 0;
+	max-width: 14rem;
+	min-height: 2.5rem;
+	padding: 8px 10px;
+	font-size: 0.875rem;
+	border: 1px solid var(--border, #cbd5e1);
+	border-radius: var(--radius-sm, 8px);
+	background: var(--surface, #fff);
+	color: var(--text);
+}
+.series-stake-params-block {
+	margin-top: 14px;
+	padding-top: 12px;
+	border-top: 1px solid var(--border, #e2e8f0);
+}
+.series-stake-params-heading {
+	font-size: 0.82rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--text-muted, #64748b);
+	margin: 10px 0 6px;
+}
+.series-stake-params-heading:first-child { margin-top: 0; }
+.series-stake-param-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	margin-bottom: 8px;
+}
+.series-stake-param-label {
+	font-size: 0.875rem;
+	font-weight: 500;
+	flex-shrink: 0;
+}
+.series-stake-param-input {
+	width: 7rem;
+	max-width: 45%;
+	min-height: 2.5rem;
+	padding: 6px 10px;
+	font-size: 0.875rem;
+	text-align: right;
+	border: 1px solid var(--border, #cbd5e1);
+	border-radius: var(--radius-sm, 8px);
+	background: var(--surface, #fff);
+	color: var(--text);
+	box-sizing: border-box;
+}
+.series-stake-param-input--locked,
+.series-stake-param-input[readonly] {
+	background: var(--surface-hover, #f1f5f9);
+	color: var(--text-muted, #475569);
+	cursor: default;
+}
+.series-stake-series-block {
+	margin-top: 14px;
+	padding-top: 12px;
+	border-top: 1px solid var(--border, #e2e8f0);
+}
+.series-stake-series-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+.series-stake-settings-btn {
+	position: absolute;
+	right: 0;
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 4px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.neighbors-help-btn {
+	position: absolute;
+	left: 0;
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 4px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.neighbors-help-icon {
+	width: 28px;
+	height: 28px;
+	display: block;
+}
+.neighbors-help-btn:hover .neighbors-help-icon circle { fill: #1d4ed8; }
+.neighbors-help-overlay {
+	display: none;
+	position: fixed;
+	inset: 0;
+	background: rgba(0,0,0,0.5);
+	z-index: 100;
+	align-items: center;
+	justify-content: center;
+	padding: 20px;
+}
+.neighbors-help-overlay.is-open { display: flex; }
+.neighbors-help-modal {
+	background: var(--bg-main, #fff);
+	border-radius: var(--radius, 12px);
+	padding: 24px;
+	max-width: 360px;
+	width: 100%;
+	box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+.series-stake-help-content p { margin: 0 0 12px; font-size: 0.95rem; }
+.series-stake-help-content p:last-of-type { margin-bottom: 0; }
+.series-stake-task {
+	margin: 0.35rem 0 0.85rem;
+	text-align: center;
+}
+.series-stake-amount-label {
+	margin: 0 0 0.25rem;
+	font-size: 0.75rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--text-muted, #64748b);
+}
+.series-stake-description {
+	margin: 0;
+	font-size: clamp(1.5rem, 5vw, 1.9rem);
+	font-weight: 800;
+	line-height: 1.2;
+	color: var(--text, #0f172a);
+	letter-spacing: -0.02em;
+}
+.series-stake-description--compact {
+	font-size: 1rem;
+	font-weight: 600;
+	letter-spacing: 0;
+	line-height: 1.45;
+}
+/* Два поля на ширину клавиатуры, равные колонки */
+.series-stake-answers {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	justify-content: stretch;
+	align-items: stretch;
+	gap: 8px;
+	margin: 0.45rem 0 1rem;
+	padding: 0;
+}
+@media (min-width: 480px) {
+	.series-stake-answers {
+		gap: 10px;
+	}
+}
+.series-stake-answer-slot {
+	flex: 1 1 0;
+	min-width: 0;
+}
+.series-stake-answer-input.payout-input {
+	box-sizing: border-box;
+	display: block;
+	width: 100%;
+	min-width: 0;
+	max-width: 100%;
+	height: 3rem;
+	padding: 0 6px;
+	text-align: center;
+	border: 2px solid #cbd5e1;
+	border-radius: 10px;
+	background: #fff;
+	font-size: 1rem;
+	font-weight: 600;
+}
+.series-stake-answer-input.payout-input::placeholder {
+	color: var(--text-muted, #94a3b8);
+	font-size: 1rem;
+	font-weight: 600;
+	opacity: 1;
+}
+.series-stake-answer-input.payout-input:focus {
+	outline: none;
+	box-shadow: inset 0 0 0 2px #3b82f6;
+}
+.series-stake-answer-input.payout-input:disabled {
+	opacity: 0.85;
+}
+.payout-form.neighbors-form {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+.neighbors-form .payout-key--nextcell { grid-column: 4; grid-row: 4; }
+</style>
+
+<script>
+var seriesStakeArRandomValue = '{{ ar_random_value|escapejs }}';
+document.addEventListener('DOMContentLoaded', function() {
+	var timerSw = document.getElementById('seriesStakeTimerSwitch');
+	var timerHidden = document.getElementById('seriesStakeTimerEnabled');
+	if (timerSw && timerHidden) {
+		function syncSeriesStakeTimerSwitch() {
+			var on = timerHidden.value === '1';
+			timerSw.classList.toggle('is-on', on);
+			timerSw.setAttribute('aria-checked', on ? 'true' : 'false');
+		}
+		syncSeriesStakeTimerSwitch();
+		timerSw.addEventListener('click', function() {
+			timerHidden.value = timerHidden.value === '1' ? '0' : '1';
+			syncSeriesStakeTimerSwitch();
+		});
+	}
+	var helpBtn = document.getElementById('seriesStakeHelpBtn');
+	var helpOverlay = document.getElementById('seriesStakeHelpOverlay');
+	var helpClose = document.getElementById('seriesStakeHelpClose');
+	if (helpBtn && helpOverlay) {
+		helpBtn.addEventListener('click', function() { helpOverlay.classList.add('is-open'); });
+		if (helpClose) helpClose.addEventListener('click', function() { helpOverlay.classList.remove('is-open'); });
+		helpOverlay.addEventListener('click', function(e) { if (e.target === helpOverlay) helpOverlay.classList.remove('is-open'); });
+	}
+	var settingsBtn = document.getElementById('seriesStakeSettingsBtn');
+	var settingsOverlay = document.getElementById('seriesStakeSettingsOverlay');
+	var settingsClose = document.getElementById('seriesStakeSettingsClose');
+	if (settingsBtn && settingsOverlay) {
+		settingsBtn.addEventListener('click', function() { settingsOverlay.classList.add('is-open'); });
+		if (settingsClose) settingsClose.addEventListener('click', function() { settingsOverlay.classList.remove('is-open'); });
+		settingsOverlay.addEventListener('click', function(e) { if (e.target === settingsOverlay) settingsOverlay.classList.remove('is-open'); });
+	}
+	var presetDataEl = document.getElementById('seriesStakePresetData');
+	var presetMap = {};
+	if (presetDataEl && presetDataEl.textContent) {
+		try { presetMap = JSON.parse(presetDataEl.textContent); } catch (e) { presetMap = {}; }
+	}
+	var boundsDataEl = document.getElementById('seriesStakeBoundsData');
+	var stakeMulMap = {};
+	var defaultStakeStep = 5;
+	if (boundsDataEl && boundsDataEl.textContent) {
+		try {
+			var boundsData = JSON.parse(boundsDataEl.textContent);
+			stakeMulMap = boundsData.mul || {};
+			if (boundsData.default_step != null) defaultStakeStep = boundsData.default_step;
+		} catch (e) { stakeMulMap = {}; }
+	}
+	function applyStakeTriple(min, max, step) {
+		var elStakeMin = document.getElementById('seriesStakeStakeMin');
+		var elStakeMax = document.getElementById('seriesStakeStakeMax');
+		var elStakeStep = document.getElementById('seriesStakeStakeStep');
+		if (elStakeMin && min != null) elStakeMin.value = min;
+		if (elStakeMax && max != null) elStakeMax.value = max;
+		if (elStakeStep && step != null) elStakeStep.value = step;
+	}
+	function syncStakeFromPresetAndSeries() {
+		var presetSel = document.getElementById('seriesStakeArPreset');
+		var seriesSel = document.getElementById('seriesStakeSeriesMode');
+		if (!presetSel || !seriesSel) return;
+		var mode = seriesSel.value;
+		var custom = presetSel.value === 'custom';
+		if (!custom) {
+			var m = presetMap[presetSel.value];
+			if (m && m.stake_by_series && m.stake_by_series[mode]) {
+				var s = m.stake_by_series[mode];
+				applyStakeTriple(s.min, s.max, s.step);
+				return;
+			}
+			if (presetSel.value === seriesStakeArRandomValue) {
+				var smpElR = document.getElementById('seriesStakeSeriesMinPo');
+				var xmElR = document.getElementById('seriesStakeNumMax');
+				var nminElR = document.getElementById('seriesStakeNumMin');
+				var smpR = parseInt(smpElR && smpElR.value, 10) || 1;
+				var xmR = parseInt(xmElR && xmElR.value, 10) || 100;
+				var nminR = parseInt(nminElR && nminElR.value, 10) || 1;
+				var baseR = Math.max(smpR, nminR);
+				var pairR = stakeMulMap[mode] || stakeMulMap.tiers;
+				if (pairR && pairR.length >= 2) {
+					applyStakeTriple(baseR * pairR[0], xmR * pairR[1], defaultStakeStep);
+				}
+			}
+			return;
+		}
+		var smpEl = document.getElementById('seriesStakeSeriesMinPo');
+		var xmEl = document.getElementById('seriesStakeNumMax');
+		var nminEl = document.getElementById('seriesStakeNumMin');
+		var smp = parseInt(smpEl && smpEl.value, 10) || 1;
+		var xm = parseInt(xmEl && xmEl.value, 10) || 100;
+		var nmin = parseInt(nminEl && nminEl.value,10) || 1;
+		var base = Math.max(smp, nmin);
+		var pair = stakeMulMap[mode] || stakeMulMap.tiers;
+		if (pair && pair.length >= 2) {
+			applyStakeTriple(base * pair[0], xm * pair[1], defaultStakeStep);
+		}
+	}
+	function syncSeriesStakeArParamsEditable() {
+		var sel = document.getElementById('seriesStakeArPreset');
+		if (!sel) return;
+		var custom = sel.value === 'custom';
+		var ids = ['seriesStakeNumMin', 'seriesStakeNumMax', 'seriesStakeSeriesMinPo', 'seriesStakeSeriesStep'];
+		var m = presetMap[sel.value];
+		if (!custom && m) {
+			var elMin = document.getElementById('seriesStakeNumMin');
+			var elMax = document.getElementById('seriesStakeNumMax');
+			var elSmp = document.getElementById('seriesStakeSeriesMinPo');
+			var elSt = document.getElementById('seriesStakeSeriesStep');
+			if (elMin) elMin.value = m.num_min;
+			if (elMax) elMax.value = m.num_max;
+			if (elSmp) elSmp.value = m.series_min_po;
+			if (elSt) elSt.value = m.series_step;
+		}
+		ids.forEach(function(id) {
+			var el = document.getElementById(id);
+			if (!el) return;
+			el.readOnly = !custom;
+			el.classList.toggle('series-stake-param-input--locked', !custom);
+		});
+		syncStakeFromPresetAndSeries();
+	}
+	var presetSel = document.getElementById('seriesStakeArPreset');
+	if (presetSel) {
+		presetSel.addEventListener('change', syncSeriesStakeArParamsEditable);
+		syncSeriesStakeArParamsEditable();
+	}
+	var seriesModeSel = document.getElementById('seriesStakeSeriesMode');
+	if (seriesModeSel) {
+		seriesModeSel.addEventListener('change', syncStakeFromPresetAndSeries);
+	}
+	['seriesStakeNumMin', 'seriesStakeNumMax', 'seriesStakeSeriesMinPo'].forEach(function(id) {
+		var el = document.getElementById(id);
+		if (el) el.addEventListener('input', function() {
+			var ps = document.getElementById('seriesStakeArPreset');
+			if (ps && (ps.value === 'custom' || ps.value === seriesStakeArRandomValue)) {
+				syncStakeFromPresetAndSeries();
+			}
+		});
+	});
+	var errorOverlay = document.getElementById('seriesStakeErrorOverlay');
+	var errorCloseBtn = document.getElementById('seriesStakeErrorClose');
+	if (errorOverlay && errorCloseBtn) {
+		errorCloseBtn.addEventListener('click', function() { errorOverlay.style.display = 'none'; });
+	}
+	var successOverlay = document.getElementById('seriesStakeSuccessOverlay');
+	if (successOverlay) {
+		document.addEventListener('keydown', function(e) {
+			if (e.key === 'Enter') {
+				e.preventDefault();
+				successOverlay.submit();
+			}
+		});
+	}
+});
+</script>
+<p class="payout-back"><a href="{% url 'ar_index' %}">← К списку игр</a></p>
+{% endblock %}
+
+{% block extra_scripts %}
+{% if timer_enabled and success is None and not skipped %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+	if (typeof initFuseTimer !== 'function') return;
+	initFuseTimer({
+		prefix: 'series-stake',
+		seconds: {{ timer_seconds }},
+		timeoutButton: 'button[name="action"][value="check"]',
+		settingsOverlay: '#seriesStakeSettingsOverlay'
+	});
+});
+</script>
+{% endif %}
+{% endblock %}

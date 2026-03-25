@@ -1,0 +1,405 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}AR — Серии{% endblock %}
+
+{% block extra_head %}
+<style>
+.ar-series-wrap { margin: 16px 0; }
+.ar-series-canvas-wrap {
+	margin: 0 0 16px;
+	border: 2px solid var(--border);
+	border-radius: var(--radius-sm);
+	background: #1a1a1a;
+	overflow: hidden;
+	width: 100%;
+	height: min(68vh, 580px);
+	min-height: 260px;
+	position: relative;
+	touch-action: none;
+}
+.ar-series-canvas-wrap canvas { display: block; width: 100%; height: 100%; object-fit: fill; cursor: crosshair; }
+.ar-series-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	align-items: center;
+}
+.ar-series-toolbar button {
+	padding: 10px 16px;
+	border-radius: var(--radius-sm);
+	border: 1px solid var(--border);
+	background: var(--surface);
+	color: var(--text);
+	font-size: 0.95rem;
+	cursor: pointer;
+}
+.ar-series-toolbar button:hover { background: var(--surface-hover); }
+.ar-series-toolbar button.is-active {
+	border-color: #ca8a04;
+	background: rgba(202, 138, 4, 0.15);
+	color: #fbbf24;
+}
+.ar-series-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	align-items: center;
+	margin-top: 14px;
+}
+.ar-series-task { margin: 12px 0 0; padding: 12px 14px; background: var(--surface); border-radius: var(--radius-sm); border: 1px solid var(--border); max-width: 52rem; font-size: 0.97rem; line-height: 1.45; }
+.ar-series-task strong { display: block; margin-bottom: 6px; }
+.ar-series-task[hidden] { display: none; }
+.ar-series-hint { margin: 10px 0 0; font-size: 0.92rem; color: var(--text-muted); max-width: 52rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>Серии</h1>
+<p class="ar-series-wrap">Выберите серию — подсветятся номера на колесе. Расставьте фишки по заданию (клик по полю), затем нажмите <strong>Enter</strong> для проверки. Повторный клик по заполненной позиции снимает верхнюю фишку. Колёсико — масштаб.</p>
+
+<div class="ar-series-canvas-wrap">
+	<canvas id="ar-series-canvas"></canvas>
+</div>
+
+<div class="ar-series-toolbar" role="group" aria-label="Серии на колесе">
+	<button type="button" data-series="clear" class="is-active">Режим просмотра</button>
+	<button type="button" data-series="tiers">Series 5/8</button>
+	<button type="button" data-series="orphelins">Orphelins</button>
+	<button type="button" data-series="voisins">Series 0/2/3</button>
+	<button type="button" data-series="zero">0-spiel</button>
+</div>
+
+<div id="ar-series-task" class="ar-series-task" hidden>
+	<strong id="ar-series-task-title"></strong>
+	<span id="ar-series-task-body"></span>
+</div>
+
+<div class="ar-series-actions">
+	<button type="button" class="btn btn-primary" id="ar-series-check" disabled>Проверить (Enter)</button>
+	<button type="button" class="btn btn-secondary" id="ar-series-clear-chips" disabled>Сбросить фишки</button>
+</div>
+<p class="ar-series-hint">Масштаб колёсиком мыши. Клик по полю ставит или снимает фишку на ближайшей отметке задания.</p>
+
+<div id="ar-series-success" class="payout-success-overlay" style="display: none;">
+	<button type="button" class="payout-success-tap" id="ar-series-success-close" style="position:absolute;inset:0;border:none;background:transparent;cursor:pointer;" aria-label="Закрыть"></button>
+	<div class="payout-fireworks" aria-hidden="true">
+		<span></span><span></span><span></span><span></span><span></span><span></span>
+		<span></span><span></span><span></span><span></span><span></span><span></span>
+	</div>
+	<div class="payout-success-text">{% include "partials/payout_check_text.html" %}</div>
+</div>
+<div id="ar-series-fail" class="payout-success-overlay self-draw-error-overlay" style="display: none;">
+	<button type="button" class="payout-success-tap" id="ar-series-fail-close" style="position:absolute;inset:0;border:none;background:transparent;cursor:pointer;" aria-label="Закрыть"></button>
+	<div class="self-draw-error-content">
+		<span class="self-draw-error-hand" aria-hidden="true">✋</span>
+		<div class="payout-success-text self-draw-error-text" id="ar-series-fail-text"></div>
+		<small class="self-draw-error-hint">Нажмите, чтобы закрыть</small>
+	</div>
+</div>
+
+<script type="importmap">
+{"imports":{
+	"three":"https://unpkg.com/three@0.160.0/build/three.module.js",
+	"three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/",
+	"ar-roulette-table":"{% static 'js/ar_roulette_table.mjs' %}",
+	"ar-series-targets":"{% static 'js/ar_series_targets.mjs' %}"
+}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { buildArRouletteTable } from 'ar-roulette-table';
+import { buildSeriesTargets, validateChipsAgainstTargets, HIT_RADIUS } from 'ar-series-targets';
+
+const WHEEL = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
+
+function contiguousOnWheel(startVal, length) {
+	const i0 = WHEEL.indexOf(startVal);
+	if (i0 < 0) return new Set();
+	const out = new Set();
+	for (let k = 0; k < length; k++) {
+		out.add(WHEEL[(i0 + k) % WHEEL.length]);
+	}
+	return out;
+}
+
+function withZero(set) {
+	const s = new Set(set);
+	s.add(0);
+	return s;
+}
+
+const SERIES_HIGHLIGHT = {
+	tiers: contiguousOnWheel(27, 12),
+	orphelins: new Set([1, 6, 9, 14, 17, 20, 31, 34]),
+	voisins: withZero(contiguousOnWheel(22, 17)),
+	zero: withZero(contiguousOnWheel(12, 7))
+};
+
+const TASK_COPY = {
+	zero: {
+		title: '0-spiel (Jeu zéro)',
+		body: 'Поставьте по одной фишке: сплит 0–3, сплит 12–15, сплит 32–35 и одну фишку на номер 26 (центр ячейки).'
+	},
+	tiers: {
+		title: 'Series 5/8 (Tiers du cylindre)',
+		body: 'Шесть сплитов: 5–8, 10–11, 13–16, 23–24, 27–30, 33–36 (между соответствующими номерами на сетке).'
+	},
+	orphelins: {
+		title: 'Orphelins',
+		body: 'Пять фишек: номер 1 и сплиты 6–9, 14–17, 17–20, 31–34.'
+	},
+	voisins: {
+		title: 'Series 0/2/3 (Voisins du zéro)',
+		body: 'Всего 9 фишек. Две на стрит 0-2-3 и две на угол 25–26–28–29 (кликните эти позиции по два раза). По одной: сплит 4–7, 12–15, 18–21, 19–22, 32–35.'
+	}
+};
+
+const SERIES_TARGETS = buildSeriesTargets();
+const canvas = document.getElementById('ar-series-canvas');
+const wrap = canvas.closest('.ar-series-canvas-wrap');
+let w = wrap.clientWidth || 800;
+let h = wrap.clientHeight || 480;
+if (w < 100) w = 800;
+if (h < 100) h = 480;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x1a1a1a);
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+const dir = new THREE.DirectionalLight(0xffffff, 0.85);
+dir.position.set(30, 40, 45);
+scene.add(dir);
+
+const { bounds, applyHighlight } = buildArRouletteTable(THREE, scene, { visibleDozens: [1, 2, 3] });
+
+const chipsGroup = new THREE.Group();
+chipsGroup.name = 'series-chips';
+scene.add(chipsGroup);
+
+const cx = (bounds.minX + bounds.maxX) / 2;
+const cy = (bounds.minY + bounds.maxY) / 2;
+const spanX = bounds.maxX - bounds.minX;
+const spanY = bounds.maxY - bounds.minY;
+const margin = 6;
+
+const camera = new THREE.PerspectiveCamera(42, w / h, 0.5, 500);
+function placeCamera() {
+	const dist = Math.max(spanX, spanY) * 1.15 + margin * 2;
+	camera.position.set(cx, cy, dist);
+	camera.lookAt(cx, cy, 0);
+	camera.updateProjectionMatrix();
+}
+placeCamera();
+
+const controls = new OrbitControls(camera, canvas);
+controls.target.set(cx, cy, 0);
+controls.enableDamping = true;
+controls.enableRotate = false;
+controls.enablePan = false;
+controls.minPolarAngle = 0.08;
+controls.maxPolarAngle = Math.PI / 2.1;
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setSize(w, h);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+const planeZ = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+const hitPoint = new THREE.Vector3();
+const raycaster = new THREE.Raycaster();
+const pointerNdc = new THREE.Vector2();
+
+const CHIP_THICKNESS = 0.32;
+const CHIP_STACK_GAP = 0.04;
+const chipGeom = new THREE.CylinderGeometry(1.15, 1.15, CHIP_THICKNESS, 28);
+const chipMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.35, roughness: 0.45 });
+const chipStackStep = CHIP_THICKNESS + CHIP_STACK_GAP;
+
+/** @type {{ mesh: THREE.Mesh, slotId: string, x: number, y: number }[]} */
+let chipsPlaced = [];
+let activeKey = 'clear';
+let activeTargets = [];
+
+const taskEl = document.getElementById('ar-series-task');
+const taskTitleEl = document.getElementById('ar-series-task-title');
+const taskBodyEl = document.getElementById('ar-series-task-body');
+const btnCheck = document.getElementById('ar-series-check');
+const btnClearChips = document.getElementById('ar-series-clear-chips');
+
+function setInteractEnabled(on) {
+	btnCheck.disabled = !on;
+	btnClearChips.disabled = !on;
+	taskEl.hidden = !on;
+}
+
+function clearAllChips() {
+	for (let i = 0; i < chipsPlaced.length; i++) {
+		chipsGroup.remove(chipsPlaced[i].mesh);
+	}
+	chipsPlaced = [];
+}
+
+function countAtSlot(slotId) {
+	let n = 0;
+	for (let i = 0; i < chipsPlaced.length; i++) {
+		if (chipsPlaced[i].slotId === slotId) n++;
+	}
+	return n;
+}
+
+function chipsAtSlot(slotId) {
+	return chipsPlaced.filter(function (c) { return c.slotId === slotId; });
+}
+
+function nearestSlot(pt) {
+	let best = null;
+	let bd = 1e9;
+	for (let i = 0; i < activeTargets.length; i++) {
+		const t = activeTargets[i];
+		const d = Math.hypot(pt.x - t.x, pt.y - t.y);
+		if (d < bd) {
+			bd = d;
+			best = t;
+		}
+	}
+	if (!best || bd > HIT_RADIUS * 1.35) return null;
+	return best;
+}
+
+function addChipForSlot(t) {
+	const stackIdx = countAtSlot(t.id);
+	const mesh = new THREE.Mesh(chipGeom, chipMat);
+	mesh.rotation.x = -Math.PI / 2;
+	mesh.position.set(t.x, t.y, CHIP_THICKNESS / 2 + 0.06 + stackIdx * chipStackStep);
+	chipsGroup.add(mesh);
+	chipsPlaced.push({ mesh: mesh, slotId: t.id, x: t.x, y: t.y });
+}
+
+function restackSlot(slotId) {
+	const at = chipsPlaced.filter(function (c) { return c.slotId === slotId; });
+	for (let k = 0; k < at.length; k++) {
+		at[k].mesh.position.z = CHIP_THICKNESS / 2 + 0.06 + k * chipStackStep;
+	}
+}
+
+function removeTopChipAtSlot(t) {
+	const stack = chipsAtSlot(t.id);
+	if (!stack.length) return;
+	const top = stack[stack.length - 1];
+	chipsGroup.remove(top.mesh);
+	const ix = chipsPlaced.indexOf(top);
+	if (ix >= 0) chipsPlaced.splice(ix, 1);
+	restackSlot(t.id);
+}
+
+function onTableClick(clientX, clientY) {
+	if (activeKey === 'clear' || !activeTargets.length) return;
+	const r = canvas.getBoundingClientRect();
+	pointerNdc.x = ((clientX - r.left) / r.width) * 2 - 1;
+	pointerNdc.y = -((clientY - r.top) / r.height) * 2 + 1;
+	raycaster.setFromCamera(pointerNdc, camera);
+	raycaster.ray.intersectPlane(planeZ, hitPoint);
+	const t = nearestSlot(hitPoint);
+	if (!t) return;
+	const here = countAtSlot(t.id);
+	if (here < t.chips) {
+		addChipForSlot(t);
+	} else {
+		removeTopChipAtSlot(t);
+	}
+}
+
+let dragStart = null;
+canvas.addEventListener('pointerdown', function (e) {
+	dragStart = { x: e.clientX, y: e.clientY };
+});
+canvas.addEventListener('pointerup', function (e) {
+	if (!dragStart) return;
+	const dx = e.clientX - dragStart.x;
+	const dy = e.clientY - dragStart.y;
+	dragStart = null;
+	if (Math.hypot(dx, dy) > 10) return;
+	onTableClick(e.clientX, e.clientY);
+});
+
+window.addEventListener('keydown', function (e) {
+	if (e.key === 'Enter' && !btnCheck.disabled) {
+		e.preventDefault();
+		btnCheck.click();
+	}
+});
+
+applyHighlight(null);
+
+function resize() {
+	w = wrap.clientWidth || 800;
+	h = wrap.clientHeight || 480;
+	camera.aspect = w / h;
+	placeCamera();
+	renderer.setSize(w, h);
+}
+window.addEventListener('resize', resize);
+
+function animate() {
+	requestAnimationFrame(animate);
+	controls.update();
+	renderer.render(scene, camera);
+}
+animate();
+
+function openSuccess() {
+	document.getElementById('ar-series-success').style.display = 'flex';
+}
+function openFail(msg) {
+	document.getElementById('ar-series-fail-text').textContent = msg;
+	document.getElementById('ar-series-fail').style.display = 'flex';
+}
+function closeOverlays() {
+	document.getElementById('ar-series-success').style.display = 'none';
+	document.getElementById('ar-series-fail').style.display = 'none';
+}
+
+document.getElementById('ar-series-success-close').addEventListener('click', function () {
+	closeOverlays();
+	clearAllChips();
+});
+document.getElementById('ar-series-fail-close').addEventListener('click', closeOverlays);
+
+btnClearChips.addEventListener('click', function () {
+	clearAllChips();
+});
+
+btnCheck.addEventListener('click', function () {
+	if (!activeTargets.length) return;
+	const list = chipsPlaced.map(function (c) { return { x: c.x, y: c.y }; });
+	const res = validateChipsAgainstTargets(list, activeTargets, HIT_RADIUS);
+	if (res.ok) {
+		openSuccess();
+	} else {
+		openFail(res.detail || 'Есть ошибки в расстановке.');
+	}
+});
+
+document.querySelectorAll('.ar-series-toolbar button').forEach(function (btn) {
+	btn.addEventListener('click', function () {
+		const key = btn.getAttribute('data-series');
+		document.querySelectorAll('.ar-series-toolbar button').forEach(function (b) { b.classList.remove('is-active'); });
+		btn.classList.add('is-active');
+		activeKey = key;
+		clearAllChips();
+		closeOverlays();
+		if (key === 'clear') {
+			activeTargets = [];
+			applyHighlight(null);
+			setInteractEnabled(false);
+		} else {
+			activeTargets = SERIES_TARGETS[key] || [];
+			applyHighlight(SERIES_HIGHLIGHT[key]);
+			taskTitleEl.textContent = TASK_COPY[key].title;
+			taskBodyEl.textContent = TASK_COPY[key].body;
+			setInteractEnabled(true);
+		}
+	});
+});
+</script>
+{% endblock %}

@@ -4,8 +4,10 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name='ar_index'),
+    path('series/', views.ar_series, name='ar_series'),
     path('neighbors/', views.ar_neighbors, name='ar_neighbors'),
     path('completes/', views.ar_completes, name='ar_completes'),
+    path('series-stake/', views.ar_series_stake, name='ar_series_stake'),
     path('ar_bets/', views.ar_bets, name='ar_bets'),
     path('roulette/', views.ar_roulette, name='ar_roulette'),
     path('color_in_cash/', views.ar_roulette, name='ar_color_in_cash'),

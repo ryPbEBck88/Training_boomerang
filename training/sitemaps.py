@@ -23,6 +23,7 @@ SITEMAP_URLS = [
     ('ar_bets', '0.8'),
     ('ar_neighbors', '0.8'),
     ('ar_completes', '0.8'),
+    ('ar_series_stake', '0.8'),
     ('ar_color_in_cash', '0.8'),
     ('ar_payout_through_cash', '0.8'),
     ('ar_mix', '0.8'),

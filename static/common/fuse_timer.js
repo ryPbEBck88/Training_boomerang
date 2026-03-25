@@ -11,6 +11,19 @@
  * @param {boolean} [opts.clickOnTimeout=true] - Если false, по истечении времени не нажимать кнопку
  * @param {function} [opts.onTimeout] - Колбэк при истечении времени (вместо клика по кнопке)
  */
+/** Таймер в форме: checkbox или hidden со значением 1/on/true — выкл при 0/false. */
+function fuseTimerIsEnabledInSettings(overlay) {
+	if (!overlay) return true;
+	var hidden = overlay.querySelector('input[name="timer_enabled"][type="hidden"]');
+	if (hidden) {
+		var v = String(hidden.value || '').trim().toLowerCase();
+		return v === '1' || v === 'on' || v === 'true' || v === 'yes';
+	}
+	var cb = overlay.querySelector('input[name="timer_enabled"]');
+	if (cb && cb.type === 'checkbox') return cb.checked;
+	return true;
+}
+
 function initFuseTimer(opts) {
 	var prefix = opts.prefix || 'fuse';
 	var clickOnTimeout = opts.clickOnTimeout !== false;
@@ -38,9 +51,8 @@ function initFuseTimer(opts) {
 			requestAnimationFrame(tick);
 			return;
 		}
-		/* User unchecked timer in overlay and closed without saving — stop countdown */
-		var cb = overlay && overlay.querySelector('input[name="timer_enabled"]');
-		if (cb && !cb.checked) return;
+		/* В настройках выключили фитиль и закрыли без сохранения — остановить отсчёт */
+		if (overlay && !fuseTimerIsEnabledInSettings(overlay)) return;
 		lastTick = Date.now();
 		var elapsed = (Date.now() - start) / 1000;
 		var t = Math.max(0, seconds - elapsed);
