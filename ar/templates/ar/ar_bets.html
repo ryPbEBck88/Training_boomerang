@@ -1,6 +1,198 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block extra_head %}
+<style>
+.ar-bets-sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+#ar-settings-overlay .payout-settings-modal.ar-bets-settings-modal {
+	max-width: 380px;
+}
+#ar-settings-overlay .ar-bets-settings-fields.payout-settings-fields {
+	gap: 0;
+}
+#ar-settings-overlay .ar-bets-settings-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 10px;
+}
+#ar-settings-overlay .ar-bets-settings-label {
+	font-size: 0.875rem;
+	font-weight: 600;
+	flex-shrink: 0;
+	color: var(--text, #1e293b);
+}
+#ar-settings-overlay .ar-bets-ar-select {
+	flex: 1;
+	min-width: 0;
+	max-width: 14rem;
+	min-height: 2.5rem;
+	margin-left: auto;
+	padding: 8px 10px;
+	font-size: 0.875rem;
+	border: 1px solid var(--border, #cbd5e1);
+	border-radius: var(--radius-sm, 8px);
+	background: var(--surface, #fff);
+	color: var(--text);
+}
+#ar-settings-overlay .ar-bets-timer-settings {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	flex-wrap: wrap;
+	margin-bottom: 10px;
+}
+#ar-settings-overlay .ar-bets-timer-settings-hint {
+	font-size: 0.875rem;
+	font-weight: 500;
+	color: var(--text-muted, #64748b);
+	flex: 1 1 auto;
+	min-width: 0;
+}
+#ar-settings-overlay .ar-bets-timer-switch {
+	position: relative;
+	flex-shrink: 0;
+	width: 48px;
+	height: 28px;
+	padding: 0;
+	border: none;
+	border-radius: 14px;
+	background: #cbd5e1;
+	box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.2);
+	cursor: pointer;
+	transition: background 0.22s ease, box-shadow 0.22s ease;
+	-webkit-tap-highlight-color: transparent;
+}
+#ar-settings-overlay .ar-bets-timer-switch::after {
+	content: '';
+	position: absolute;
+	top: 3px;
+	left: 3px;
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	background: #fff;
+	box-shadow: 0 1px 4px rgba(15, 23, 42, 0.25);
+	transition: transform 0.24s cubic-bezier(0.4, 0, 0.2, 1),background 0.2s;
+}
+#ar-settings-overlay .ar-bets-timer-switch.is-on {
+	background: linear-gradient(180deg, #34d399 0%, #059669 100%);
+	box-shadow: inset 0 1px 2px rgba(255,255,255,0.35), 0 0 0 1px rgba(5, 150, 105, 0.35);
+}
+#ar-settings-overlay .ar-bets-timer-switch.is-on::after {
+	transform: translateX(20px);
+}
+#ar-settings-overlay .ar-bets-timer-switch:focus-visible {
+	outline: 2px solid #3b82f6;
+	outline-offset: 2px;
+}
+#ar-settings-overlay .ar-bets-timer-sec {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0;
+	flex-shrink: 0;
+}
+#ar-settings-overlay .ar-bets-timer-sec-lbl {
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: var(--text-muted, #64748b);
+}
+#ar-settings-overlay .ar-bets-timer-sec-input {
+	width: 4rem !important;
+	max-width: none !important;
+	min-height: 2.25rem !important;
+	text-align: center !important;
+}
+#ar-settings-overlay .ar-bets-number-select {
+	flex: 0 0 auto !important;
+	width: 4rem !important;
+	max-width: 4rem !important;
+	min-width: 4rem !important;
+	min-height: 2.25rem !important;
+	margin-left: 0 !important;
+	padding: 6px 4px !important;
+	font-size: 0.875rem !important;
+	text-align: center !important;
+	text-align-last: center !important;
+}
+#ar-settings-overlay label.ar-bets-number-wrap {
+	margin: 0;
+	gap: 0;
+}
+#ar-settings-overlay .ar-bets-stacks-controls {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 10px;
+	flex: 1;
+	min-width: 0;
+}
+#ar-settings-overlay .ar-bets-stacks-controls .ar-bets-ar-select {
+	flex: 0 1 5.5rem;
+	max-width: 6rem;
+	margin-left: 0;
+}
+#ar-settings-overlay .ar-bets-params-heading {
+	font-size: 0.82rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--text-muted, #64748b);
+	margin: 14px 0 8px;
+	padding-top: 12px;
+	border-top: 1px solid var(--border, #e2e8f0);
+}
+#ar-settings-overlay .ar-bets-params-heading:first-of-type {
+	margin-top: 0;
+	padding-top: 0;
+	border-top: none;
+}
+#ar-settings-overlay .ar-bets-param-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	margin-bottom: 8px;
+}
+#ar-settings-overlay .ar-bets-param-label {
+	font-size: 0.875rem;
+	font-weight: 500;
+	flex-shrink: 0;
+}
+#ar-settings-overlay .ar-bets-param-input {
+	width: 7rem;
+	max-width: 45%;
+	min-height: 2.5rem;
+	padding: 6px 10px;
+	font-size: 0.875rem;
+	text-align: right;
+	border: 1px solid var(--border, #cbd5e1);
+	border-radius: var(--radius-sm, 8px);
+	background: var(--surface, #fff);
+	color: var(--text);
+	box-sizing: border-box;
+}
+#ar-settings-overlay .ar-bets-param-input:disabled {
+	background: var(--surface-hover, #f1f5f9);
+	color: var(--text-muted, #475569);
+	cursor: default;
+}
+</style>
+{% endblock %}
+
 {% block title %}AR Bets{% endblock %}
 
 {% block content %}
@@ -28,44 +220,54 @@
 	<div id="ar-camera-save-toast" style="display:none;position:absolute;bottom:12px;left:12px;right:12px;z-index:10;background:rgba(0,0,0,0.88);color:#b8e0b8;font:12px/1.45 ui-monospace,monospace;padding:10px 12px;border-radius:6px;pointer-events:none;" aria-live="polite"></div>
 </div>
 <div id="ar-settings-overlay" class="payout-settings-overlay">
-	<div class="payout-settings-modal">
-		<h3 class="payout-settings-title">Настройки заставок</h3>
-		<div class="payout-settings-fields">
-			{% include "partials/fuse_timer_settings.html" %}
-			<label class="ar-stacks-row">
-				<input type="checkbox" id="ar-use-stacks" checked>
-				<span>Заставка из</span>
-				<select id="ar-stacks-select">
-					<option value="1" selected>1</option>
-					<option value="2">2</option>
-					<option value="3">3</option>
-					<option value="4">4</option>
-					<option value="5">5</option>
-					<option value="6">6</option>
-					<option value="7">7</option>
-					<option value="8">8</option>
-				</select>
-				<span>стек(ов)а</span>
+	<div class="payout-settings-modal ar-bets-settings-modal">
+		<h3 class="payout-settings-title">Настройки</h3>
+		<input type="checkbox" id="ar-use-stacks" class="ar-bets-sr-only" checked tabindex="-1" aria-hidden="true">
+		<input type="checkbox" name="timer_enabled" id="ar-timer-enabled-cb" class="ar-bets-sr-only" {% if timer_enabled %}checked{% endif %} tabindex="-1" aria-hidden="true">
+		<div class="payout-settings-fields ar-bets-settings-fields">
+			<div class="ar-bets-settings-row">
+				<span class="ar-bets-settings-label" id="ar-bets-stacks-label">Стеков в заставке</span>
+				<div class="ar-bets-stacks-controls" aria-labelledby="ar-bets-stacks-label">
+					<button type="button" class="ar-bets-timer-switch is-on" id="ar-bets-pool-switch" role="switch" aria-checked="true" title="Пул стеков: вкл — распределение из стеков, выкл — min/max на позицию" aria-label="Пул стеков"></button>
+					<select id="ar-stacks-select" class="ar-bets-ar-select" aria-label="Число стеков в заставке">
+						<option value="1" selected>1</option>
+						<option value="2">2</option>
+						<option value="3">3</option>
+						<option value="4">4</option>
+						<option value="5">5</option>
+						<option value="6">6</option>
+						<option value="7">7</option>
+						<option value="8">8</option>
+					</select>
+				</div>
+			</div>
+			<div class="ar-bets-timer-settings" role="group" aria-labelledby="ar-bets-timer-label">
+				<span class="ar-bets-timer-settings-hint" id="ar-bets-timer-label">Таймер</span>
+				<button type="button" class="ar-bets-timer-switch{% if timer_enabled %} is-on{% endif %}" id="ar-bets-timer-switch" role="switch" aria-checked="{% if timer_enabled %}true{% else %}false{% endif %}" aria-labelledby="ar-bets-timer-label"></button>
+				<label class="ar-bets-timer-sec">
+					<span class="ar-bets-timer-sec-lbl">сек</span>
+					<input type="number" name="timer_seconds" class="ar-bets-timer-sec-input ar-bets-param-input" id="ar-timer-seconds-input" min="1" max="60" value="{{ timer_seconds }}" inputmode="numeric" title="Секунд до автопроверки" aria-label="Секунд до автопроверки">
+				</label>
+			</div>
+			<div class="ar-bets-settings-row">
+				<span class="ar-bets-settings-label" id="ar-bets-number-label">Номер</span>
+				<label class="ar-bets-timer-sec ar-bets-number-wrap">
+					<select id="ar-number-select" class="ar-bets-ar-select ar-bets-number-select" aria-labelledby="ar-bets-number-label"></select>
+				</label>
+			</div>
+			<div class="ar-bets-params-heading">Фишек на позиции</div>
+			<label class="ar-bets-param-row">
+				<span class="ar-bets-param-label">min</span>
+				<input type="number" id="ar-min-chips" class="ar-bets-param-input" min="0" max="20" value="0" inputmode="numeric">
 			</label>
-			<!-- дюжины на поле:
-			<label>
-				<select id="ar-visible-dozens">
-					<option value="1">1-я (1–12)</option>
-					<option value="2">2-я (13–24)</option>
-					<option value="1,2" selected>1-я и 2-я</option>
-					<option value="1,2,3">все три</option>
-				</select>
+			<label class="ar-bets-param-row">
+				<span class="ar-bets-param-label">max</span>
+				<input type="number" id="ar-max-chips" class="ar-bets-param-input" min="0" max="20" value="5" inputmode="numeric">
 			</label>
-			-->
-			<label>номер:
-				<select id="ar-number-select" aria-label="Номер на столе"></select>
-			</label>
-			<label>min: <input type="number" id="ar-min-chips" min="0" max="20" value="0"></label>
-			<label>max: <input type="number" id="ar-max-chips" min="0" max="20" value="5"></label>
-			<label class="ar-stacks-row">
-				<input type="checkbox" id="ar-hints-disabled">
-				<span>Отключить подсказки</span>
-			</label>
+			<div class="ar-bets-settings-row">
+				<span class="ar-bets-settings-label" id="ar-bets-hints-label">Подсказки</span>
+				<button type="button" class="ar-bets-timer-switch is-on" id="ar-bets-hints-switch" role="switch" aria-checked="true" aria-labelledby="ar-bets-hints-label"></button>
+			</div>
 		</div>
 		<div class="payout-settings-actions">
 			<button type="button" class="btn btn-primary" id="arSettingsSave">Сохранить</button>
@@ -152,7 +354,7 @@ let arUseStacks = true;
 let arStacksCount = 1;
 let arSelectedNumber = 0;
 let arHintsDisabled = false;
-let arVisibleDozens = [1, 2];
+const arVisibleDozens = [1, 2, 3];
 let arCameraSaveToastTimer = null;
 try {
 	const stored = getCookie('ar_chips_range') || localStorage.getItem('ar_chips_range');
@@ -177,14 +379,6 @@ try {
 	}
 	const hintsStored = getCookie('ar_hints_disabled') || localStorage.getItem('ar_hints_disabled');
 	arHintsDisabled = hintsStored === '1' || hintsStored === 'true';
-	const dozStored = localStorage.getItem('ar_visible_dozens');
-	if (dozStored) {
-		const arr = JSON.parse(dozStored);
-		if (Array.isArray(arr) && arr.length >= 1) {
-			const valid = arr.filter(function (n) { return n >= 1 && n <= 3; }).sort(function (a, b) { return a - b; });
-			if (valid.length) arVisibleDozens = valid;
-		}
-	}
 } catch (_) {}
 
 var containerW = canvas.parentElement ? canvas.parentElement.clientWidth : 0;
@@ -1129,12 +1323,21 @@ document.getElementById('ar-timeup-close').addEventListener('click', function ()
 	if (answerDisplay) answerDisplay.style.display = '';
 });
 
+function syncArBetsToggleBtn(btnId, isOn) {
+	var btn = document.getElementById(btnId);
+	if (!btn) return;
+	btn.classList.toggle('is-on', isOn);
+	btn.setAttribute('aria-checked', isOn ? 'true' : 'false');
+}
 function updateStacksUI() {
 	const useStacks = document.getElementById('ar-use-stacks').checked;
 	const minEl = document.getElementById('ar-min-chips');
 	const maxEl = document.getElementById('ar-max-chips');
+	const stacksSel = document.getElementById('ar-stacks-select');
 	minEl.disabled = useStacks;
 	maxEl.disabled = useStacks;
+	if (stacksSel) stacksSel.disabled = !useStacks;
+	syncArBetsToggleBtn('ar-bets-pool-switch', useStacks);
 }
 function loadArSettings() {
 	document.getElementById('ar-min-chips').value = arMinChips;
@@ -1142,10 +1345,8 @@ function loadArSettings() {
 	document.getElementById('ar-use-stacks').checked = arUseStacks;
 	document.getElementById('ar-stacks-select').value = String(arStacksCount);
 	document.getElementById('ar-number-select').value = String(arSelectedNumber);
-	document.getElementById('ar-hints-disabled').checked = arHintsDisabled;
-	var dozSel = document.getElementById('ar-visible-dozens');
-	if (dozSel) dozSel.value = arVisibleDozens.join(',');
-	var timerCheckbox = document.querySelector('#ar-settings-overlay input[name="timer_enabled"]');
+	syncArBetsToggleBtn('ar-bets-hints-switch', !arHintsDisabled);
+	var timerCheckbox = document.getElementById('ar-timer-enabled-cb');
 	var secInput = document.querySelector('#ar-settings-overlay input[name="timer_seconds"]');
 	if (timerCheckbox) {
 		var te = localStorage.getItem('ar_timer_enabled');
@@ -1155,6 +1356,7 @@ function loadArSettings() {
 		var ts = localStorage.getItem('ar_timer_seconds');
 		if (ts !== null) secInput.value = ts;
 	}
+	if (timerCheckbox) syncArBetsToggleBtn('ar-bets-timer-switch', timerCheckbox.checked);
 	updateStacksUI();
 	updateRotateHint();
 	/* показ/скрытие фитиля по настройкам */
@@ -1169,10 +1371,11 @@ function saveArSettings() {
 	const useStacks = document.getElementById('ar-use-stacks').checked;
 	const stacksVal = document.getElementById('ar-stacks-select').value;
 	const numberVal = document.getElementById('ar-number-select').value;
-	const hintsDisabled = document.getElementById('ar-hints-disabled').checked;
+	var hintsSw = document.getElementById('ar-bets-hints-switch');
+	var hintsOn = hintsSw && hintsSw.classList.contains('is-on');
 	arUseStacks = useStacks;
 	arStacksCount = Math.max(1, Math.min(8, parseInt(stacksVal, 10) || 1));
-	arHintsDisabled = hintsDisabled;
+	arHintsDisabled = !hintsOn;
 	localStorage.setItem('ar_hints_disabled', arHintsDisabled ? '1' : '0');
 	setCookie('ar_hints_disabled', arHintsDisabled ? '1' : '0', 365);
 	const parsedNumber = parseInt(numberVal, 10);
@@ -1196,16 +1399,6 @@ function saveArSettings() {
 	}
 	localStorage.setItem('ar_stacks_mode', JSON.stringify({ enabled: arUseStacks, stacks: arStacksCount }));
 	localStorage.setItem('ar_number_select', String(arSelectedNumber));
-	var dozSel = document.getElementById('ar-visible-dozens');
-	if (dozSel) {
-		const arr = (dozSel.value || '1,2').split(',').map(function (s) { return parseInt(s.trim(), 10); }).filter(function (n) { return n >= 1 && n <= 3; }).sort(function (a, b) { return a - b; });
-		if (arr.length) {
-			const prevKey = JSON.stringify(arVisibleDozens);
-			arVisibleDozens = arr;
-			localStorage.setItem('ar_visible_dozens', JSON.stringify(arVisibleDozens));
-			if (prevKey !== JSON.stringify(arVisibleDozens)) window.location.reload();
-		}
-	}
 	setCookie('ar_stacks_mode', JSON.stringify({ enabled: arUseStacks, stacks: arStacksCount }), 365);
 	setCookie('ar_number_select', String(arSelectedNumber), 365);
 	updateRotateHint();
@@ -1245,7 +1438,31 @@ function focusCameraOnNumber() {
 	}
 }
 loadArSettings();
-document.getElementById('ar-use-stacks').addEventListener('change', updateStacksUI);
+(function setupArBetsSettingSwitches() {
+	var poolBtn = document.getElementById('ar-bets-pool-switch');
+	var poolCb = document.getElementById('ar-use-stacks');
+	if (poolBtn && poolCb) {
+		poolBtn.addEventListener('click', function () {
+			poolCb.checked = !poolCb.checked;
+			updateStacksUI();
+		});
+	}
+	var timBtn = document.getElementById('ar-bets-timer-switch');
+	var timCb = document.getElementById('ar-timer-enabled-cb');
+	if (timBtn && timCb) {
+		timBtn.addEventListener('click', function () {
+			timCb.checked = !timCb.checked;
+			syncArBetsToggleBtn('ar-bets-timer-switch', timCb.checked);
+		});
+	}
+	var hiBtn = document.getElementById('ar-bets-hints-switch');
+	if (hiBtn) {
+		hiBtn.addEventListener('click', function () {
+			var on = !this.classList.contains('is-on');
+			syncArBetsToggleBtn('ar-bets-hints-switch', on);
+		});
+	}
+})();
 document.getElementById('arCameraResetBtn').addEventListener('click', function () {
 	focusCameraOnNumber();
 });
