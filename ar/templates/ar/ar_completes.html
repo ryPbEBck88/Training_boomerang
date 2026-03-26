@@ -4,42 +4,58 @@
 {% block main_class %}payout-main{% endblock %}
 {% block content %}
 <div class="payout-screen">
-<div class="payout-page">
-	<div class="payout-header completes-header">
-		<button type="button" class="neighbors-help-btn" id="completesHelpBtn" aria-label="Справка" title="Справка">
-			<svg class="neighbors-help-icon" viewBox="0 0 24 24">
+<div class="payout-page payout-page--completes">
+	<div class="payout-header series-stake-header">
+		<button type="button" class="neighbors-help-btn" id="completesHelpBtn" aria-label="Справка: комплиты" title="Справка">
+			<svg class="neighbors-help-icon" viewBox="0 0 24 24" aria-hidden="true">
 				<circle cx="12" cy="12" r="10" fill="#2563eb"/>
 				<text x="12" y="17" text-anchor="middle" fill="white" font-size="14" font-weight="bold" font-family="system-ui,sans-serif">?</text>
 			</svg>
 		</button>
-		<div class="payout-bet completes-title">Комплиты</div>
-		<button type="button" class="payout-settings-btn completes-settings-btn" id="completesSettingsBtn" title="Настройки" aria-label="Настройки">
+		<div class="payout-bet series-stake-title">Комплиты</div>
+		<button type="button" class="payout-settings-btn series-stake-settings-btn" id="completesSettingsBtn" title="Настройки" aria-label="Настройки">
 			<svg class="payout-settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 				<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
 				<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
 			</svg>
 		</button>
 	</div>
+
 	<div class="payout-settings-overlay" id="completesSettingsOverlay">
-		<div class="payout-settings-modal completes-settings-modal">
-			<h3 class="payout-settings-title">Настройки комплитов</h3>
+		<div class="payout-settings-modal series-stake-settings-modal">
+			<h3 class="payout-settings-title">Настройки</h3>
 			<form method="post" autocomplete="off">
 				{% csrf_token %}
 				<input type="hidden" name="action" value="settings">
 				<div class="payout-settings-fields">
-					<div class="roulette-multipliers">
-						<span class="roulette-multipliers-label">Номиналы:</span>
-						{% for d in denominations_all %}
-						<label class="roulette-multiplier-check"><input type="checkbox" name="denom_{{ d }}" value="on" {% if d in selected_denoms %}checked{% endif %}>{{ d }}</label>
-						{% endfor %}
-					</div>
-					<div class="completes-numbers-settings">
-						<span class="roulette-multipliers-label">Номера:</span>
-						<div class="completes-numbers-groups">
-							{% for key, label, nums in number_groups %}
-							<label class="roulette-multiplier-check"><input type="checkbox" name="group_{{ key }}" value="on" {% if key in selected_group_keys %}checked{% endif %}>{{ label }}</label>
+					<div class="series-stake-params-block--lead">
+						<div class="series-stake-params-heading">Номиналы</div>
+						<div class="completes-settings-denom-grid">
+							{% for d in denominations_all %}
+							<label class="series-stake-color-per-option">
+								<span class="series-stake-color-per-opt-num">{{ d }}</span>
+								<input type="checkbox" name="denom_{{ d }}" value="on" class="series-stake-color-per-cb" {% if d in selected_denoms %}checked{% endif %}>
+							</label>
 							{% endfor %}
 						</div>
+						<div class="completes-settings-denom-custom">
+							<label class="series-stake-color-per-option series-stake-color-per-option--custom">
+								<span class="series-stake-color-per-opt-num">Ваш вариант</span>
+								<span class="series-stake-color-per-custom-cell">
+									<input type="number" name="denom_custom" class="series-stake-color-per-custom-input" min="1" max="100000" value="{{ denom_custom_input }}" placeholder="номинал" inputmode="numeric" aria-label="Свой номинал">
+									<input type="checkbox" name="denom_custom_on" value="on" class="series-stake-color-per-cb series-stake-color-per-cb-custom" {% if denom_custom_on %}checked{% endif %} title="Включить в набор" aria-label="Включить свой номинал">
+								</span>
+							</label>
+						</div>
+					</div>
+					<div class="series-stake-params-block">
+						<div class="series-stake-params-heading">Номера</div>
+						{% for key, label, nums in number_groups %}
+						<label class="series-stake-param-row">
+							<span class="series-stake-param-label">{{ label }}</span>
+							<input type="checkbox" name="group_{{ key }}" value="on" class="series-stake-color-per-cb" {% if key in selected_group_keys %}checked{% endif %}>
+						</label>
+						{% endfor %}
 					</div>
 				</div>
 				<div class="payout-settings-actions">
@@ -49,34 +65,34 @@
 			</form>
 		</div>
 	</div>
-	<div class="neighbors-help-overlay" id="completesHelpOverlay" aria-hidden="true">
-		<div class="neighbors-help-modal">
-			<div class="completes-help-content">
+
+	<div class="neighbors-help-overlay series-stake-doc-hub-overlay" id="completesHelpOverlay" aria-hidden="true">
+		<div class="neighbors-help-modal series-stake-doc-modal series-stake-doc-hub">
+			<p class="series-stake-doc-hub-lead">Справка</p>
+			<div class="series-stake-help-content completes-help-content">
 				<p><strong>Комплит</strong> — ставка одной фишкой в номер, покрывающая все позиции этого номера равными долями.</p>
 				<p><strong>Ставка</strong> = количество фишек × номинал (напр. 30 × 100 = 3000)</p>
 				<p><strong>Выплата</strong> = коэффициент × номинал (напр. 294 × 100 = 29400)</p>
 				<p>Количество фишек и коэффициент зависят от номера: 0 (17/235), 1,3 (27/297), 2 (36/396), средняя колонка (40/392), боковые (30/294), 34,36 (18/198), 35 (24/264).</p>
 			</div>
-			<button type="button" class="btn btn-primary neighbors-help-close" id="completesHelpClose">Понятно</button>
+			<button type="button" class="btn btn-primary series-stake-doc-hub-close" id="completesHelpClose">Закрыть</button>
 		</div>
 	</div>
 
-	<div class="completes-task">
-		<div class="completes-display">
-			<span class="completes-number">{{ number }}</span>
-			<span class="completes-sep">по</span>
-			<span class="completes-denom">{{ denom }}</span>
-		</div>
+	<div class="series-stake-ux-width series-stake-task completes-task">
+		<p class="series-stake-description completes-task-line">
+			<span class="completes-num-chip">{{ number }}</span><span class="completes-sep"> по </span><span class="completes-denom">{{ denom }}</span>
+		</p>
 	</div>
 
 	<form method="post" autocomplete="off" class="payout-form neighbors-form">
 		{% csrf_token %}
-		<div class="completes-row">
-			<div class="completes-cell completes-cell--input">
-				<input type="text" name="stavka" class="payout-input neighbors-input" placeholder="ставка" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="{{ user_stavka }}" {% if success or skipped %}disabled{% endif %} id="completesStavka">
+		<div class="series-stake-ux-width series-stake-answers" role="group" aria-label="Ставка и выплата">
+			<div class="series-stake-answer-slot">
+				<input type="text" name="stavka" class="payout-input neighbors-input series-stake-answer-input" placeholder="Ставка" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="{{ user_stavka }}" {% if success or skipped %}disabled{% endif %} id="completesStavka" aria-label="Ставка" title="Ставка">
 			</div>
-			<div class="completes-cell completes-cell--input">
-				<input type="text" name="payout" class="payout-input neighbors-input" placeholder="выплата" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="{{ user_payout }}" {% if success or skipped %}disabled{% endif %} id="completesPayout">
+			<div class="series-stake-answer-slot">
+				<input type="text" name="payout" class="payout-input neighbors-input series-stake-answer-input" placeholder="Выплата" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="{{ user_payout }}" {% if success or skipped %}disabled{% endif %} id="completesPayout" aria-label="Выплата" title="Выплата">
 			</div>
 		</div>
 
@@ -104,7 +120,6 @@
 			</div>
 			{% endif %}
 		</div>
-
 	</form>
 
 	{% if success is False %}
@@ -135,35 +150,24 @@
 </div>
 
 <style>
-.completes-header {
+.payout-main .main-card:has(.payout-page--completes) {
+	padding-top: 14px;
+}
+.payout-page.payout-page--completes {
+	padding-top: 46px;
+}
+.payout-page--completes .series-stake-header {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	position: relative;
 	gap: 0.5rem;
 	min-height: 2.5rem;
+	padding: 0 48px;
+	box-sizing: border-box;
+	width: 100%;
 }
-.completes-title { margin: 0; text-align: center; }
-.completes-numbers-settings { margin-top: 12px; }
-.completes-numbers-groups {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px 12px;
-	margin-top: 6px;
-}
-.completes-settings-modal { max-width: 380px; }
-.completes-settings-btn {
-	position: absolute;
-	right: 0;
-	background: none;
-	border: none;
-	cursor: pointer;
-	padding: 4px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-.neighbors-help-btn {
+.payout-page--completes .series-stake-header .neighbors-help-btn {
 	position: absolute;
 	left: 0;
 	background: none;
@@ -173,100 +177,289 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	-webkit-tap-highlight-color: transparent;
 }
-.neighbors-help-icon {
+.payout-page--completes .series-stake-header .neighbors-help-icon {
 	width: 28px;
 	height: 28px;
 	display: block;
 }
-.neighbors-help-btn:hover .neighbors-help-icon circle { fill: #1d4ed8; }
-.neighbors-help-overlay {
+.payout-page--completes .series-stake-header .neighbors-help-btn:hover circle { fill: #1d4ed8; }
+.payout-page--completes .series-stake-header .series-stake-settings-btn {
+	position: absolute;
+	right: 0;
+	background: none;
+	border: none;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	padding: 0;
+	box-sizing: border-box;
+	color: var(--accent, #2563eb);
+	-webkit-tap-highlight-color: transparent;
+}
+.payout-page--completes .series-stake-header .series-stake-settings-btn:hover {
+	color: var(--accent-hover, #1d4ed8);
+	background: rgba(37, 99, 235, 0.08);
+	border-radius: var(--radius-sm, 8px);
+}
+.series-stake-ux-width {
+	width: calc(4 * 52px + 3 * 8px);
+	max-width: min(calc(4 * 52px + 3 * 8px), calc(100vw - 32px));
+	margin-left: auto;
+	margin-right: auto;
+	box-sizing: border-box;
+}
+@media (min-width: 480px) {
+	.series-stake-ux-width {
+		width: calc(4 * 56px + 3 * 10px);
+		max-width: min(calc(4 * 56px + 3 * 10px), calc(100vw - 32px));
+	}
+}
+.payout-page--completes .series-stake-title.payout-bet {
+	margin-bottom: 0;
+	font-size: 1.35rem;
+	font-weight: 700;
+	line-height: 1.25;
+	letter-spacing: -0.02em;
+	text-align: center;
+}
+.payout-page--completes .series-stake-task.completes-task {
+	margin: 0.35rem 0 0.4rem;
+	text-align: center;
+}
+.payout-page--completes .completes-task-line {
+	margin: 0;
+	font-size: clamp(1.25rem, 4.5vw, 1.75rem);
+	font-weight: 800;
+	line-height: 1.2;
+	color: var(--text, #0f172a);
+	letter-spacing: -0.02em;
+}
+.payout-page--completes .completes-num-chip {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 2.75rem;
+	height: 2.75rem;
+	padding: 0 0.5rem;
+	background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+	color: #fff;
+	border-radius: 10px;
+	font-weight: 800;
+	vertical-align: middle;
+}
+.payout-page--completes .completes-sep {
+	font-weight: 600;
+	color: var(--text-muted, #64748b);
+}
+.payout-page--completes .completes-denom {
+	font-weight: 800;
+	color: var(--accent, #2563eb);
+}
+/* Два поля — как «Ставка на серию» */
+.series-stake-answers {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	justify-content: stretch;
+	align-items: stretch;
+	gap: 8px;
+	margin: 0.2rem 0 1rem;
+	padding: 0;
+}
+@media (min-width: 480px) {
+	.series-stake-answers {
+		gap: 10px;
+	}
+}
+.series-stake-answer-slot {
+	flex: 1 1 0;
+	min-width: 0;
+}
+.series-stake-answer-input.payout-input {
+	box-sizing: border-box;
+	display: block;
+	width: 100%;
+	min-width: 0;
+	max-width: none;
+	height: 3rem;
+	padding: 0 6px;
+	text-align: center;
+	border: 2px solid #cbd5e1;
+	border-radius: 10px;
+	background: #fff;
+	font-size: 1rem;
+	font-weight: 600;
+}
+.series-stake-answer-input.payout-input::placeholder {
+	color: var(--text-muted, #94a3b8);
+	font-size: 1rem;
+	font-weight: 600;
+	opacity: 1;
+}
+.series-stake-answer-input.payout-input:focus {
+	outline: none;
+	box-shadow: inset 0 0 0 2px #3b82f6;
+}
+.series-stake-answer-input.payout-input:disabled {
+	opacity: 0.85;
+}
+.payout-page--completes .payout-form.neighbors-form {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding-top: 0;
+}
+.payout-page--completes .neighbors-form .payout-key--nextcell {
+	grid-column: 4;
+	grid-row: 4;
+}
+.payout-page--completes .series-stake-settings-modal {
+	max-width: 380px;
+}
+/* Настройки — как «Ставка на серию» */
+#completesSettingsOverlay .series-stake-params-block--lead {
+	margin: 0;
+	padding: 0;
+	border: none;
+}
+#completesSettingsOverlay .series-stake-params-block {
+	margin-top: 14px;
+	padding-top: 12px;
+	border-top: 1px solid var(--border, #e2e8f0);
+}
+#completesSettingsOverlay .series-stake-params-heading {
+	font-size: 0.82rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--text-muted, #64748b);
+	margin: 0 0 10px;
+}
+#completesSettingsOverlay .series-stake-param-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	margin-bottom: 8px;
+}
+#completesSettingsOverlay .series-stake-param-label {
+	font-size: 0.875rem;
+	font-weight: 500;
+	flex-shrink: 0;
+}
+#completesSettingsOverlay .series-stake-color-per-cb {
+	width: 1.15rem;
+	height: 1.15rem;
+	flex-shrink: 0;
+	accent-color: var(--accent, #2563eb);
+	cursor: pointer;
+}
+#completesSettingsOverlay .completes-settings-denom-grid {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px 8px;
+	margin-top: 2px;
+	max-height: min(200px, 40vh);
+	overflow-y: auto;
+	padding: 4px 2px 8px;
+}
+#completesSettingsOverlay .series-stake-color-per-option {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	padding: 6px 8px;
+	margin: 0;
+	border-radius: 6px;
+	min-width: 5.5rem;
+	flex: 0 1 auto;
+	background: var(--surface-hover, #f8fafc);
+	border: 1px solid var(--border, #e2e8f0);
+}
+#completesSettingsOverlay .series-stake-color-per-option:hover {
+	background: var(--surface-hover, #f1f5f9);
+}
+#completesSettingsOverlay .series-stake-color-per-opt-num {
+	font-size: 0.875rem;
+	font-weight: 600;
+	color: var(--text, #0f172a);
+}
+#completesSettingsOverlay .completes-settings-denom-custom {
+	margin-top: 10px;
+	padding-top: 10px;
+	border-top: 1px dashed var(--border, #cbd5e1);
+}
+#completesSettingsOverlay .series-stake-color-per-option--custom {
+	width: 100%;
+	min-width: 0;
+	box-sizing: border-box;
+	margin-top: 0;
+}
+#completesSettingsOverlay .series-stake-color-per-custom-cell {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-shrink: 0;
+}
+#completesSettingsOverlay .series-stake-color-per-custom-input {
+	width: 5.5rem;
+	min-height: 2.25rem;
+	padding: 4px 8px;
+	font-size: 0.875rem;
+	font-weight: 600;
+	text-align: right;
+	border: 1px solid var(--border, #cbd5e1);
+	border-radius: var(--radius-sm, 8px);
+	background: var(--surface, #fff);
+	color: var(--text);
+	box-sizing: border-box;
+}
+/* Справка */
+#completesHelpOverlay.neighbors-help-overlay {
 	display: none;
 	position: fixed;
 	inset: 0;
-	background: rgba(0,0,0,0.5);
-	z-index: 100;
+	background: rgba(0, 0, 0, 0.5);
+	z-index: 101;
 	align-items: center;
 	justify-content: center;
 	padding: 20px;
+	box-sizing: border-box;
 }
-.neighbors-help-overlay.is-open { display: flex; }
-.neighbors-help-modal {
+#completesHelpOverlay.neighbors-help-overlay.is-open {
+	display: flex;
+}
+#completesHelpOverlay .neighbors-help-modal {
 	background: var(--bg-main, #fff);
 	border-radius: var(--radius, 12px);
 	padding: 24px;
 	max-width: 360px;
 	width: 100%;
-	box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-}
-.completes-help-content p { margin: 0 0 12px; font-size: 0.95rem; }
-.completes-help-content p:last-of-type { margin-bottom: 0; }
-.completes-task { margin: 0.5rem 0 0.25rem; text-align: center; }
-.completes-display {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 0.5rem;
-	flex-wrap: wrap;
-	font-size: 1.25rem;
-}
-.completes-number {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	min-width: 3rem;
-	height: 3rem;
-	background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
-	color: #fff;
-	border-radius: 10px;
-	font-weight: 700;
-	font-size: 1.5rem;
-}
-.completes-sep { color: var(--text-muted); }
-.completes-denom { font-weight: 700; color: var(--accent); }
-.completes-row {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	gap: 1rem;
-	margin: 0.25rem 0 1rem;
-	width: 232px;
-	margin-left: auto;
-	margin-right: auto;
-}
-.completes-cell {
-	display: flex;
-	flex: 1 1 0;
-	min-width: 0;
-}
-.completes-cell--input {
-	justify-content: center;
-}
-.completes-cell--input .payout-input {
+	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 	box-sizing: border-box;
+}
+#completesHelpOverlay .series-stake-doc-hub-lead {
+	margin: 0 0 10px;
+	font-size: 0.95rem;
+	font-weight: 700;
+	color: var(--text, #0f172a);
+}
+#completesHelpOverlay .series-stake-doc-hub-close {
 	width: 100%;
-	height: 3rem;
-	padding: 0 12px;
-	text-align: center;
-	border: 2px solid #cbd5e1;
-	border-radius: 8px;
-	background: #fff;
-	font-size: 1.1rem;
-	font-weight: 600;
+	margin-top: 16px;
 }
-.completes-cell--input .payout-input:focus {
-	outline: none;
-	box-shadow: inset 0 0 0 2px #3b82f6;
+.completes-help-content p {
+	margin: 0 0 12px;
+	font-size: 0.95rem;
+	line-height: 1.45;
 }
-.payout-form.neighbors-form {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-}
-.completes-form .payout-entry { justify-content: center; margin-top: 1rem; }
-.neighbors-form .payout-key--nextcell { grid-column: 4; grid-row: 4; }
-@media (min-width: 480px) {
-	.completes-row { width: 254px; }
+.completes-help-content p:last-of-type {
+	margin-bottom: 0;
 }
 </style>
 
@@ -275,11 +468,28 @@ document.addEventListener('DOMContentLoaded', function() {
 	var helpBtn = document.getElementById('completesHelpBtn');
 	var helpOverlay = document.getElementById('completesHelpOverlay');
 	var helpClose = document.getElementById('completesHelpClose');
-	if (helpBtn && helpOverlay) {
-		helpBtn.addEventListener('click', function() { helpOverlay.classList.add('is-open'); });
-		if (helpClose) helpClose.addEventListener('click', function() { helpOverlay.classList.remove('is-open'); });
-		helpOverlay.addEventListener('click', function(e) { if (e.target === helpOverlay) helpOverlay.classList.remove('is-open'); });
+	function openCompletesHelp() {
+		if (!helpOverlay) return;
+		helpOverlay.classList.add('is-open');
+		helpOverlay.setAttribute('aria-hidden', 'false');
 	}
+	function closeCompletesHelp() {
+		if (!helpOverlay) return;
+		helpOverlay.classList.remove('is-open');
+		helpOverlay.setAttribute('aria-hidden', 'true');
+	}
+	if (helpBtn && helpOverlay) {
+		helpBtn.addEventListener('click', openCompletesHelp);
+	}
+	if (helpClose && helpOverlay) {
+		helpClose.addEventListener('click', closeCompletesHelp);
+	}
+	if (helpOverlay) {
+		helpOverlay.addEventListener('click', function(e) {
+			if (e.target === helpOverlay) closeCompletesHelp();
+		});
+	}
+
 	var settingsBtn = document.getElementById('completesSettingsBtn');
 	var settingsOverlay = document.getElementById('completesSettingsOverlay');
 	var settingsClose = document.getElementById('completesSettingsClose');

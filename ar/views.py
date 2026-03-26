@@ -207,13 +207,35 @@ COMPLETE_NUMBER_GROUPS = [
 
 
 def _get_complete_denominations(request):
-    """Номиналы из сессии или по умолчанию."""
+    """Номиналы из сессии или по умолчанию (пресеты + свой номинал)."""
     stored = request.session.get('ar_complete_denominations')
     if stored and isinstance(stored, list) and len(stored) > 0:
-        valid = [d for d in stored if d in COMPLETE_DENOMINATIONS_ALL]
+        valid = []
+        for d in stored:
+            if not isinstance(d, int):
+                continue
+            if d in COMPLETE_DENOMINATIONS_ALL or 1 <= d <= 100000:
+                valid.append(d)
         if valid:
-            return valid
+            return sorted(set(valid))
     return COMPLETE_DENOMINATIONS_DEFAULT
+
+
+def _ar_completes_denom_ui(request, denoms):
+    """Поля «Ваш вариант» для номинала комплитов."""
+    extras = [d for d in denoms if d not in COMPLETE_DENOMINATIONS_ALL]
+    inp = request.session.get('ar_complete_denom_custom_input')
+    if inp is None and extras:
+        inp = str(extras[-1])
+    elif inp is not None:
+        inp = str(inp).strip()
+    else:
+        inp = ''
+    if 'ar_complete_denom_custom_on' in request.session:
+        custom_on = bool(request.session['ar_complete_denom_custom_on'])
+    else:
+        custom_on = bool(extras)
+    return inp, custom_on
 
 
 def _get_complete_numbers(request):
@@ -239,8 +261,20 @@ def ar_completes(request):
         for d in COMPLETE_DENOMINATIONS_ALL:
             if request.POST.get('denom_%d' % d) == 'on':
                 selected_d.append(d)
+        custom_raw = (request.POST.get('denom_custom') or '').strip()
+        custom_on = request.POST.get('denom_custom_on') == 'on'
+        if custom_on and custom_raw:
+            try:
+                cv = int(custom_raw)
+                cv = max(1, min(100000, cv))
+                selected_d.append(cv)
+            except (TypeError, ValueError):
+                pass
+        selected_d = sorted(set(selected_d))
+        request.session['ar_complete_denom_custom_input'] = custom_raw
+        request.session['ar_complete_denom_custom_on'] = custom_on
         if selected_d:
-            request.session['ar_complete_denominations'] = sorted(selected_d)
+            request.session['ar_complete_denominations'] = selected_d
         else:
             request.session['ar_complete_denominations'] = COMPLETE_DENOMINATIONS_DEFAULT
         selected_n = []
@@ -265,6 +299,7 @@ def ar_completes(request):
         request.session['ar_complete_denom'] = denom
         request.session['ar_complete_total'] = total
         request.session['ar_complete_payout'] = payout
+        c_inp, c_on = _ar_completes_denom_ui(request, denoms)
         return render(request, 'ar/ar_completes.html', {
             'number': number,
             'denom': denom,
@@ -275,6 +310,8 @@ def ar_completes(request):
             'user_payout': '',
             'denominations_all': COMPLETE_DENOMINATIONS_ALL,
             'selected_denoms': denoms,
+            'denom_custom_input': c_inp,
+            'denom_custom_on': c_on,
             'selected_numbers': numbers,
             'number_groups': COMPLETE_NUMBER_GROUPS,
             'selected_group_keys': _selected_group_keys(numbers),
@@ -314,6 +351,8 @@ def ar_completes(request):
             message = f'Нет. Правильно: {", ".join(errors)}'
             success = False
 
+    denoms_ctx = _get_complete_denominations(request)
+    c_inp, c_on = _ar_completes_denom_ui(request, denoms_ctx)
     return render(request, 'ar/ar_completes.html', {
         'number': number,
         'denom': denom,
@@ -323,7 +362,9 @@ def ar_completes(request):
         'user_stavka': request.POST.get('stavka', ''),
         'user_payout': request.POST.get('payout', ''),
         'denominations_all': COMPLETE_DENOMINATIONS_ALL,
-        'selected_denoms': _get_complete_denominations(request),
+        'selected_denoms': denoms_ctx,
+        'denom_custom_input': c_inp,
+        'denom_custom_on': c_on,
         'selected_numbers': _get_complete_numbers(request),
         'number_groups': COMPLETE_NUMBER_GROUPS,
         'selected_group_keys': _selected_group_keys(_get_complete_numbers(request)),
