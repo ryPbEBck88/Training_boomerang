@@ -11,6 +11,23 @@ MULTIPLIER_OPTIONS = [1, 2, 5, 10, 25, 50, 125]
 DEFAULT_MULTIPLIERS = [2, 5, 10, 25, 50]
 
 
+def _ar_roulette_color_per_ui(request, multipliers):
+    """Поля «Ваш вариант» для шаблона; подхватывает старые сессии без ключей."""
+    extras = [m for m in multipliers if m not in MULTIPLIER_OPTIONS]
+    inp = request.session.get('ar_roulette_color_per_custom_input')
+    if inp is None and extras:
+        inp = str(extras[-1])
+    elif inp is not None:
+        inp = str(inp).strip()
+    else:
+        inp = ''
+    if 'ar_roulette_color_per_custom_on' in request.session:
+        custom_on = bool(request.session['ar_roulette_color_per_custom_on'])
+    else:
+        custom_on = bool(extras)
+    return inp, custom_on
+
+
 def _parse_int(val, default, lo, hi):
     try:
         v = int(val)
@@ -1100,7 +1117,7 @@ def ar_mix_continue(request):
 
 
 def ar_roulette(request):
-    """Цвет в cash. Настройки: min, max, step; чекбоксы множителей."""
+    """Цвет в cash. Настройки: выплата цветом (min/max/step), цвет по (пресеты + свой номинал), таймер."""
     if request.GET.get('mode') != 'mix' and 'mix_number' not in request.GET:
         request.session.pop('ar_roulette_mix_mode', None)
         request.session.pop('ar_roulette_mix_number', None)
@@ -1115,9 +1132,9 @@ def ar_roulette(request):
     max_val = request.session.get('ar_roulette_max', 1000)
     step = request.session.get('ar_roulette_step', 1)
     multipliers = request.session.get('ar_roulette_multipliers', list(DEFAULT_MULTIPLIERS))
+    settings_color_error = request.session.pop('ar_roulette_settings_error', None)
 
     if request.method == 'POST' and request.POST.get('action') == 'settings':
-        process_timer_settings(request)
         min_val = _parse_int(request.POST.get('min_val'), min_val, 1, 100000)
         max_val = _parse_int(request.POST.get('max_val'), max_val, 1, 100000)
         step = _parse_int(request.POST.get('step'), step, 1, 10000)
@@ -1127,12 +1144,30 @@ def ar_roulette(request):
             step = max(1, max_val - min_val)
 
         multipliers = []
-        for m in MULTIPLIER_OPTIONS:
-            if request.POST.get(f'mult_{m}') == 'on':
+        for raw in request.POST.getlist('color_per'):
+            try:
+                m = int(raw)
+            except (TypeError, ValueError):
+                continue
+            if m in MULTIPLIER_OPTIONS:
                 multipliers.append(m)
+        custom_raw = (request.POST.get('color_per_custom') or '').strip()
+        custom_on = request.POST.get('color_per_custom_on') == 'on'
+        if custom_on and custom_raw:
+            try:
+                cv = int(custom_raw)
+                cv = max(1, min(100000, cv))
+                multipliers.append(cv)
+            except (TypeError, ValueError):
+                pass
+        multipliers = sorted(set(multipliers))
         if not multipliers:
-            multipliers = list(DEFAULT_MULTIPLIERS)
+            request.session['ar_roulette_settings_error'] = 'Выберите цвет'
+            return redirect('ar_color_in_cash')
 
+        request.session['ar_roulette_color_per_custom_input'] = custom_raw
+        request.session['ar_roulette_color_per_custom_on'] = custom_on
+        process_timer_settings(request)
         request.session['ar_roulette_min'] = min_val
         request.session['ar_roulette_max'] = max_val
         request.session['ar_roulette_step'] = step
@@ -1154,14 +1189,18 @@ def ar_roulette(request):
         multiplier = random.choice(multipliers)
         request.session['ar_roulette_current_number'] = number
         request.session['ar_roulette_current_multiplier'] = multiplier
+        c_inp, c_on = _ar_roulette_color_per_ui(request, multipliers)
         return render(request, 'ar/ar_roulette.html', {
             'number': number,
             'multiplier': multiplier,
             'min_val': min_val,
             'max_val': max_val,
             'step': step,
-            'multiplier_options': MULTIPLIER_OPTIONS,
-            'selected_multipliers': multipliers,
+            'color_per_options': MULTIPLIER_OPTIONS,
+            'selected_color_per': multipliers,
+            'color_per_custom_input': c_inp,
+            'color_per_custom_on': c_on,
+            'settings_color_error': settings_color_error,
             'mix_mode': mix_mode,
             'message': '',
             'success': None,
@@ -1192,14 +1231,18 @@ def ar_roulette(request):
             message = f"Введите число. Правильный ответ: {correct}"
             success = False
 
+    c_inp, c_on = _ar_roulette_color_per_ui(request, multipliers)
     return render(request, 'ar/ar_roulette.html', {
         'number': number,
         'multiplier': multiplier,
         'min_val': min_val,
         'max_val': max_val,
         'step': step,
-        'multiplier_options': MULTIPLIER_OPTIONS,
-        'selected_multipliers': multipliers,
+        'color_per_options': MULTIPLIER_OPTIONS,
+        'selected_color_per': multipliers,
+        'color_per_custom_input': c_inp,
+        'color_per_custom_on': c_on,
+        'settings_color_error': settings_color_error,
         'mix_mode': mix_mode,
         'message': message,
         'success': success,
@@ -1211,6 +1254,23 @@ COLOR_PER_OPTIONS = [2, 5, 10, 25, 50, 100, 125]
 DEFAULT_COLOR_PER = [5, 10, 25]
 
 
+def _ar_ptc_color_per_ui(request, color_per_opts):
+    """Поля «Ваш вариант» для шаблона выплаты через cash."""
+    extras = [m for m in color_per_opts if m not in COLOR_PER_OPTIONS]
+    inp = request.session.get('ar_ptc_color_per_custom_input')
+    if inp is None and extras:
+        inp = str(extras[-1])
+    elif inp is not None:
+        inp = str(inp).strip()
+    else:
+        inp = ''
+    if 'ar_ptc_color_per_custom_on' in request.session:
+        custom_on = bool(request.session['ar_ptc_color_per_custom_on'])
+    else:
+        custom_on = bool(extras)
+    return inp, custom_on
+
+
 def ar_payout_through_cash(request):
     """Выплата через cash: цвет, cash, цвет по. Сколько цветных фишек осталось? ответ = цвет - (cash / цвет_по), 1–200."""
     mix_mode = request.GET.get('mode') == 'mix' or request.session.get('ar_ptc_mix_mode')
@@ -1220,29 +1280,61 @@ def ar_payout_through_cash(request):
     min_val = request.session.get('ar_ptc_min', 50)
     max_val = request.session.get('ar_ptc_max', 500)
     step = request.session.get('ar_ptc_step', 10)
+    cash_min = request.session.get('ar_ptc_cash_min', 1)
+    cash_max = request.session.get('ar_ptc_cash_max', 999999999)
+    cash_step = request.session.get('ar_ptc_cash_step', 1)
     color_per_opts = request.session.get('ar_ptc_color_per', list(DEFAULT_COLOR_PER))
     use_stacks = request.session.get('ar_ptc_use_stacks', False)
     stack_size = 20  # фиксировано
+    settings_color_error = request.session.pop('ar_ptc_settings_error', None)
 
     if request.method == 'POST' and request.POST.get('action') == 'settings':
-        process_timer_settings(request)
-        min_val = _parse_int(request.POST.get('min_val'), min_val, 1, 10000)
-        max_val = _parse_int(request.POST.get('max_val'), max_val, 1, 10000)
-        step = _parse_int(request.POST.get('step'), step, 1, 1000)
+        min_val = _parse_int(request.POST.get('min_val'), min_val, 1, 100000)
+        max_val = _parse_int(request.POST.get('max_val'), max_val, 1, 100000)
+        step = _parse_int(request.POST.get('step'), step, 1, 10000)
         if min_val >= max_val:
             max_val = min_val + step
         if step > max_val - min_val:
             step = max(1, max_val - min_val)
+        cash_min = _parse_int(request.POST.get('cash_min'), cash_min, 1, 999999999)
+        cash_max = _parse_int(request.POST.get('cash_max'), cash_max, 1, 999999999)
+        cash_step = _parse_int(request.POST.get('cash_step'), cash_step, 1, 999999999)
+        if cash_min >= cash_max:
+            cash_max = cash_min + cash_step
+        if cash_step > cash_max - cash_min:
+            cash_step = max(1, cash_max - cash_min)
         color_per_opts = []
-        for c in COLOR_PER_OPTIONS:
-            if request.POST.get(f'color_per_{c}') == 'on':
-                color_per_opts.append(c)
+        for raw in request.POST.getlist('color_per'):
+            try:
+                m = int(raw)
+            except (TypeError, ValueError):
+                continue
+            if m in COLOR_PER_OPTIONS:
+                color_per_opts.append(m)
+        custom_raw = (request.POST.get('color_per_custom') or '').strip()
+        custom_on = request.POST.get('color_per_custom_on') == 'on'
+        if custom_on and custom_raw:
+            try:
+                cv = int(custom_raw)
+                cv = max(1, min(100000, cv))
+                color_per_opts.append(cv)
+            except (TypeError, ValueError):
+                pass
+        color_per_opts = sorted(set(color_per_opts))
         if not color_per_opts:
-            color_per_opts = list(DEFAULT_COLOR_PER)
+            request.session['ar_ptc_settings_error'] = 'Выберите цвет'
+            return redirect('ar_payout_through_cash')
+
+        request.session['ar_ptc_color_per_custom_input'] = custom_raw
+        request.session['ar_ptc_color_per_custom_on'] = custom_on
+        process_timer_settings(request)
         use_stacks = request.POST.get('ar_ptc_use_stacks') == 'on'
         request.session['ar_ptc_min'] = min_val
         request.session['ar_ptc_max'] = max_val
         request.session['ar_ptc_step'] = step
+        request.session['ar_ptc_cash_min'] = cash_min
+        request.session['ar_ptc_cash_max'] = cash_max
+        request.session['ar_ptc_cash_step'] = cash_step
         request.session['ar_ptc_color_per'] = color_per_opts
         request.session['ar_ptc_use_stacks'] = use_stacks
         return redirect('ar_payout_through_cash')
@@ -1258,29 +1350,61 @@ def ar_payout_through_cash(request):
             if not color or not color_per or color < 2:
                 request.session.pop('ar_ptc_mix_mode', None)
                 return redirect(reverse('ar_bets') + '?mode=mix')
+
+        def _cash_ok(cash_val):
+            if cash_val < cash_min or cash_val > cash_max:
+                return False
+            if cash_step <= 1:
+                return True
+            return cash_val % cash_step == 0
+
+        def _chips_candidates(col, cp):
+            """Допустимые chips_paid с учётом шага «цвета» и номинала цвет по."""
+            step_gcd = math.gcd(step, cp)
+            chips_increment = step // step_gcd
+            chips_paid_min = max(1, col - 200)
+            chips_paid_max = col - 1
+            valid_starts = range(
+                ((chips_paid_min + chips_increment - 1) // chips_increment) * chips_increment,
+                chips_paid_max + 1,
+                chips_increment,
+            )
+            return [c for c in valid_starts if chips_paid_min <= c <= chips_paid_max]
+
+        chips_paid = None
+        if mix_mode:
+            valid_list = _chips_candidates(color, color_per)
+            filtered = [c for c in valid_list if _cash_ok(c * color_per)]
+            pick_from = filtered if filtered else valid_list
+            if pick_from:
+                chips_paid = random.choice(pick_from)
+            else:
+                chips_paid = color - random.randint(1, min(200, color - 1))
         else:
-            color_per = random.choice(color_per_opts)
-            color = max(2, _gen_number(min_val, max_val, step))
-        # cash должно делиться на step (при step 100 — cash 7700, 7800, а не 7725)
-        step_gcd = math.gcd(step, color_per)
-        chips_increment = step // step_gcd
-        chips_paid_min = max(1, color - 200)
-        chips_paid_max = color - 1
-        valid_starts = range(
-            ((chips_paid_min + chips_increment - 1) // chips_increment) * chips_increment,
-            chips_paid_max + 1,
-            chips_increment,
-        )
-        valid_list = [c for c in valid_starts if chips_paid_min <= c <= chips_paid_max]
-        if valid_list:
-            chips_paid = random.choice(valid_list)
-        else:
-            chips_paid = color - random.randint(1, min(200, color - 1))
-        remaining = color - chips_paid
+            for _ in range(400):
+                color_per = random.choice(color_per_opts)
+                color = max(2, _gen_number(min_val, max_val, step))
+                valid_list = _chips_candidates(color, color_per)
+                filtered = [c for c in valid_list if _cash_ok(c * color_per)]
+                if filtered:
+                    chips_paid = random.choice(filtered)
+                    break
+            if chips_paid is None:
+                color_per = random.choice(color_per_opts)
+                color = max(2, _gen_number(min_val, max_val, step))
+                valid_list = _chips_candidates(color, color_per)
+                strict = [c for c in valid_list if _cash_ok(c * color_per)]
+                pick_from = strict if strict else valid_list
+                chips_paid = (
+                    random.choice(pick_from)
+                    if pick_from
+                    else color - random.randint(1, min(200, color - 1))
+                )
         cash = chips_paid * color_per
         request.session['ar_ptc_color'] = color
         request.session['ar_ptc_color_per_val'] = color_per
         request.session['ar_ptc_cash'] = cash
+        c_inp, c_on = _ar_ptc_color_per_ui(request, color_per_opts)
         return render(request, 'ar/ar_payout_through_cash.html', {
             'color': color,
             'color_per': color_per,
@@ -1288,8 +1412,14 @@ def ar_payout_through_cash(request):
             'min_val': min_val,
             'max_val': max_val,
             'step': step,
+            'cash_min': cash_min,
+            'cash_max': cash_max,
+            'cash_step': cash_step,
             'color_per_options': COLOR_PER_OPTIONS,
             'selected_color_per': color_per_opts,
+            'color_per_custom_input': c_inp,
+            'color_per_custom_on': c_on,
+            'settings_color_error': settings_color_error,
             'use_stacks': use_stacks,
             'stack_size': stack_size,
             'mix_mode': mix_mode,
@@ -1355,6 +1485,7 @@ def ar_payout_through_cash(request):
                 message = f"Введите число. Правильный ответ: {correct}"
                 success = False
 
+    c_inp, c_on = _ar_ptc_color_per_ui(request, color_per_opts)
     return render(request, 'ar/ar_payout_through_cash.html', {
         'color': color,
         'color_per': color_per,
@@ -1362,8 +1493,14 @@ def ar_payout_through_cash(request):
         'min_val': min_val,
         'max_val': max_val,
         'step': step,
+        'cash_min': cash_min,
+        'cash_max': cash_max,
+        'cash_step': cash_step,
         'color_per_options': COLOR_PER_OPTIONS,
         'selected_color_per': color_per_opts,
+        'color_per_custom_input': c_inp,
+        'color_per_custom_on': c_on,
+        'settings_color_error': settings_color_error,
         'use_stacks': use_stacks,
         'stack_size': stack_size,
         'mix_mode': mix_mode,

@@ -4,56 +4,111 @@
 {% block main_class %}payout-main{% endblock %}
 {% block content %}
 <div class="payout-screen">
-<div class="payout-page payout-page--ptc">
-	<div class="payout-header payout-header--center">
-		<table class="payout-ptc-table">
-			<thead>
-				<tr>
-					<th>цвет</th>
-					<th>цвет по</th>
-					<th>cash</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					<td>{{ color }}</td>
-					<td>{{ color_per }}</td>
-					<td>{{ cash }}</td>
-				</tr>
-			</tbody>
-		</table>
-		<button type="button" class="payout-settings-btn" id="arPtcSettingsBtn" title="Настройки" aria-label="Настройки">
-		<svg class="payout-settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-			<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
-			<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
-		</svg>
+<div class="payout-page payout-page--payout-through-cash">
+	<div class="payout-header series-stake-header">
+		<button type="button" class="neighbors-help-btn" id="ptcHelpBtn" aria-label="Справка: описание задачи" title="Справка">
+			<svg class="neighbors-help-icon color-in-cash-help-icon" viewBox="0 0 24 24" aria-hidden="true">
+				<circle cx="12" cy="12" r="10" fill="#2563eb"/>
+				<text x="12" y="17" text-anchor="middle" fill="white" font-size="14" font-weight="bold" font-family="system-ui,sans-serif">?</text>
+			</svg>
+		</button>
+		<div class="payout-bet series-stake-title">Выплата через cash</div>
+		<button type="button" class="payout-settings-btn series-stake-settings-btn" id="arPtcSettingsBtn" title="Настройки" aria-label="Настройки">
+			<svg class="payout-settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+				<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
+			</svg>
 		</button>
 	</div>
 
-	<div class="payout-settings-overlay" id="arPtcSettingsOverlay">
-		<div class="payout-settings-modal">
+	<div class="neighbors-help-overlay series-stake-doc-hub-overlay" id="ptcHelpOverlay" aria-hidden="true">
+		<div class="neighbors-help-modal series-stake-doc-modal series-stake-doc-hub">
+			<p class="series-stake-doc-hub-lead">Справка</p>
+			<div class="series-stake-help-content ptc-help-body">
+				<p>Даны <strong>цвет</strong> (число фишек цвета), <strong>цвет по</strong> (номинал одной фишки) и <strong>cash</strong> (сколько выплатили cash).</p>
+				<p>Нужно найти, <strong>сколько цветных фишек осталось</strong> на руке: цвет − (cash ÷ цвет по). Ответ в диапазоне 1–200.</p>
+				<p><strong>Цвет</strong> и <strong>Cash</strong> в настройках задают диапазоны и шаги для случайного задания (как «Номер» и «Ставка» в «Ставка на серию»).</p>
+				<p>В настройках можно включить <strong>«Стеки»</strong> — тогда ответ вводится двумя числами: полных стеков (по 20) и остатка «в неполном».</p>
+			</div>
+			<button type="button" class="btn btn-primary series-stake-doc-hub-close" id="ptcHelpClose">Закрыть</button>
+		</div>
+	</div>
+
+	<div class="payout-settings-overlay{% if settings_color_error %} is-open{% endif %}" id="arPtcSettingsOverlay">
+		<div class="payout-settings-modal series-stake-settings-modal">
 			<h3 class="payout-settings-title">Настройки</h3>
-			<form method="post" autocomplete="off">
+			<p id="arPtcSettingsColorError" class="color-in-cash-settings-color-error" role="alert"{% if not settings_color_error %} style="display: none;"{% endif %}>{% if settings_color_error %}{{ settings_color_error }}{% endif %}</p>
+			<form method="post" autocomplete="off" id="arPtcSettingsForm">
 				{% csrf_token %}
 				<input type="hidden" name="action" value="settings">
 				<div class="payout-settings-fields">
-					{% include "partials/fuse_timer_settings.html" %}
-					<label class="ar-stacks-row">
-						<input type="checkbox" name="ar_ptc_use_stacks" {% if use_stacks %}checked{% endif %}>
-						<span>Стеки</span>
-					</label>
-				</div>
-				<div class="payout-settings-fields">
-					<p class="payout-ptc-settings-hint">цвет (диапазон):</p>
-					<label>min: <input type="number" name="min_val" value="{{ min_val }}" min="1" max="10000"></label>
-					<label>max: <input type="number" name="max_val" value="{{ max_val }}" min="1" max="10000"></label>
-					<label>step: <input type="number" name="step" value="{{ step }}" min="1" max="1000"></label>
-				</div>
-				<div class="roulette-multipliers">
-					<span class="roulette-multipliers-label">цвет по (варианты):</span>
-					{% for c in color_per_options %}
-					<label class="roulette-multiplier-check"><input type="checkbox" name="color_per_{{ c }}" value="on" {% if c in selected_color_per %}checked{% endif %}>{{ c }}</label>
-					{% endfor %}
+					<div class="series-stake-params-block--lead">
+						<div class="series-stake-params-heading">Цвет</div>
+						<label class="series-stake-param-row">
+							<span class="series-stake-param-label">min</span>
+							<input type="number" name="min_val" class="series-stake-param-input" value="{{ min_val }}" min="1" max="100000" inputmode="numeric">
+						</label>
+						<label class="series-stake-param-row">
+							<span class="series-stake-param-label">max</span>
+							<input type="number" name="max_val" class="series-stake-param-input" value="{{ max_val }}" min="1" max="100000" inputmode="numeric">
+						</label>
+						<label class="series-stake-param-row">
+							<span class="series-stake-param-label">step</span>
+							<input type="number" name="step" class="series-stake-param-input" value="{{ step }}" min="1" max="10000" inputmode="numeric">
+						</label>
+					</div>
+					<div class="series-stake-series-block">
+						<div class="series-stake-color-per-field" aria-labelledby="ptcColorPerLabel">
+							<span class="series-stake-ar-label" id="ptcColorPerLabel">Цвет по</span>
+							<details class="series-stake-color-per-details" id="ptcColorPerDetails">
+								<summary class="series-stake-color-per-summary">
+									<span class="series-stake-color-per-summary-text" id="ptcColorPerSummary" data-placeholder="Нажмите, чтобы выбрать номиналы"></span>
+								</summary>
+								<div class="series-stake-color-per-panel">
+									<button type="button" class="btn btn-secondary series-stake-color-per-select-all" id="ptcColorPerSelectAll" title="Отметить или снять все стандартные номиналы">Выбрать все</button>
+									{% for c in color_per_options %}
+									<label class="series-stake-color-per-option">
+										<span class="series-stake-color-per-opt-num">{{ c }}</span>
+										<input type="checkbox" name="color_per" value="{{ c }}" class="series-stake-color-per-cb series-stake-color-per-cb-preset" {% if c in selected_color_per %}checked{% endif %}>
+									</label>
+									{% endfor %}
+									<div class="series-stake-color-per-option series-stake-color-per-option--custom">
+										<span class="series-stake-color-per-opt-num">Ваш вариант</span>
+										<span class="series-stake-color-per-custom-cell">
+											<input type="number" name="color_per_custom" class="series-stake-color-per-custom-input" min="1" max="100000" value="{{ color_per_custom_input }}" placeholder="номинал" inputmode="numeric" aria-label="Свой номинал цвет по">
+											<input type="checkbox" name="color_per_custom_on" value="on" class="series-stake-color-per-cb series-stake-color-per-cb-custom" {% if color_per_custom_on %}checked{% endif %} title="Включить в набор" aria-label="Включить свой номинал">
+										</span>
+									</div>
+								</div>
+							</details>
+						</div>
+					</div>
+					<div class="series-stake-params-block">
+						<div class="series-stake-params-heading">Cash</div>
+						<label class="series-stake-param-row">
+							<span class="series-stake-param-label">min</span>
+							<input type="number" name="cash_min" class="series-stake-param-input" value="{{ cash_min }}" min="1" max="999999999" inputmode="numeric" title="Нижняя граница суммы cash в задании">
+						</label>
+						<label class="series-stake-param-row">
+							<span class="series-stake-param-label">max</span>
+							<input type="number" name="cash_max" class="series-stake-param-input" value="{{ cash_max }}" min="1" max="999999999" inputmode="numeric" title="Верхняя граница суммы cash в задании">
+						</label>
+						<label class="series-stake-param-row">
+							<span class="series-stake-param-label">step</span>
+							<input type="number" name="cash_step" class="series-stake-param-input" value="{{ cash_step }}" min="1" max="999999999" inputmode="numeric" title="Кратность суммы cash (например 100 → …00)">
+						</label>
+					</div>
+					<div class="series-stake-timer-settings ptc-stacks-settings" role="group" aria-labelledby="ptcStacksLabel">
+						<span class="series-stake-timer-settings-hint" id="ptcStacksLabel">Стеки (20 в стеке)</span>
+						<button type="button" class="series-stake-timer-switch{% if use_stacks %} is-on{% endif %}" id="ptcStacksSwitch" role="switch" aria-checked="{% if use_stacks %}true{% else %}false{% endif %}" aria-labelledby="ptcStacksLabel" title="Вкл / выкл"></button>
+						<input type="checkbox" name="ar_ptc_use_stacks" value="on" id="ptcStacksCb" class="color-in-cash-sr-only" {% if use_stacks %}checked{% endif %} tabindex="-1" aria-hidden="true">
+					</div>
+					<div class="series-stake-timer-settings color-in-cash-settings-timer" role="group" aria-labelledby="ptcTimerLabel">
+						<span class="series-stake-timer-settings-hint" id="ptcTimerLabel">Таймер</span>
+						<button type="button" class="series-stake-timer-switch{% if timer_enabled %} is-on{% endif %}" id="ptcTimerSwitch" role="switch" aria-checked="{% if timer_enabled %}true{% else %}false{% endif %}" aria-labelledby="ptcTimerLabel"></button>
+						<input type="checkbox" name="timer_enabled" id="ptcTimerCb" class="color-in-cash-sr-only" {% if timer_enabled %}checked{% endif %} tabindex="-1" aria-hidden="true">
+						<label class="series-stake-timer-sec"><span class="series-stake-timer-sec-lbl">сек</span><input type="number" name="timer_seconds" class="series-stake-timer-sec-input series-stake-param-input" min="1" max="60" value="{{ timer_seconds }}" inputmode="numeric" title="Секунд до автопроверки" aria-label="Секунд до автопроверки"></label>
+					</div>
 				</div>
 				<div class="payout-settings-actions">
 					<button type="submit" class="btn btn-primary">Сохранить</button>
@@ -63,56 +118,71 @@
 		</div>
 	</div>
 
+	<div class="series-stake-ux-width series-stake-task ptc-task-block">
+		<div class="ptc-task-strip" role="group" aria-label="Условие: цвет, цвет по, cash">
+			<div class="ptc-task-cell">
+				<span class="ptc-task-label">цвет</span>
+				<span class="ptc-task-value">{{ color }}</span>
+			</div>
+			<div class="ptc-task-cell">
+				<span class="ptc-task-label">цвет по</span>
+				<span class="ptc-task-value">{{ color_per }}</span>
+			</div>
+			<div class="ptc-task-cell">
+				<span class="ptc-task-label">cash</span>
+				<span class="ptc-task-value">{{ cash }}</span>
+			</div>
+		</div>
+		<p class="series-stake-description ptc-question">Сколько цветных фишек осталось?</p>
+	</div>
 	{% if timer_enabled and success is None and not skipped %}
-	<div class="payout-timer-row payout-timer-row--compact">
+	<div class="series-stake-ux-width series-stake-fuse-wrap">
 		{% include "partials/fuse_timer.html" with prefix="ar-ptc" %}
 	</div>
 	{% endif %}
-	<p class="payout-ptc-question">Сколько цветных фишек осталось?</p>
 
-	<form method="post" autocomplete="off" class="payout-form">
+	<form method="post" autocomplete="off" class="payout-form neighbors-form">
 		{% csrf_token %}
-		<div class="payout-row">
-			<div class="payout-entry">
-				{% if use_stacks %}
-				<div class="payout-ptc-answer-row">
-					<label class="payout-ptc-answer-cell">
-						<input type="text" name="user_answer_stacks" class="payout-input payout-ptc-input" placeholder="стеков" autocomplete="off" inputmode="none" {% if success or skipped %}disabled{% endif %} id="arPtcInputStacks">
-					</label>
-					<label class="payout-ptc-answer-cell">
-						<input type="text" name="user_answer_remainder" class="payout-input payout-ptc-input" placeholder="остаток" autocomplete="off" inputmode="none" {% if success or skipped %}disabled{% endif %} id="arPtcInputRemainder">
-					</label>
-				</div>
-				{% else %}
-				<input type="text" name="user_answer" class="payout-input" placeholder="ответ" autocomplete="off" inputmode="none" {% if success or skipped %}disabled{% endif %} id="arPtcInput">
-				{% endif %}
-				<div class="payout-keyboard">
-					<button type="button" class="payout-key" data-val="7">7</button>
-					<button type="button" class="payout-key" data-val="8">8</button>
-					<button type="button" class="payout-key" data-val="9">9</button>
-					<button type="button" class="payout-key payout-key--backspace" data-action="backspace" title="Удалить">⌫</button>
-					<button type="button" class="payout-key" data-val="4">4</button>
-					<button type="button" class="payout-key" data-val="5">5</button>
-					<button type="button" class="payout-key" data-val="6">6</button>
-					{% if not success and not skipped %}
-					<button type="submit" name="action" value="check" class="payout-key payout-key--enter" title="Проверить">↵</button>
-					{% endif %}
-					<button type="button" class="payout-key" data-val="1">1</button>
-					<button type="button" class="payout-key" data-val="2">2</button>
-					<button type="button" class="payout-key" data-val="3">3</button>
-					<button type="button" class="payout-key" data-val="0">0</button>
-				</div>
+		<div class="series-stake-ux-width color-in-cash-answer-wrap">
+			{% if use_stacks %}
+			<div class="payout-ptc-answer-row">
+				<label class="payout-ptc-answer-cell">
+					<input type="text" name="user_answer_stacks" class="payout-input neighbors-input color-in-cash-answer-input" placeholder="стеков" autocomplete="off" inputmode="none" {% if success or skipped %}disabled{% endif %} id="arPtcInputStacks">
+				</label>
+				<label class="payout-ptc-answer-cell">
+					<input type="text" name="user_answer_remainder" class="payout-input neighbors-input color-in-cash-answer-input" placeholder="в неполном" autocomplete="off" inputmode="none" {% if success or skipped %}disabled{% endif %} id="arPtcInputRemainder">
+				</label>
+			</div>
+			{% else %}
+			<input type="text" name="user_answer" class="payout-input neighbors-input color-in-cash-answer-input" placeholder="ответ" autocomplete="off" inputmode="none" {% if success or skipped %}disabled{% endif %} id="arPtcInput">
+			{% endif %}
+		</div>
+		<div class="payout-entry">
+			<div class="payout-keyboard">
+				<button type="button" class="payout-key" data-val="7">7</button>
+				<button type="button" class="payout-key" data-val="8">8</button>
+				<button type="button" class="payout-key" data-val="9">9</button>
+				<button type="button" class="payout-key payout-key--backspace" data-action="backspace" title="Удалить">⌫</button>
+				<button type="button" class="payout-key" data-val="4">4</button>
+				<button type="button" class="payout-key" data-val="5">5</button>
+				<button type="button" class="payout-key" data-val="6">6</button>
 				{% if not success and not skipped %}
-				<div class="payout-pass-row">
-					<button type="submit" name="action" value="skip" formnovalidate class="btn btn-secondary payout-pass-btn">Pass</button>
-				</div>
+				<button type="submit" name="action" value="check" class="payout-key payout-key--enter" title="Проверить">↵</button>
+				{% endif %}
+				<button type="button" class="payout-key" data-val="1">1</button>
+				<button type="button" class="payout-key" data-val="2">2</button>
+				<button type="button" class="payout-key" data-val="3">3</button>
+				<button type="button" class="payout-key" data-val="0">0</button>
+				{% if use_stacks %}
+				<button type="button" class="payout-key payout-key--nextcell" data-action="nextcell" title="Следующая ячейка">&gt;|</button>
 				{% endif %}
 			</div>
+			{% if not success and not skipped %}
+			<div class="payout-pass-row">
+				<button type="submit" name="action" value="skip" formnovalidate class="btn btn-secondary payout-pass-btn">Pass</button>
+			</div>
+			{% endif %}
 		</div>
-
-		{% if message and not success and not skipped %}
-			<div class="payout-message error">{{ message }}</div>
-		{% endif %}
 	</form>
 
 	{% if success is False %}
@@ -146,8 +216,508 @@
 </div>
 </div>
 
+<style>
+.payout-main .main-card:has(.payout-page--payout-through-cash) {
+	padding-top: 14px;
+}
+.payout-page.payout-page--payout-through-cash {
+	padding-top: 46px;
+}
+.series-stake-ux-width {
+	width: calc(4 * 52px + 3 * 8px);
+	max-width: min(calc(4 * 52px + 3 * 8px), calc(100vw - 32px));
+	margin-left: auto;
+	margin-right: auto;
+	box-sizing: border-box;
+}
+@media (min-width: 480px) {
+	.series-stake-ux-width {
+		width: calc(4 * 56px + 3 * 10px);
+		max-width: min(calc(4 * 56px + 3 * 10px), calc(100vw - 32px));
+	}
+}
+.payout-page--payout-through-cash .payout-header.series-stake-header {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+	top: auto;
+	left: auto;
+	right: auto;
+	gap: 0.5rem;
+	min-height: 2.5rem;
+	padding: 0 48px;
+	box-sizing: border-box;
+	width: 100%;
+	margin-bottom: 0;
+}
+.payout-page--payout-through-cash .payout-header.series-stake-header .neighbors-help-btn {
+	position: absolute;
+	left: 0;
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 4px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	-webkit-tap-highlight-color: transparent;
+}
+.payout-page--payout-through-cash .payout-header.series-stake-header .neighbors-help-icon {
+	width: 28px;
+	height: 28px;
+	display: block;
+}
+.payout-page--payout-through-cash .payout-header.series-stake-header .neighbors-help-btn:hover .color-in-cash-help-icon circle { fill: #1d4ed8; }
+.payout-page--payout-through-cash .payout-header.series-stake-header .series-stake-settings-btn {
+	position: absolute;
+	right: 0;
+	width: 40px;
+	height: 40px;
+	padding: 0;
+	box-sizing: border-box;
+	color: var(--accent, #2563eb);
+}
+.payout-page--payout-through-cash .payout-header.series-stake-header .series-stake-settings-btn:hover {
+	color: var(--accent-hover, #1d4ed8);
+	background: rgba(37, 99, 235, 0.08);
+	border-radius: var(--radius-sm, 8px);
+}
+.payout-page--payout-through-cash .series-stake-title.payout-bet {
+	margin-bottom: 0;
+	font-size: 1.35rem;
+	font-weight: 700;
+	line-height: 1.25;
+	letter-spacing: -0.02em;
+	text-align: center;
+}
+.ptc-task-block {
+	margin-top: 0.35rem;
+}
+.payout-page--payout-through-cash .series-stake-task.ptc-task-block {
+	margin: 0.35rem 0 0.4rem;
+	text-align: center;
+}
+.ptc-task-strip {
+	display: flex;
+	align-items: stretch;
+	justify-content: space-between;
+	gap: 8px;
+	width: 100%;
+	margin: 0 0 0.5rem;
+	box-sizing: border-box;
+}
+.ptc-task-cell {
+	flex: 1 1 0;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	padding: 12px 8px 14px;
+	border-radius: 12px;
+	background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+	border: 1px solid var(--border, #e2e8f0);
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+.ptc-task-label {
+	font-size: 0.7rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--text-muted, #64748b);
+	line-height: 1.2;
+}
+.ptc-task-value {
+	font-size: clamp(1.1rem, 4.2vw, 1.55rem);
+	font-weight: 800;
+	line-height: 1.15;
+	color: var(--text, #0f172a);
+	letter-spacing: -0.02em;
+	font-variant-numeric: tabular-nums;
+	word-break: break-all;
+	text-align: center;
+}
+.payout-page--payout-through-cash .ptc-question {
+	margin: 0.25rem 0 0;
+	text-align: center;
+	font-size: clamp(1rem, 3.6vw, 1.2rem);
+	font-weight: 700;
+	line-height: 1.25;
+	color: var(--text, #0f172a);
+}
+.payout-page--payout-through-cash .series-stake-fuse-wrap {
+	margin: 0.3rem auto 0.35rem;
+}
+.payout-page--payout-through-cash .series-stake-fuse-wrap .fuse-timer {
+	width: 100%;
+	max-width: none;
+	margin: 0;
+}
+.payout-page--payout-through-cash .color-in-cash-answer-wrap {
+	margin: 0.2rem 0 1rem;
+	padding: 0;
+}
+.payout-page--payout-through-cash .color-in-cash-answer-input.payout-input {
+	box-sizing: border-box;
+	display: block;
+	width: 100%;
+	min-width: 0;
+	max-width: none;
+	height: 3rem;
+	padding: 0 10px;
+	text-align: center;
+	border: 2px solid #cbd5e1;
+	border-radius: 10px;
+	background: #fff;
+	font-size: 1rem;
+	font-weight: 600;
+}
+.payout-page--payout-through-cash .color-in-cash-answer-input.payout-input::placeholder {
+	color: var(--text-muted, #94a3b8);
+	font-weight: 600;
+	opacity: 1;
+}
+.payout-page--payout-through-cash .color-in-cash-answer-input.payout-input:focus {
+	outline: none;
+	box-shadow: inset 0 0 0 2px #3b82f6;
+}
+.payout-page--payout-through-cash .color-in-cash-answer-input.payout-input:disabled {
+	opacity: 0.85;
+}
+.payout-page--payout-through-cash .payout-form.neighbors-form {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding-top: 0;
+}
+.payout-page--payout-through-cash .payout-ptc-answer-row {
+	display: flex;
+	gap: 8px;
+	width: 100%;
+}
+.payout-page--payout-through-cash .payout-ptc-answer-cell {
+	flex: 1;
+	margin: 0;
+	min-width: 0;
+}
+.payout-page--payout-through-cash .payout-ptc-answer-row .color-in-cash-answer-input.payout-input {
+	font-size: 0.95rem;
+	height: 2.75rem;
+	padding: 0 6px;
+}
+.payout-page--payout-through-cash .neighbors-form .payout-key--nextcell {
+	grid-column: 4;
+	grid-row: 4;
+}
+.payout-page--payout-through-cash .series-stake-settings-modal {
+	max-width: 380px;
+}
+#arPtcSettingsOverlay .color-in-cash-settings-color-error {
+	color: #b91c1c;
+	font-size: 0.875rem;
+	margin: 0 0 10px;
+}
+#arPtcSettingsOverlay .series-stake-params-block--lead {
+	margin: 0;
+	padding: 0;
+	border: none;
+}
+#arPtcSettingsOverlay .series-stake-params-block {
+	margin-top: 14px;
+	padding-top: 12px;
+	border-top: 1px solid var(--border, #e2e8f0);
+}
+#arPtcSettingsOverlay .series-stake-params-heading {
+	font-size: 0.82rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--text-muted, #64748b);
+	margin: 0 0 10px;
+}
+#arPtcSettingsOverlay .series-stake-params-heading:first-child {
+	margin-top: 0;
+}
+#arPtcSettingsOverlay .series-stake-param-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	margin-bottom: 8px;
+}
+#arPtcSettingsOverlay .series-stake-param-label {
+	font-size: 0.875rem;
+	font-weight: 500;
+	flex-shrink: 0;
+}
+#arPtcSettingsOverlay .series-stake-param-input {
+	width: 7rem;
+	max-width: 45%;
+	min-height: 2.5rem;
+	padding: 6px 10px;
+	font-size: 0.875rem;
+	text-align: right;
+	border: 1px solid var(--border, #cbd5e1);
+	border-radius: var(--radius-sm, 8px);
+	background: var(--surface, #fff);
+	color: var(--text);
+	box-sizing: border-box;
+}
+#arPtcSettingsOverlay .series-stake-series-block {
+	margin-top: 14px;
+	padding-top: 12px;
+	border-top: 1px solid var(--border, #e2e8f0);
+}
+#arPtcSettingsOverlay .series-stake-color-per-field {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px;
+}
+#arPtcSettingsOverlay .series-stake-ar-label {
+	font-weight: 600;
+	flex-shrink: 0;
+}
+#arPtcSettingsOverlay .ptc-stacks-settings {
+	margin-top: 14px;
+	padding-top: 12px;
+	border-top: 1px solid var(--border, #e2e8f0);
+	margin-bottom: 0;
+}
+#arPtcSettingsOverlay .series-stake-color-per-details .series-stake-color-per-summary {
+	list-style: none;
+	cursor: pointer;
+	padding: 8px 10px;
+	font-weight: 500;
+}
+#arPtcSettingsOverlay .series-stake-color-per-details .series-stake-color-per-summary::-webkit-details-marker { display: none; }
+#arPtcSettingsOverlay .series-stake-color-per-summary::after {
+	content: '▾';
+	margin-left: 6px;
+	font-size: 0.75rem;
+	color: var(--text-muted, #64748b);
+}
+#arPtcSettingsOverlay .series-stake-color-per-details[open] .series-stake-color-per-summary::after {
+	content: '▴';
+}
+#arPtcSettingsOverlay .series-stake-color-per-summary-text:empty::before {
+	content: attr(data-placeholder);
+	color: var(--text-muted, #94a3b8);
+	font-weight: 400;
+}
+#arPtcSettingsOverlay .series-stake-color-per-panel {
+	padding: 0 10px 10px;
+	border-top: 1px solid var(--border, #e2e8f0);
+	max-height: min(260px, 50vh);
+	overflow-y: auto;
+}
+#arPtcSettingsOverlay .series-stake-color-per-select-all {
+	width: 100%;
+	margin: 8px 0 10px;
+	padding: 6px 10px;
+	font-size: 0.8rem;
+}
+#arPtcSettingsOverlay .series-stake-color-per-option {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	padding: 6px 4px;
+	margin: 0;
+	border-radius: 6px;
+}
+#arPtcSettingsOverlay .series-stake-color-per-option:hover {
+	background: var(--surface-hover, #f1f5f9);
+}
+#arPtcSettingsOverlay .series-stake-color-per-opt-num {
+	font-size: 0.875rem;
+	font-weight: 600;
+	color: var(--text, #0f172a);
+}
+#arPtcSettingsOverlay .series-stake-color-per-cb {
+	width: 1.15rem;
+	height: 1.15rem;
+	flex-shrink: 0;
+	accent-color: var(--accent, #2563eb);
+	cursor: pointer;
+}
+#arPtcSettingsOverlay .series-stake-color-per-option--custom {
+	align-items: center;
+	margin-top: 6px;
+	padding-top: 10px;
+	border-top: 1px dashed var(--border, #cbd5e1);
+}
+#arPtcSettingsOverlay .series-stake-color-per-custom-cell {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-shrink: 0;
+}
+#arPtcSettingsOverlay .series-stake-color-per-custom-input {
+	width: 5.5rem;
+	min-height: 2.25rem;
+	padding: 4px 8px;
+	font-size: 0.875rem;
+	font-weight: 600;
+	text-align: right;
+	border: 1px solid var(--border, #cbd5e1);
+	border-radius: var(--radius-sm, 8px);
+	background: var(--surface, #fff);
+	color: var(--text);
+	box-sizing: border-box;
+}
+#arPtcSettingsOverlay .series-stake-timer-settings {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	flex-wrap: wrap;
+	margin: 0 0 10px;
+}
+#arPtcSettingsOverlay .color-in-cash-settings-timer {
+	margin-top: 10px;
+	padding-top: 12px;
+	border-top: 1px solid var(--border, #e2e8f0);
+	margin-bottom: 0;
+}
+#arPtcSettingsOverlay .series-stake-timer-settings-hint {
+	font-size: 0.875rem;
+	font-weight: 500;
+	color: var(--text-muted, #64748b);
+	flex: 1 1 auto;
+	min-width: 0;
+}
+#arPtcSettingsOverlay .series-stake-timer-switch {
+	position: relative;
+	flex-shrink: 0;
+	width: 48px;
+	height: 28px;
+	padding: 0;
+	border: none;
+	border-radius: 14px;
+	background: #cbd5e1;
+	box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.2);
+	cursor: pointer;
+	transition: background 0.22s ease, box-shadow 0.22s ease;
+	-webkit-tap-highlight-color: transparent;
+}
+#arPtcSettingsOverlay .series-stake-timer-switch::after {
+	content: '';
+	position: absolute;
+	top: 3px;
+	left: 3px;
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	background: #fff;
+	box-shadow: 0 1px 4px rgba(15, 23, 42, 0.25);
+	transition: transform 0.24s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s;
+}
+#arPtcSettingsOverlay .series-stake-timer-switch.is-on {
+	background: linear-gradient(180deg, #34d399 0%, #059669 100%);
+	box-shadow: inset 0 1px 2px rgba(255,255,255,0.35), 0 0 0 1px rgba(5, 150, 105, 0.35);
+}
+#arPtcSettingsOverlay .series-stake-timer-switch.is-on::after {
+	transform: translateX(20px);
+}
+#arPtcSettingsOverlay .series-stake-timer-switch:focus-visible {
+	outline: 2px solid #3b82f6;
+	outline-offset: 2px;
+}
+#arPtcSettingsOverlay .series-stake-timer-sec {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0;
+	flex-shrink: 0;
+}
+#arPtcSettingsOverlay .series-stake-timer-sec-lbl {
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: var(--text-muted, #64748b);
+}
+#arPtcSettingsOverlay .series-stake-timer-sec-input {
+	width: 4rem !important;
+	max-width: none !important;
+	min-height: 2.25rem !important;
+	text-align: center !important;
+}
+#ptcHelpOverlay.neighbors-help-overlay {
+	display: none;
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.5);
+	z-index: 101;
+	align-items: center;
+	justify-content: center;
+	padding: 20px;
+	box-sizing: border-box;
+}
+#ptcHelpOverlay.neighbors-help-overlay.is-open {
+	display: flex;
+}
+#ptcHelpOverlay .neighbors-help-modal {
+	background: var(--bg-main, #fff);
+	border-radius: var(--radius, 12px);
+	padding: 24px;
+	max-width: 360px;
+	width: 100%;
+	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+	box-sizing: border-box;
+}
+#ptcHelpOverlay .series-stake-doc-hub-lead {
+	margin: 0 0 10px;
+	font-size: 0.95rem;
+	font-weight: 700;
+	color: var(--text, #0f172a);
+}
+#ptcHelpOverlay .series-stake-doc-hub-close {
+	width: 100%;
+	margin-top: 16px;
+}
+.ptc-help-body p {
+	margin: 0 0 0.75rem;
+	line-height: 1.45;
+	font-size: 0.9rem;
+}
+.ptc-help-body p:last-child { margin-bottom: 0; }
+.color-in-cash-sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+</style>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+	var ptcHelp = document.getElementById('ptcHelpOverlay');
+	var ptcHelpBtn = document.getElementById('ptcHelpBtn');
+	var ptcHelpClose = document.getElementById('ptcHelpClose');
+	function openPtcHelp() {
+		if (!ptcHelp) return;
+		ptcHelp.classList.add('is-open');
+		ptcHelp.setAttribute('aria-hidden', 'false');
+	}
+	function closePtcHelp() {
+		if (!ptcHelp) return;
+		ptcHelp.classList.remove('is-open');
+		ptcHelp.setAttribute('aria-hidden', 'true');
+	}
+	if (ptcHelpBtn && ptcHelp) ptcHelpBtn.addEventListener('click', openPtcHelp);
+	if (ptcHelpClose && ptcHelp) ptcHelpClose.addEventListener('click', closePtcHelp);
+	if (ptcHelp) {
+		ptcHelp.addEventListener('click', function(e) {
+			if (e.target === ptcHelp) closePtcHelp();
+		});
+	}
+
 	const successOverlay = document.getElementById('arPtcSuccessOverlay');
 	const errorOverlay = document.getElementById('arPtcErrorOverlay');
 	const errorCloseBtn = document.getElementById('arPtcErrorClose');
@@ -173,12 +743,135 @@ document.addEventListener('DOMContentLoaded', function() {
 	const overlay = document.getElementById('arPtcSettingsOverlay');
 	const closeBtn = document.getElementById('arPtcSettingsClose');
 	if (btn && overlay) {
-		btn.addEventListener('click', function() { overlay.classList.add('is-open'); });
+		btn.addEventListener('click', function() {
+			overlay.classList.add('is-open');
+			setTimeout(updatePtcColorPerSummary, 0);
+		});
 		overlay.addEventListener('click', function(e) {
 			if (e.target === overlay) overlay.classList.remove('is-open');
 		});
 		if (closeBtn) closeBtn.addEventListener('click', function() { overlay.classList.remove('is-open'); });
 	}
+	(function setupPtcTimerSwitch() {
+		var sw = document.getElementById('ptcTimerSwitch');
+		var cb = document.getElementById('ptcTimerCb');
+		if (!sw || !cb) return;
+		function sync() {
+			sw.classList.toggle('is-on', cb.checked);
+			sw.setAttribute('aria-checked', cb.checked ? 'true' : 'false');
+		}
+		sw.addEventListener('click', function() {
+			cb.checked = !cb.checked;
+			sync();
+		});
+		sync();
+	})();
+	(function setupPtcStacksSwitch() {
+		var sw = document.getElementById('ptcStacksSwitch');
+		var cb = document.getElementById('ptcStacksCb');
+		if (!sw || !cb) return;
+		function sync() {
+			sw.classList.toggle('is-on', cb.checked);
+			sw.setAttribute('aria-checked', cb.checked ? 'true' : 'false');
+		}
+		sw.addEventListener('click', function() {
+			cb.checked = !cb.checked;
+			sync();
+		});
+		sync();
+	})();
+
+	function ptcColorPerAllPresetsChecked() {
+		var all = document.querySelectorAll('#arPtcSettingsOverlay .series-stake-color-per-cb-preset');
+		if (!all.length) return false;
+		for (var i = 0; i < all.length; i++) {
+			if (!all[i].checked) return false;
+		}
+		return true;
+	}
+	function updatePtcColorPerSelectAllButton() {
+		var b = document.getElementById('ptcColorPerSelectAll');
+		if (!b) return;
+		if (ptcColorPerAllPresetsChecked()) {
+			b.textContent = 'Очистить все';
+			b.setAttribute('data-mode', 'clear');
+			b.setAttribute('title', 'Снять все стандартные номиналы и ваш вариант');
+		} else {
+			b.textContent = 'Выбрать все';
+			b.removeAttribute('data-mode');
+			b.setAttribute('title', 'Отметить все стандартные номиналы');
+		}
+	}
+	function ptcColorPerHasValidSelection() {
+		if (document.querySelector('#arPtcSettingsOverlay .series-stake-color-per-cb-preset:checked')) return true;
+		var customCb = document.querySelector('#arPtcSettingsOverlay .series-stake-color-per-cb-custom');
+		var customIn = document.querySelector('#arPtcSettingsOverlay .series-stake-color-per-custom-input');
+		if (customCb && customCb.checked && customIn) {
+			var t = customIn.value.trim();
+			if (t === '') return false;
+			var n = parseInt(t, 10);
+			return !isNaN(n) && n >= 1;
+		}
+		return false;
+	}
+	function updatePtcColorPerSummary() {
+		var el = document.getElementById('ptcColorPerSummary');
+		if (!el) return;
+		var parts = [];
+		document.querySelectorAll('#arPtcSettingsOverlay .series-stake-color-per-cb-preset:checked').forEach(function(cb) {
+			parts.push(cb.value);
+		});
+		var customCb = document.querySelector('#arPtcSettingsOverlay .series-stake-color-per-cb-custom');
+		var customIn = document.querySelector('#arPtcSettingsOverlay .series-stake-color-per-custom-input');
+		if (customCb && customCb.checked && customIn && customIn.value.trim() !== '') {
+			parts.push('свой ' + customIn.value.trim());
+		}
+		el.textContent = parts.length ? parts.join(', ') : '';
+		var errEl = document.getElementById('arPtcSettingsColorError');
+		if (errEl && ptcColorPerHasValidSelection()) {
+			errEl.style.display = 'none';
+			errEl.textContent = '';
+		}
+		updatePtcColorPerSelectAllButton();
+	}
+	var ptcColorPerSelAll = document.getElementById('ptcColorPerSelectAll');
+	if (ptcColorPerSelAll) {
+		ptcColorPerSelAll.addEventListener('click', function(e) {
+			e.preventDefault();
+			if (ptcColorPerAllPresetsChecked()) {
+				document.querySelectorAll('#arPtcSettingsOverlay .series-stake-color-per-cb-preset').forEach(function(cb) {
+					cb.checked = false;
+				});
+				var ccb = document.querySelector('#arPtcSettingsOverlay .series-stake-color-per-cb-custom');
+				if (ccb) ccb.checked = false;
+			} else {
+				document.querySelectorAll('#arPtcSettingsOverlay .series-stake-color-per-cb-preset').forEach(function(cb) {
+					cb.checked = true;
+				});
+			}
+			updatePtcColorPerSummary();
+		});
+	}
+	document.querySelectorAll('#arPtcSettingsOverlay .series-stake-color-per-cb-preset, #arPtcSettingsOverlay .series-stake-color-per-cb-custom').forEach(function(cb) {
+		cb.addEventListener('change', updatePtcColorPerSummary);
+	});
+	var ptcColorPerCustomIn = document.querySelector('#arPtcSettingsOverlay .series-stake-color-per-custom-input');
+	if (ptcColorPerCustomIn) ptcColorPerCustomIn.addEventListener('input', updatePtcColorPerSummary);
+	var arPtcSettingsForm = document.getElementById('arPtcSettingsForm');
+	if (arPtcSettingsForm) {
+		arPtcSettingsForm.addEventListener('submit', function(e) {
+			if (!ptcColorPerHasValidSelection()) {
+				e.preventDefault();
+				var customCe = document.getElementById('arPtcSettingsColorError');
+				if (customCe) {
+					customCe.textContent = 'Выберите цвет';
+					customCe.style.display = '';
+				}
+				return false;
+			}
+		});
+	}
+	updatePtcColorPerSummary();
 });
 </script>
 {% if timer_enabled and success is None and not skipped %}
