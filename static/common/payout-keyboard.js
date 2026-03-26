@@ -49,15 +49,13 @@
 				var nextIdx = (idx < 0 ? 0 : idx + 1) % inputs.length;
 				lastActiveInput = inputs[nextIdx];
 				if (lastActiveInput && !lastActiveInput.disabled) {
-					try {
-						lastActiveInput.focus({ preventScroll: false });
-					} catch (errFocus) {
-						lastActiveInput.focus();
-					}
-					try {
-						var len = lastActiveInput.value.length;
-						lastActiveInput.setSelectionRange(len, len);
-					} catch (err) {}
+					/* Не вызываем focus() — на мобильных открывается системная клавиатура.
+					   Достаточно сменить lastActiveInput; активное поле снимаем с фокуса. */
+					inputs.forEach(function(inp) {
+						if (document.activeElement === inp) {
+							inp.blur();
+						}
+					});
 					if (lastActiveInput.scrollIntoView) {
 						lastActiveInput.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 					}

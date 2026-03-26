@@ -193,10 +193,10 @@
 		{% csrf_token %}
 		<div class="series-stake-ux-width series-stake-answers" role="group" aria-label="Ответ">
 			<div class="series-stake-answer-slot">
-				<input type="text" name="igraet_po" class="payout-input neighbors-input series-stake-answer-input" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="{{ user_igraet }}" placeholder="Играет по" aria-label="Играет по" {% if success or skipped %}disabled{% endif %} id="seriesStakeIgraet" title="Играет по">
+				<input type="text" name="igraet_po" class="payout-input neighbors-input series-stake-answer-input" inputmode="none" pattern="[0-9]*" autocomplete="off" value="{{ user_igraet }}" placeholder="Играет по" aria-label="Играет по" {% if success or skipped %}disabled{% endif %} id="seriesStakeIgraet" title="Играет по">
 			</div>
 			<div class="series-stake-answer-slot">
-				<input type="text" name="sdacha" class="payout-input neighbors-input series-stake-answer-input" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="{{ user_sdacha }}" placeholder="Сдача" aria-label="Сдача" {% if success or skipped %}disabled{% endif %} id="seriesStakeSdacha" title="Сдача">
+				<input type="text" name="sdacha" class="payout-input neighbors-input series-stake-answer-input" inputmode="none" pattern="[0-9]*" autocomplete="off" value="{{ user_sdacha }}" placeholder="Сдача" aria-label="Сдача" {% if success or skipped %}disabled{% endif %} id="seriesStakeSdacha" title="Сдача">
 			</div>
 		</div>
 
@@ -411,6 +411,12 @@
 	height: 40px;
 	padding: 0;
 	box-sizing: border-box;
+	color: var(--accent, #2563eb);
+}
+.series-stake-header .series-stake-settings-btn:hover {
+	color: var(--accent-hover, #1d4ed8);
+	background: rgba(37, 99, 235, 0.08);
+	border-radius: var(--radius-sm, 8px);
 }
 .series-stake-title { margin: 0; text-align: center; }
 .series-stake-meta-row {

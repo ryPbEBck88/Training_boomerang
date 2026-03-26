@@ -89,10 +89,10 @@
 		{% csrf_token %}
 		<div class="series-stake-ux-width series-stake-answers" role="group" aria-label="Ставка и выплата">
 			<div class="series-stake-answer-slot">
-				<input type="text" name="stavka" class="payout-input neighbors-input series-stake-answer-input" placeholder="Ставка" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="{{ user_stavka }}" {% if success or skipped %}disabled{% endif %} id="completesStavka" aria-label="Ставка" title="Ставка">
+				<input type="text" name="stavka" class="payout-input neighbors-input series-stake-answer-input" placeholder="Ставка" inputmode="none" pattern="[0-9]*" autocomplete="off" value="{{ user_stavka }}" {% if success or skipped %}disabled{% endif %} id="completesStavka" aria-label="Ставка" title="Ставка">
 			</div>
 			<div class="series-stake-answer-slot">
-				<input type="text" name="payout" class="payout-input neighbors-input series-stake-answer-input" placeholder="Выплата" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="{{ user_payout }}" {% if success or skipped %}disabled{% endif %} id="completesPayout" aria-label="Выплата" title="Выплата">
+				<input type="text" name="payout" class="payout-input neighbors-input series-stake-answer-input" placeholder="Выплата" inputmode="none" pattern="[0-9]*" autocomplete="off" value="{{ user_payout }}" {% if success or skipped %}disabled{% endif %} id="completesPayout" aria-label="Выплата" title="Выплата">
 			</div>
 		</div>
 
