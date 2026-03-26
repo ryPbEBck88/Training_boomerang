@@ -4,10 +4,10 @@
 {% block main_class %}payout-main{% endblock %}
 {% block content %}
 <div class="payout-screen">
-<div class="payout-page">
+<div class="payout-page payout-page--series-stake">
 	<div class="payout-header series-stake-header">
-		<button type="button" class="neighbors-help-btn" id="seriesStakeHelpBtn" aria-label="Справка" title="Справка">
-			<svg class="neighbors-help-icon" viewBox="0 0 24 24">
+		<button type="button" class="neighbors-help-btn" id="seriesStakeHelpBtn" aria-label="Справка: задача, настройки, теория, разбор" title="Справка">
+			<svg class="neighbors-help-icon" viewBox="0 0 24 24" aria-hidden="true">
 				<circle cx="12" cy="12" r="10" fill="#2563eb"/>
 				<text x="12" y="17" text-anchor="middle" fill="white" font-size="14" font-weight="bold" font-family="system-ui,sans-serif">?</text>
 			</svg>
@@ -84,10 +84,9 @@
 							</select>
 						</div>
 					</div>
-					<div class="series-stake-params-heading" id="seriesStakeFuseHeading">Фитиль</div>
-					<div class="series-stake-timer-settings" role="group" aria-labelledby="seriesStakeFuseHeading">
-						<span class="series-stake-timer-settings-hint" id="seriesStakeFuseHint">Отсчёт до проверки</span>
-						<button type="button" class="series-stake-timer-switch{% if timer_enabled %} is-on{% endif %}" id="seriesStakeTimerSwitch" role="switch" aria-checked="{% if timer_enabled %}true{% else %}false{% endif %}" aria-labelledby="seriesStakeFuseHint"></button>
+					<div class="series-stake-timer-settings" role="group" aria-labelledby="seriesStakeTimerLabel">
+						<span class="series-stake-timer-settings-hint" id="seriesStakeTimerLabel">Таймер</span>
+						<button type="button" class="series-stake-timer-switch{% if timer_enabled %} is-on{% endif %}" id="seriesStakeTimerSwitch" role="switch" aria-checked="{% if timer_enabled %}true{% else %}false{% endif %}" aria-labelledby="seriesStakeTimerLabel"></button>
 						<input type="hidden" name="timer_enabled" id="seriesStakeTimerEnabled" value="{% if timer_enabled %}1{% else %}0{% endif %}">
 						<label class="series-stake-timer-sec"><span class="series-stake-timer-sec-lbl">сек</span><input type="number" name="timer_seconds" class="series-stake-timer-sec-input series-stake-param-input" min="1" max="120" value="{{ timer_seconds }}" inputmode="numeric" title="Секунд до автопроверки" aria-label="Секунд до автопроверки"></label>
 					</div>
@@ -101,15 +100,80 @@
 			</form>
 		</div>
 	</div>
-	<div class="neighbors-help-overlay" id="seriesStakeHelpOverlay" aria-hidden="true">
-		<div class="neighbors-help-modal">
-			<div class="series-stake-help-content">
-				<p><strong>Ставка min</strong>: сначала <strong>база</strong> = большее из «серии играют по min» и «номер min»; затем min ставки = база × множитель серии (<strong>0-spiel</strong> 4, <strong>Orphelins</strong> 5, <strong>Tiers</strong> 6, <strong>Voisins</strong> 9). <strong>Max</strong> по-прежнему номер max × (7 / 9 / 12 / 17); <strong>Рандом</strong> — min база × 4, max номер max × 17. Шаг по умолчанию 5. Для <strong>Tiers</strong> случайная сумма в вашем диапазоне внутри коридора серии.</p>
-				<p>Для <strong>Tiers</strong>: пакет = <strong>6 × min играет серия</strong> (из AR). <strong>Играет по</strong> = (ставка ÷ пакет, целое) × min. <strong>Сдача</strong> = остаток ставки от пакета. Пример: ставка 160, min 5 → пакет 30 → 160÷30=5 → играет по 25, сдача 10; при min 1 то же, что деление на 6 (15 → 2 и 3).</p>
-				<p><strong>0-spiel</strong> и <strong>Orphelins</strong>: <strong>порог</strong> = номер max × 4 (spiel) или × 5 (orphelins). Если ставка ≤ порог — считаем как Tiers, но пакет <strong>4 × min</strong> или <strong>5 × min</strong> (не 6). Если ставка &gt; порог: на сумму порога — те же пакеты 4 или 5; остаток ставки — пакетами <strong>3 × min</strong> (spiel) или <strong>4 × min</strong> (orphelins). Пример AR 1-100-1, spiel, 500: порог 400 → 400 даёт 100 по пакету 4; остаток 100 по пакету 3 → 33 и сдача 1 → всего <strong>133</strong> и <strong>1</strong>.</p>
-				<p><strong>Voisins</strong>: <strong>порог</strong> = номер max × 1,5 × 9 (в тренажёре целое: max × 27 ÷ 2). До порога — пакет <strong>9 × шаг серии</strong> (из AR); после порога остаток — пакетами <strong>7 × шаг серии</strong>.</p>
+	<div class="neighbors-help-overlay series-stake-doc-hub-overlay" id="seriesStakeHelpHubOverlay" aria-hidden="true">
+		<div class="neighbors-help-modal series-stake-doc-modal series-stake-doc-hub">
+			<p class="series-stake-doc-hub-lead">Справка по тренажёру</p>
+			<nav class="series-stake-doc-nav series-stake-doc-nav--hub" aria-label="Разделы справки">
+				<button type="button" class="series-stake-doc-tab is-active" data-doc-panel="seriesStakePanelTask">Задача</button>
+				<button type="button" class="series-stake-doc-tab" data-doc-panel="seriesStakePanelSettings">Настройки</button>
+				<button type="button" class="series-stake-doc-tab" data-doc-panel="seriesStakePanelTheory">Теория</button>
+				<button type="button" class="series-stake-doc-tab" data-doc-panel="seriesStakePanelWalk">Ответ</button>
+			</nav>
+			<div class="series-stake-doc-panels">
+				<div id="seriesStakePanelTask" class="series-stake-doc-panel is-active">
+					<h3 class="series-stake-doc-title">Задача</h3>
+					<div class="series-stake-help-content">
+						<p>Вам дана <strong>сумма ставки</strong> на <strong>одну из серий рулетки</strong> в этом раунде (Tiers, 0-spiel, Orphelins или Voisins — см. подпись серии над полями).</p>
+						<p><strong>Ваша задача</strong> — посчитать две величины:</p>
+						<ul class="series-stake-help-list">
+							<li><strong>Играет по</strong> — сколько из ставки уходит «по серии» согласно правилам упаковки в пакеты;</li>
+							<li><strong>Сдача</strong> — сколько остаётся сверху после полных пакетов (остаток от деления ставки на размер пакета в каждой фазе; при двух фазах остатки складываются).</li>
+						</ul>
+						<p>Введите оба числа и нажмите проверку. Пустую «сдачу» тренажёр при проверке считает как <strong>0</strong>.</p>
+					</div>
+				</div>
+				<div id="seriesStakePanelSettings" class="series-stake-doc-panel">
+					<h3 class="series-stake-doc-title">Настройки тренажёра</h3>
+					<div class="series-stake-help-content">
+				<p><strong>AR</strong> — это «ваша рулетка»: числа влияют на допустимые ставки, минимумы и пороги.</p>
+				<p><strong>Номер: min / max</strong> — диапазон номера на поле из вашего AR. От <strong>max</strong> считаются верхняя граница суммы ставки для серий и величина <strong>порога</strong> там, где он завязан на max.</p>
+				<p><strong>Серии играют: min по</strong> — минимальная «позиция», от которой строится базовый пакет (например Tiers: пакет 6 × эта величина). <strong>Step</strong> — шаг серии из AR; для <strong>Voisins</strong> размер пакета считается от step (9× и 7× после порога).</p>
+				<p><strong>Пресеты AR</strong> (например 1-100-1) — готовые наборы: один выбор сразу задаёт номер min/max и параметры серий по соглашению тренажёра.</p>
+				<p><strong>Пользовательские настройки</strong> — сами вводите все поля блока «Номер» и «Серии играют». Удобно, если ваш стол отличается от пресетов.</p>
+				<p><strong>Рандом</strong> — перед каждым новым заданием случайно выбирается один из пресетов AR, чтобы не застревать на одних и тех же цифрах.</p>
+				<p><strong>Серия</strong> — какой тип серии считать в раунде: конкретный или <strong>Рандом</strong> по четырём видам.</p>
+				<p><strong>Ставка: min, max, step</strong> — в каких пределах случайно выбирается <strong>сумма задания</strong> на экране. Тренажёр подрезает диапазон под правила выбранной серии (минимальная сумма серии × нужный множитель и т.д.).</p>
+				<p><strong>Таймер</strong> — по желанию: отсчёт до автоматической отправки ответа; длительность в секундах в поле рядом.</p>
+					</div>
+				</div>
+				<div id="seriesStakePanelTheory" class="series-stake-doc-panel">
+					<h3 class="series-stake-doc-title">Теория: порог и две фазы</h3>
+					<div class="series-stake-help-content">
+				<p><strong>Tiers</strong> в этом тренажёре устроены просто: один размер пакета (6 × min серии), порога нет.</p>
+				<p>Для <strong>0-spiel</strong>, <strong>Orphelins</strong> и <strong>Voisins</strong> при <strong>большой ставке</strong> включается <strong>две фазы</strong>. До определённой суммы (<strong>порог</strong>) каждая часть ставки «режется» <strong>крупными пакетами</strong> (больше номинал одного пакета на минимум серии). Всё, что <strong>выше порога</strong>, обрабатывается отдельно <strong>меньшими пакетами</strong>. Поэтому «играет по» растёт не пропорционально ставке одинаково на всём диапазоне: после порога на тот же прирост ставки прирост «играет по» меньше.</p>
+				<p><strong>0-spiel:</strong> порог = <strong>номер max × 4</strong> (из AR). Ставка <strong>не выше порога</strong> — пакет <strong>4 × min</strong> серии. Ставка <strong>выше порога</strong> — на сумму ровно до порога считаем пакетами 4 × min; остаток (ставка − порог) — пакетами <strong>3 × min</strong>.</p>
+				<p><em>Пример:</em> max=100, min=1 → порог 400. Ставка <strong>350</strong> ≤ 400: пакет 4×1, 350÷4 = 87 целых пакетов → играет по <strong>87</strong>, сдача <strong>2</strong>.</p>
+				<p><strong>Orphelins:</strong> порог = <strong>номер max × 5</strong>. До порога пакет <strong>5 × min</strong>, остаток после порога — <strong>4 × min</strong>.</p>
+				<p><em>Пример:</em> max=100, min=1 → порог 500. Ставка <strong>480</strong> ≤ 500: 480÷5 = 96 → играет по <strong>96</strong>, сдача <strong>0</strong>.</p>
+				<p><strong>Voisins:</strong> порог = <strong>номер max × 27 ÷ 2</strong> (целое число в тренажёре). До порога пакет <strong>9 × step</strong> серии (step из AR); сумма выше порога по остатку режется пакетами <strong>7 × step</strong>.</p>
+				<p><em>Пример:</em> max=100, step=5 → порог 1350. Ставка <strong>1500</strong> &gt; порог: фаза A — 1350 при пакете 9×5=45 → 1350÷45=30 → играет по <strong>150</strong>, сдача 0; фаза B — остаток 150 при пакете 7×5=35 → 150÷35=4 → играет по <strong>20</strong>, сдача <strong>10</strong>. Итого: <strong>170 и 10</strong>.</p>
+					</div>
+				</div>
+				<div id="seriesStakePanelWalk" class="series-stake-doc-panel">
+					<h3 class="series-stake-doc-title">Ответ на ставку: разбор по шагам</h3>
+					<div class="series-stake-help-content">
+				<p><strong>Tiers (без порога)</strong></p>
+				<ol class="series-stake-help-ol">
+					<li>Взять <strong>min</strong> «серии играют по» из AR (поле «min по» или пресет).</li>
+					<li>Размер пакета = <strong>6 × min</strong>.</li>
+					<li><strong>Играет по</strong> = целая часть <strong>(ставка ÷ пакет)</strong> × <strong>min</strong>.</li>
+					<li><strong>Сдача</strong> = остаток: <strong>ставка − (целое × пакет)</strong>.</li>
+				</ol>
+				<p><em>Пример:</em> min=5, ставка 100 → пакет 30 → 100÷30 = 3 → играет по <strong>15</strong>, сдача <strong>10</strong>.</p>
+				<p><em>Пример:</em> min=5, ставка 160 → 160÷30 = 5 → играет по <strong>25</strong>, сдача <strong>10</strong>.</p>
+				<p><strong>0-spiel / Orphelins / Voisins (если есть порог)</strong></p>
+				<ol class="series-stake-help-ol">
+					<li>Вычислить <strong>порог</strong> по серии (см. раздел «Теория»).</li>
+					<li>Если <strong>ставка ≤ порог</strong> — одна фаза: только «большой» пакет (4×min, 5×min или 9×step).</li>
+					<li>Если <strong>ставка &gt; порог</strong> — <strong>фаза A</strong>: сумма <strong>порог</strong> делится большим пакетом; <strong>фаза B</strong>: остаток <strong>(ставка − порог)</strong> делится меньшим пакетом (3×min, 4×min или 7×step).</li>
+					<li>Сложить «играет по» и «сдачу» из фаз A и B.</li>
+				</ol>
+				<p><em>Пример 0-spiel:</em> min=1, порог 400, ставка <strong>500</strong>. Фаза A: на 400 пакет 4×1 → 400÷4=100 полных пакетов → играет по <strong>100</strong>, сдача 0. Фаза B: остаток 100 пакетом 3×1 → 100÷3=33 → играет по <strong>33</strong>, сдача 1. <strong>Итого: играет по 133, сдача 1.</strong></p>
+				<p><em>Пример Orphelins:</em> min=1, порог 500, ставка <strong>620</strong>. Фаза A: 500 пакетом 5×1 → играет по <strong>100</strong>, сдача 0. Фаза B: 120 пакетом 4×1 → играет по <strong>30</strong>, сдача 0. <strong>Итого: 130 и 0.</strong></p>
+					</div>
+				</div>
 			</div>
-			<button type="button" class="btn btn-primary neighbors-help-close" id="seriesStakeHelpClose">Понятно</button>
+			<button type="button" class="btn btn-primary series-stake-doc-hub-close" id="seriesStakeHelpHubClose">Закрыть</button>
 		</div>
 	</div>
 
@@ -191,6 +255,13 @@
 </div>
 
 <style>
+/* Меньше пустого места над заголовком (общий main-card + payout-page для абсолютного header) */
+.payout-main .main-card:has(.payout-page--series-stake) {
+	padding-top: 14px;
+}
+.payout-page.payout-page--series-stake {
+	padding-top: 46px;
+}
 .series-stake-header {
 	display: flex;
 	align-items: center;
@@ -198,6 +269,121 @@
 	position: relative;
 	gap: 0.5rem;
 	min-height: 2.5rem;
+	padding: 0 48px;
+	box-sizing: border-box;
+}
+.series-stake-header .neighbors-help-btn {
+	position: absolute;
+	left: 0;
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 4px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	-webkit-tap-highlight-color: transparent;
+}
+.series-stake-header .neighbors-help-icon {
+	width: 28px;
+	height: 28px;
+	display: block;
+}
+.series-stake-header .neighbors-help-btn:hover .neighbors-help-icon circle { fill: #1d4ed8; }
+.series-stake-doc-nav {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: center;
+	gap: 6px 10px;
+	margin: 0.15rem auto 0.35rem;
+	padding: 0;
+}
+.series-stake-doc-tab {
+	margin: 0;
+	padding: 6px 10px;
+	border: 1px solid var(--border, #cbd5e1);
+	border-radius: 999px;
+	background: var(--surface, #f8fafc);
+	color: var(--text, #1e293b);
+	font-size: 0.78rem;
+	font-weight: 600;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+	transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.series-stake-doc-tab:hover {
+	background: #e2e8f0;
+	border-color: #94a3b8;
+}
+.series-stake-doc-tab:active {
+	background: #cbd5e1;
+}
+.series-stake-doc-tab.is-active {
+	background: #2563eb;
+	border-color: #1d4ed8;
+	color: #fff;
+}
+.series-stake-doc-tab.is-active:hover {
+	background: #1d4ed8;
+	border-color: #1e40af;
+	color: #fff;
+}
+.series-stake-doc-hub-lead {
+	margin: 0 0 10px;
+	font-size: 0.95rem;
+	font-weight: 700;
+	color: var(--text, #0f172a);
+}
+.series-stake-doc-nav--hub {
+	margin: 0 0 12px;
+	justify-content: flex-start;
+}
+.series-stake-doc-panels {
+	max-height: min(60vh, calc(100dvh - 220px));
+	overflow-y: auto;
+	-webkit-overflow-scrolling: touch;
+	margin-bottom: 4px;
+}
+.series-stake-doc-panel {
+	display: none;
+}
+.series-stake-doc-panel.is-active {
+	display: block;
+}
+.series-stake-doc-hub-overlay .series-stake-doc-modal {
+	max-width: min(420px, calc(100vw - 32px));
+	max-height: min(85vh, calc(100dvh - 32px));
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+}
+.series-stake-doc-hub {
+	min-height: 0;
+}
+.series-stake-doc-title {
+	margin: 0 0 14px;
+	font-size: 1.15rem;
+	font-weight: 700;
+	line-height: 1.3;
+	color: var(--text, #0f172a);
+}
+.series-stake-help-list,
+.series-stake-help-ol {
+	margin: 0 0 12px;
+	padding-left: 1.25rem;
+	font-size: 0.95rem;
+	line-height: 1.45;
+}
+.series-stake-help-list li,
+.series-stake-help-ol li {
+	margin-bottom: 6px;
+}
+.series-stake-doc-close,
+.series-stake-doc-hub-close {
+	width: 100%;
+	margin-top: 16px;
+	flex-shrink: 0;
 }
 /* Одна ширина с блоком клавиатуры: 4×клавиша + 3×зазор */
 .series-stake-ux-width {
@@ -220,16 +406,11 @@
 	line-height: 1.25;
 	letter-spacing: -0.02em;
 }
-.series-stake-header .neighbors-help-btn,
 .series-stake-header .series-stake-settings-btn {
 	width: 40px;
 	height: 40px;
 	padding: 0;
 	box-sizing: border-box;
-}
-.series-stake-header .neighbors-help-icon {
-	width: 26px;
-	height: 26px;
 }
 .series-stake-title { margin: 0; text-align: center; }
 .series-stake-meta-row {
@@ -254,7 +435,7 @@
 	color: var(--text, #334155);
 }
 .series-stake-fuse-wrap {
-	margin: 0.35rem auto 0.55rem;
+	margin: 0.3rem auto 0.35rem;
 }
 .series-stake-fuse-wrap .fuse-timer {
 	width: 100%;
@@ -429,23 +610,6 @@
 	align-items: center;
 	justify-content: center;
 }
-.neighbors-help-btn {
-	position: absolute;
-	left: 0;
-	background: none;
-	border: none;
-	cursor: pointer;
-	padding: 4px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-.neighbors-help-icon {
-	width: 28px;
-	height: 28px;
-	display: block;
-}
-.neighbors-help-btn:hover .neighbors-help-icon circle { fill: #1d4ed8; }
 .neighbors-help-overlay {
 	display: none;
 	position: fixed;
@@ -465,10 +629,10 @@
 	width: 100%;
 	box-shadow: 0 10px 40px rgba(0,0,0,0.2);
 }
-.series-stake-help-content p { margin: 0 0 12px; font-size: 0.95rem; }
-.series-stake-help-content p:last-of-type { margin-bottom: 0; }
+.series-stake-help-content p { margin: 0 0 12px; font-size: 0.95rem; line-height: 1.5; }
+.series-stake-help-content p:last-child { margin-bottom: 0; }
 .series-stake-task {
-	margin: 0.35rem 0 0.85rem;
+	margin: 0.35rem 0 0.4rem;
 	text-align: center;
 }
 .series-stake-amount-label {
@@ -501,7 +665,7 @@
 	justify-content: stretch;
 	align-items: stretch;
 	gap: 8px;
-	margin: 0.45rem 0 1rem;
+	margin: 0.2rem 0 1rem;
 	padding: 0;
 }
 @media (min-width: 480px) {
@@ -541,6 +705,9 @@
 .series-stake-answer-input.payout-input:disabled {
 	opacity: 0.85;
 }
+.payout-page--series-stake .payout-form.neighbors-form {
+	padding-top: 0;
+}
 .payout-form.neighbors-form {
 	display: flex;
 	flex-direction: column;
@@ -566,13 +733,50 @@ document.addEventListener('DOMContentLoaded', function() {
 			syncSeriesStakeTimerSwitch();
 		});
 	}
-	var helpBtn = document.getElementById('seriesStakeHelpBtn');
-	var helpOverlay = document.getElementById('seriesStakeHelpOverlay');
-	var helpClose = document.getElementById('seriesStakeHelpClose');
-	if (helpBtn && helpOverlay) {
-		helpBtn.addEventListener('click', function() { helpOverlay.classList.add('is-open'); });
-		if (helpClose) helpClose.addEventListener('click', function() { helpOverlay.classList.remove('is-open'); });
-		helpOverlay.addEventListener('click', function(e) { if (e.target === helpOverlay) helpOverlay.classList.remove('is-open'); });
+	var seriesStakeHelpHub = document.getElementById('seriesStakeHelpHubOverlay');
+	var seriesStakeHelpBtn = document.getElementById('seriesStakeHelpBtn');
+	var seriesStakeHelpHubClose = document.getElementById('seriesStakeHelpHubClose');
+	function seriesStakeHelpHubResetToTask() {
+		if (!seriesStakeHelpHub) return;
+		var tabs = seriesStakeHelpHub.querySelectorAll('.series-stake-doc-tab');
+		var panels = seriesStakeHelpHub.querySelectorAll('.series-stake-doc-panel');
+		tabs.forEach(function(t, i) { t.classList.toggle('is-active', i === 0); });
+		panels.forEach(function(p, i) { p.classList.toggle('is-active', i === 0); });
+	}
+	function openSeriesStakeHelpHub() {
+		if (!seriesStakeHelpHub) return;
+		seriesStakeHelpHubResetToTask();
+		seriesStakeHelpHub.classList.add('is-open');
+		seriesStakeHelpHub.setAttribute('aria-hidden', 'false');
+	}
+	function closeSeriesStakeHelpHub() {
+		if (!seriesStakeHelpHub) return;
+		seriesStakeHelpHub.classList.remove('is-open');
+		seriesStakeHelpHub.setAttribute('aria-hidden', 'true');
+	}
+	if (seriesStakeHelpBtn && seriesStakeHelpHub) {
+		seriesStakeHelpBtn.addEventListener('click', openSeriesStakeHelpHub);
+	}
+	if (seriesStakeHelpHubClose && seriesStakeHelpHub) {
+		seriesStakeHelpHubClose.addEventListener('click', closeSeriesStakeHelpHub);
+	}
+	if (seriesStakeHelpHub) {
+		seriesStakeHelpHub.addEventListener('click', function(e) {
+			if (e.target === seriesStakeHelpHub) closeSeriesStakeHelpHub();
+		});
+		seriesStakeHelpHub.querySelectorAll('.series-stake-doc-tab').forEach(function(tab) {
+			tab.addEventListener('click', function() {
+				var panelId = tab.getAttribute('data-doc-panel');
+				var panel = panelId && document.getElementById(panelId);
+				if (!panel || !seriesStakeHelpHub.contains(panel)) return;
+				seriesStakeHelpHub.querySelectorAll('.series-stake-doc-tab').forEach(function(t) {
+					t.classList.toggle('is-active', t === tab);
+				});
+				seriesStakeHelpHub.querySelectorAll('.series-stake-doc-panel').forEach(function(p) {
+					p.classList.toggle('is-active', p === panel);
+				});
+			});
+		});
 	}
 	var settingsBtn = document.getElementById('seriesStakeSettingsBtn');
 	var settingsOverlay = document.getElementById('seriesStakeSettingsOverlay');

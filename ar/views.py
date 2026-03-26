@@ -1012,16 +1012,26 @@ def ar_series_stake(request):
             message = 'Для этой серии проверка ещё не настроена.'
             success = False
         else:
-            try:
-                user_igraet = int(request.POST.get('igraet_po', '').replace(' ', ''))
-            except (TypeError, ValueError):
-                user_igraet = None
-            try:
-                user_sdacha = int(request.POST.get('sdacha', '').replace(' ', ''))
-            except (TypeError, ValueError):
-                user_sdacha = None
-            if user_igraet is None or user_sdacha is None:
-                message = 'Введите «играет по» и «сдачу»'
+            raw_ig = (request.POST.get('igraet_po') or '').replace(' ', '')
+            raw_sd = (request.POST.get('sdacha') or '').replace(' ', '')
+            user_igraet = None
+            if raw_ig != '':
+                try:
+                    user_igraet = int(raw_ig)
+                except (TypeError, ValueError):
+                    user_igraet = None
+            if raw_sd == '':
+                user_sdacha = 0
+            else:
+                try:
+                    user_sdacha = int(raw_sd)
+                except (TypeError, ValueError):
+                    user_sdacha = None
+            if user_igraet is None:
+                message = 'Введите «играет по»'
+                success = False
+            elif user_sdacha is None:
+                message = 'Некорректное значение «сдача»'
                 success = False
             elif user_igraet == correct_plays and user_sdacha == correct_sdacha:
                 message = 'Правильно!'
