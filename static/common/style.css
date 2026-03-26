@@ -960,13 +960,18 @@ main h2 {
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
   z-index: 100;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 20px;
+  padding: max(12px, env(safe-area-inset-top, 0px)) 16px max(12px, env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
 }
 
 .payout-settings-overlay.is-open {
   display: flex;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .payout-settings-modal {
@@ -976,6 +981,30 @@ main h2 {
   max-width: 360px;
   width: 100%;
   box-shadow: var(--shadow-strong);
+  flex-shrink: 0;
+  max-height: min(92vh, calc(100svh - 2rem));
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: auto;
+}
+
+@supports (height: 100dvh) {
+  .payout-settings-modal {
+    max-height: min(92dvh, calc(100dvh - 2rem));
+  }
+}
+
+/* Страница под модалкой не скроллится (телефоны) */
+@supports selector(:has(*)) {
+  html:has(.payout-settings-overlay.is-open),
+  body:has(.payout-settings-overlay.is-open) {
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
 }
 
 .payout-settings-title {
