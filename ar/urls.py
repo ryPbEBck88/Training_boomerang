@@ -7,6 +7,7 @@ urlpatterns = [
     path('series/', views.ar_series, name='ar_series'),
     path('neighbors/', views.ar_neighbors, name='ar_neighbors'),
     path('completes/', views.ar_completes, name='ar_completes'),
+    path('completes-intersection/', views.ar_completes_intersection, name='ar_completes_intersection'),
     path('series-stake/', views.ar_series_stake, name='ar_series_stake'),
     path('ar_bets/', views.ar_bets, name='ar_bets'),
     path('roulette/', views.ar_roulette, name='ar_roulette'),

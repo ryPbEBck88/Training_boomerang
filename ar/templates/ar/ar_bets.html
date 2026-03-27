@@ -199,7 +199,7 @@
 <div class="payout-settings-fields">
 <div class="ar-canvas-wrap">
 	<canvas id="ar-canvas"></canvas>
-	<div class="ar-rotate-hint" aria-hidden="true">
+	<div class="ar-rotate-hint ar-rotate-hint--hidden" aria-hidden="true">
 		<span class="ar-rotate-hint__icon">👆</span>
 		<span class="ar-rotate-hint__arrows">↔</span>
 		<span class="ar-rotate-hint__text">Нажми и води</span>
@@ -275,9 +275,7 @@
 		</div>
 	</div>
 </div>
-{% if timer_enabled %}
 {% include "partials/fuse_timer.html" with prefix="ar-bets" %}
-{% endif %}
 <div class="ar-answer-row" style="margin-top: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
 	<div class="ar-answer-left" style="display: flex; align-items: center; gap: 12px;">
 		<input type="number" id="user-answer" min="0" step="1" placeholder="ответ" style="width: 100px; padding: 8px 12px;">
@@ -380,6 +378,12 @@ try {
 	const hintsStored = getCookie('ar_hints_disabled') || localStorage.getItem('ar_hints_disabled');
 	arHintsDisabled = hintsStored === '1' || hintsStored === 'true';
 } catch (_) {}
+
+/* Применяем настройку подсказки до инициализации сцены, чтобы исключить мигание. */
+var initialRotateHint = document.querySelector('.ar-rotate-hint');
+if (initialRotateHint) {
+	initialRotateHint.classList.toggle('ar-rotate-hint--hidden', arHintsDisabled);
+}
 
 var containerW = canvas.parentElement ? canvas.parentElement.clientWidth : 0;
 var containerH = canvas.parentElement ? canvas.parentElement.clientHeight : 0;
@@ -1225,7 +1229,7 @@ function doSpawn() {
 			/* настройки текстуры — можно менять: */
 			tex.wrapS = tex.wrapT = THREE.RepeatWrapping;  /* или ClampToEdgeWrapping */
 			tex.repeat.set(1, 0.96);   /* масштаб: 1 = как есть, <1 растягивает, >1 сжимает */
-		tex.offset.set(0 , 1);  /* смещение в долях (0..1) */
+		tex.offset.set(0 , 1);  /* смещение в долх (0..1) */
 			runSpawns(new THREE.MeshBasicMaterial({ map: tex }));
 		}, undefined, function () {
 			runSpawns(new THREE.MeshStandardMaterial({ color: 0xdc2626 }));

@@ -19,6 +19,7 @@
 .home-splash__card--ar-neighbors .home-splash__card-img { background-image: url('{% static "images/ar/neighbors.png" %}'); background-color: #1e3a5f; }
 .home-splash__card--ar-mix .home-splash__card-img { background-image: url('{% static "images/ar/mix.png" %}'); background-color: #5a3d7a; }
 .home-splash__card--ar-completes .home-splash__card-img { background-image: url('{% static "images/ar/completes.jpg" %}');background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); }
+.home-splash__card--ar-completes-intersection .home-splash__card-img { background: linear-gradient(135deg, #6366f1 0%, #a21caf 50%, #7c3aed 100%); }
 .home-splash__card--ar-series-stake .home-splash__card-img { background: linear-gradient(135deg, #7c2d12 0%, #9a3412 100%); }
 </style>
 {% endblock %}
@@ -176,6 +177,18 @@
 				<summary class="home-splash__details-summary">Описание</summary>
 				<div class="home-splash__game-desc">
 					<p>Выпал номер, комплит по номиналу. Введите выплату.</p>
+				</div>
+			</details>
+		</div>
+		<div class="home-splash__game-wrap">
+			<a href="{% url 'ar_completes_intersection' %}" class="home-splash__card home-splash__card--ar-completes-intersection">
+				<span class="home-splash__card-img"></span>
+				<span class="home-splash__card-label">Пересечение комплитов</span>
+			</a>
+			<details class="home-splash__details">
+				<summary class="home-splash__details-summary">Описание</summary>
+				<div class="home-splash__game-desc">
+					<p>Тренажёр в разработке.</p>
 				</div>
 			</details>
 		</div>

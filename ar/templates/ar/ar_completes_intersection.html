@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Пересечение комплитов{% endblock %}
+
+{% block content %}
+<h1>Пересечение комплитов</h1>
+<p><a href="{% url 'ar_index' %}">← AR</a></p>
+
+<div class="ar-canvas-wrap">
+	<canvas id="ar-completes-intersection-canvas"></canvas>
+	<div class="ar-rotate-hint" aria-hidden="true">
+		<span class="ar-rotate-hint__icon">👆</span>
+		<span class="ar-rotate-hint__arrows">↔</span>
+		<span class="ar-rotate-hint__text">Нажми и води</span>
+	</div>
+	<button type="button" class="payout-settings-btn ar-settings-btn ar-camera-reset-btn" id="ar-ci-camera-reset" title="Сбросить камеру" aria-label="Сбросить камеру">
+		<svg class="payout-settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+			<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+			<circle cx="12" cy="13" r="4"/>
+		</svg>
+	</button>
+</div>
+
+<script type="importmap">
+{"imports":{
+	"three":"https://unpkg.com/three@0.160.0/build/three.module.js",
+	"three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/",
+	"ar-ci-field":"{% static 'js/ar_roulette_field_view.mjs' %}"
+}}
+</script>
+<script type="module">
+import { mountArRouletteField } from 'ar-ci-field';
+const canvas = document.getElementById('ar-completes-intersection-canvas');
+const api = mountArRouletteField(canvas);
+const btn = document.getElementById('ar-ci-camera-reset');
+if (btn && api) {
+	btn.addEventListener('click', function () {
+		api.resetCamera();
+	});
+}
+</script>
+{% endblock %}

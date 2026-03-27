@@ -57,6 +57,15 @@
 						</label>
 						{% endfor %}
 					</div>
+					<div class="series-stake-params-block">
+						<div class="series-stake-params-heading">Таймер</div>
+						<div class="series-stake-timer-settings" role="group" aria-labelledby="completesTimerLabel">
+							<span class="series-stake-timer-settings-hint" id="completesTimerLabel">Таймер</span>
+							<button type="button" class="series-stake-timer-switch{% if timer_enabled %} is-on{% endif %}" id="completesTimerSwitch" role="switch" aria-checked="{% if timer_enabled %}true{% else %}false{% endif %}" aria-labelledby="completesTimerLabel"></button>
+							<input type="hidden" name="timer_enabled" id="completesTimerEnabled" value="{% if timer_enabled %}1{% else %}0{% endif %}">
+							<label class="series-stake-timer-sec"><span class="series-stake-timer-sec-lbl">сек</span><input type="number" name="timer_seconds" class="series-stake-timer-sec-input series-stake-param-input" min="1" max="120" value="{{ timer_seconds }}" inputmode="numeric" title="Секунд до автопроверки" aria-label="Секунд до автопроверки"></label>
+						</div>
+					</div>
 				</div>
 				<div class="payout-settings-actions">
 					<button type="submit" class="btn btn-primary">Сохранить</button>
@@ -65,6 +74,11 @@
 			</form>
 		</div>
 	</div>
+	{% if timer_enabled and success is None and not skipped %}
+	<div class="series-stake-ux-width series-stake-fuse-wrap">
+		{% include "partials/fuse_timer.html" with prefix="ar-completes" %}
+	</div>
+	{% endif %}
 
 	<div class="neighbors-help-overlay series-stake-doc-hub-overlay" id="completesHelpOverlay" aria-hidden="true">
 		<div class="neighbors-help-modal series-stake-doc-modal series-stake-doc-hub">
@@ -419,6 +433,76 @@
 	color: var(--text);
 	box-sizing: border-box;
 }
+.series-stake-timer-settings {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	flex-wrap: wrap;
+	margin-bottom: 0;
+}
+.series-stake-timer-settings-hint {
+	font-size: 0.875rem;
+	font-weight: 500;
+	color: var(--text-muted, #64748b);
+	flex: 1 1 auto;
+	min-width: 0;
+}
+.series-stake-timer-switch {
+	position: relative;
+	flex-shrink: 0;
+	width: 48px;
+	height: 28px;
+	padding: 0;
+	border: none;
+	border-radius: 14px;
+	background: #cbd5e1;
+	box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.2);
+	cursor: pointer;
+	transition: background 0.22s ease, box-shadow 0.22s ease;
+	-webkit-tap-highlight-color: transparent;
+}
+.series-stake-timer-switch::after {
+	content: '';
+	position: absolute;
+	top: 3px;
+	left: 3px;
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	background: #fff;
+	box-shadow: 0 1px 4px rgba(15, 23, 42, 0.25);
+	transition: transform 0.24s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s;
+}
+.series-stake-timer-switch.is-on {
+	background: linear-gradient(180deg, #34d399 0%, #059669 100%);
+	box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.35), 0 0 0 1px rgba(5, 150, 105, 0.35);
+}
+.series-stake-timer-switch.is-on::after {
+	transform: translateX(20px);
+}
+.series-stake-timer-switch:focus-visible {
+	outline: 2px solid #3b82f6;
+	outline-offset: 2px;
+}
+.series-stake-timer-sec {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0;
+	flex-shrink: 0;
+}
+.series-stake-timer-sec-lbl {
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: var(--text-muted, #64748b);
+}
+.series-stake-timer-sec-input {
+	width: 4rem !important;
+	max-width: none !important;
+	min-height: 2.25rem !important;
+	text-align: center !important;
+}
 /* Справка */
 #completesHelpOverlay.neighbors-help-overlay {
 	display: none;
@@ -493,6 +577,17 @@ document.addEventListener('DOMContentLoaded', function() {
 	var settingsBtn = document.getElementById('completesSettingsBtn');
 	var settingsOverlay = document.getElementById('completesSettingsOverlay');
 	var settingsClose = document.getElementById('completesSettingsClose');
+	var timerBtn = document.getElementById('completesTimerSwitch');
+	var timerHidden = document.getElementById('completesTimerEnabled');
+	if (timerBtn && timerHidden) {
+		timerBtn.addEventListener('click', function() {
+			var isOn = timerHidden.value === '1';
+			var next = !isOn;
+			timerHidden.value = next ? '1' : '0';
+			timerBtn.classList.toggle('is-on', next);
+			timerBtn.setAttribute('aria-checked', next ? 'true' : 'false');
+		});
+	}
 	if (settingsBtn && settingsOverlay) {
 		settingsBtn.addEventListener('click', function() { settingsOverlay.classList.add('is-open'); });
 		if (settingsClose) settingsClose.addEventListener('click', function() { settingsOverlay.classList.remove('is-open'); });
@@ -512,6 +607,16 @@ document.addEventListener('DOMContentLoaded', function() {
 			}
 		});
 	}
+	{% if timer_enabled and success is None and not skipped %}
+	if (typeof initFuseTimer === 'function') {
+		initFuseTimer({
+			prefix: 'ar-completes',
+			seconds: {{ timer_seconds }},
+			timeoutButton: 'button[name="action"][value="check"]',
+			settingsOverlay: '#completesSettingsOverlay'
+		});
+	}
+	{% endif %}
 });
 </script>
 <p class="payout-back"><a href="{% url 'ar_index' %}">← К списку игр</a></p>

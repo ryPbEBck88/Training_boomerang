@@ -67,6 +67,11 @@ def index(request):
     return render(request, 'ar/index.html')
 
 
+def ar_completes_intersection(request):
+    """Тренажёр «Пересечение комплитов»."""
+    return render(request, 'ar/ar_completes_intersection.html')
+
+
 def ar_series(request):
     """Серии на колесе: поле сверху, подсветка tiers / orphelins / voisins / jeu zéro."""
     return render(request, 'ar/ar_series.html')
@@ -256,6 +261,13 @@ def _selected_group_keys(selected_numbers):
 
 def ar_completes(request):
     """Комплиты: выпал номер N, комплит по X — ввести ставку и выплату."""
+    timer_enabled = bool(request.session.get('ar_completes_timer_enabled', True))
+    try:
+        timer_seconds = int(request.session.get('ar_completes_timer_seconds', 10))
+    except (TypeError, ValueError):
+        timer_seconds = 10
+    timer_seconds = max(1, min(120, timer_seconds))
+
     if request.method == 'POST' and request.POST.get('action') == 'settings':
         selected_d = []
         for d in COMPLETE_DENOMINATIONS_ALL:
@@ -285,6 +297,14 @@ def ar_completes(request):
             request.session['ar_complete_numbers'] = sorted(set(selected_n))
         else:
             request.session['ar_complete_numbers'] = list(range(37))
+        request.session['ar_completes_timer_enabled'] = (
+            request.POST.get('timer_enabled') == 'on'
+        )
+        try:
+            sec = int((request.POST.get('timer_seconds') or '').strip())
+        except (TypeError, ValueError):
+            sec = timer_seconds
+        request.session['ar_completes_timer_seconds'] = max(1, min(120, sec))
         return redirect(reverse('ar_completes'))
 
     denoms = _get_complete_denominations(request)
@@ -315,6 +335,8 @@ def ar_completes(request):
             'selected_numbers': numbers,
             'number_groups': COMPLETE_NUMBER_GROUPS,
             'selected_group_keys': _selected_group_keys(numbers),
+            'timer_enabled': timer_enabled,
+            'timer_seconds': timer_seconds,
         })
 
     number = request.session.get('ar_complete_number', 0)
@@ -368,6 +390,8 @@ def ar_completes(request):
         'selected_numbers': _get_complete_numbers(request),
         'number_groups': COMPLETE_NUMBER_GROUPS,
         'selected_group_keys': _selected_group_keys(_get_complete_numbers(request)),
+        'timer_enabled': timer_enabled,
+        'timer_seconds': timer_seconds,
     })
 
 
