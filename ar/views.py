@@ -2,9 +2,9 @@ import json
 import math
 import random
 import time
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
-from training.utils.timer import process_timer_settings
 
 
 MULTIPLIER_OPTIONS = [1, 2, 5, 10, 25, 50, 125]
@@ -77,29 +77,202 @@ def ar_series(request):
     return render(request, 'ar/ar_series.html')
 
 
+AR_BETS_TIMER_DEFAULT_SECONDS = 10
+AR_BETS_TIMER_SECONDS_MAX = 120
+AR_BETS_TIMER_FUSE_ANIM_DEFAULT = True
+
+AR_ROULETTE_TIMER_DEFAULT_SECONDS = 10
+AR_ROULETTE_TIMER_SECONDS_MAX = 120
+AR_ROULETTE_TIMER_FUSE_ANIM_DEFAULT = True
+
+
+def _get_ar_roulette_timer(request):
+    """Таймер «Цвет в cash»: отдельные ключи; fallback на глобальные timer_enabled/timer_seconds."""
+    raw_en = request.session.get('ar_roulette_timer_enabled')
+    if raw_en is None:
+        raw_en = request.session.get('timer_enabled', True)
+    if isinstance(raw_en, str):
+        enabled = raw_en.strip().lower() in ('1', 'true', 'on', 'yes')
+    else:
+        enabled = bool(raw_en)
+    sec = request.session.get('ar_roulette_timer_seconds')
+    if sec is None:
+        sec = request.session.get('timer_seconds', AR_ROULETTE_TIMER_DEFAULT_SECONDS)
+    sec = _clamp_int(
+        sec,
+        1,
+        AR_ROULETTE_TIMER_SECONDS_MAX,
+        AR_ROULETTE_TIMER_DEFAULT_SECONDS,
+    )
+    raw_fa = request.session.get('ar_roulette_timer_fuse_animation')
+    if raw_fa is None:
+        fuse_anim = AR_ROULETTE_TIMER_FUSE_ANIM_DEFAULT
+    elif isinstance(raw_fa, str):
+        fuse_anim = raw_fa.strip().lower() in ('1', 'true', 'on', 'yes')
+    else:
+        fuse_anim = bool(raw_fa)
+    return enabled, sec, fuse_anim
+
+
+AR_PTC_TIMER_DEFAULT_SECONDS = 10
+AR_PTC_TIMER_SECONDS_MAX = 120
+AR_PTC_TIMER_FUSE_ANIM_DEFAULT = True
+
+AR_NEIGHBORS_TIMER_DEFAULT_SECONDS = 10
+AR_NEIGHBORS_TIMER_SECONDS_MAX = 120
+AR_NEIGHBORS_TIMER_FUSE_ANIM_DEFAULT = True
+
+
+def _get_ar_neighbors_timer(request):
+    """Таймер «Соседи»: отдельные ключи; fallback на глобальные timer_enabled/timer_seconds."""
+    raw_en = request.session.get('ar_neighbors_timer_enabled')
+    if raw_en is None:
+        raw_en = request.session.get('timer_enabled', True)
+    if isinstance(raw_en, str):
+        enabled = raw_en.strip().lower() in ('1', 'true', 'on', 'yes')
+    else:
+        enabled = bool(raw_en)
+    sec = request.session.get('ar_neighbors_timer_seconds')
+    if sec is None:
+        sec = request.session.get('timer_seconds', AR_NEIGHBORS_TIMER_DEFAULT_SECONDS)
+    sec = _clamp_int(
+        sec,
+        1,
+        AR_NEIGHBORS_TIMER_SECONDS_MAX,
+        AR_NEIGHBORS_TIMER_DEFAULT_SECONDS,
+    )
+    raw_fa = request.session.get('ar_neighbors_timer_fuse_animation')
+    if raw_fa is None:
+        fuse_anim = AR_NEIGHBORS_TIMER_FUSE_ANIM_DEFAULT
+    elif isinstance(raw_fa, str):
+        fuse_anim = raw_fa.strip().lower() in ('1', 'true', 'on', 'yes')
+    else:
+        fuse_anim = bool(raw_fa)
+    return enabled, sec, fuse_anim
+
+
+def _get_ar_ptc_timer(request):
+    """Таймер «Выплата через cash»: отдельные ключи; fallback на глобальные timer_enabled/timer_seconds."""
+    raw_en = request.session.get('ar_ptc_timer_enabled')
+    if raw_en is None:
+        raw_en = request.session.get('timer_enabled', True)
+    if isinstance(raw_en, str):
+        enabled = raw_en.strip().lower() in ('1', 'true', 'on', 'yes')
+    else:
+        enabled = bool(raw_en)
+    sec = request.session.get('ar_ptc_timer_seconds')
+    if sec is None:
+        sec = request.session.get('timer_seconds', AR_PTC_TIMER_DEFAULT_SECONDS)
+    sec = _clamp_int(
+        sec,
+        1,
+        AR_PTC_TIMER_SECONDS_MAX,
+        AR_PTC_TIMER_DEFAULT_SECONDS,
+    )
+    raw_fa = request.session.get('ar_ptc_timer_fuse_animation')
+    if raw_fa is None:
+        fuse_anim = AR_PTC_TIMER_FUSE_ANIM_DEFAULT
+    elif isinstance(raw_fa, str):
+        fuse_anim = raw_fa.strip().lower() in ('1', 'true', 'on', 'yes')
+    else:
+        fuse_anim = bool(raw_fa)
+    return enabled, sec, fuse_anim
+
+
+def _get_ar_bets_timer(request):
+    """Таймер заставок: отдельные ключи сессии; fallback на старые timer_enabled/timer_seconds."""
+    raw_en = request.session.get('ar_bets_timer_enabled')
+    if raw_en is None:
+        raw_en = request.session.get('timer_enabled', True)
+    if isinstance(raw_en, str):
+        enabled = raw_en.strip().lower() in ('1', 'true', 'on', 'yes')
+    else:
+        enabled = bool(raw_en)
+    sec = request.session.get('ar_bets_timer_seconds')
+    if sec is None:
+        sec = request.session.get('timer_seconds', AR_BETS_TIMER_DEFAULT_SECONDS)
+    sec = _clamp_int(
+        sec,
+        1,
+        AR_BETS_TIMER_SECONDS_MAX,
+        AR_BETS_TIMER_DEFAULT_SECONDS,
+    )
+    raw_fa = request.session.get('ar_bets_timer_fuse_animation')
+    if raw_fa is None:
+        fuse_anim = AR_BETS_TIMER_FUSE_ANIM_DEFAULT
+    elif isinstance(raw_fa, str):
+        fuse_anim = raw_fa.strip().lower() in ('1', 'true', 'on', 'yes')
+    else:
+        fuse_anim = bool(raw_fa)
+    return enabled, sec, fuse_anim
+
+
 def ar_bet_reveal(request):
     """Тренажёр: стопки на поле — клик в порядке раскрытия (напр. выигрышное число 5)."""
-    timer_enabled = request.session.get('timer_enabled', True)
-    timer_seconds = request.session.get('timer_seconds', 10)
+    t_en, t_sec, _ = _get_ar_bets_timer(request)
     return render(request, 'ar/ar_bet_reveal.html', {
-        'timer_enabled': timer_enabled,
-        'timer_seconds': timer_seconds,
+        'timer_enabled': t_en,
+        'timer_seconds': t_sec,
     })
 
 
 def ar_bets(request):
     mix_mode = request.GET.get('mode') == 'mix'
-    timer_enabled = request.session.get('timer_enabled', True)
-    timer_seconds = request.session.get('timer_seconds', 10)
+    if request.method == 'POST' and request.POST.get('action') == 'ar_bets_timer':
+        raw_te = request.POST.get('timer_enabled', '0')
+        request.session['ar_bets_timer_enabled'] = str(raw_te).strip() in (
+            '1',
+            'on',
+            'true',
+            'True',
+            'yes',
+        )
+        request.session['ar_bets_timer_seconds'] = _clamp_int(
+            request.POST.get('timer_seconds'),
+            1,
+            AR_BETS_TIMER_SECONDS_MAX,
+            AR_BETS_TIMER_DEFAULT_SECONDS,
+        )
+        raw_fa = request.POST.get('timer_fuse_animation', '0')
+        request.session['ar_bets_timer_fuse_animation'] = str(raw_fa).strip() in (
+            '1',
+            'on',
+            'true',
+            'True',
+            'yes',
+        )
+        return JsonResponse({'ok': True})
+    t_en, t_sec, t_fuse = _get_ar_bets_timer(request)
     return render(request, 'ar/ar_bets.html', {
         'mix_mode': mix_mode,
-        'timer_enabled': timer_enabled,
-        'timer_seconds': timer_seconds,
+        'timer_enabled': t_en,
+        'timer_seconds': t_sec,
+        'timer_fuse_animation': t_fuse,
     })
 
 
 def ar_neighbors(request):
     """Соседи: 5 ячеек, центр 0–36, ввести 4 соседа по колесу. По часовой — чек, против — почти чек."""
+    if request.method == 'POST' and request.POST.get('action') == 'neighbors_timer_settings':
+        request.session['ar_neighbors_timer_enabled'] = (
+            request.POST.get('timer_enabled') == 'on'
+        )
+        request.session['ar_neighbors_timer_seconds'] = _clamp_int(
+            request.POST.get('timer_seconds'),
+            1,
+            AR_NEIGHBORS_TIMER_SECONDS_MAX,
+            AR_NEIGHBORS_TIMER_DEFAULT_SECONDS,
+        )
+        raw_fa = request.POST.get('timer_fuse_animation', '0')
+        request.session['ar_neighbors_timer_fuse_animation'] = str(raw_fa).strip() in (
+            '1',
+            'on',
+            'true',
+            'True',
+            'yes',
+        )
+        return redirect('ar_neighbors')
+
     if request.method == 'GET' or (request.method == 'POST' and request.POST.get('action') == 'next'):
         center = random.randint(0, 36)
         ccw2, ccw1, cw1, cw2 = _wheel_neighbors(center)
@@ -108,6 +281,8 @@ def ar_neighbors(request):
         request.session['ar_neighbors_ccw1'] = ccw1
         request.session['ar_neighbors_cw1'] = cw1
         request.session['ar_neighbors_cw2'] = cw2
+        request.session['ar_neighbors_round_started_at'] = time.time()
+        t_en, t_sec, t_fuse = _get_ar_neighbors_timer(request)
         return render(request, 'ar/ar_neighbors.html', {
             'center': center,
             'message': '',
@@ -117,6 +292,10 @@ def ar_neighbors(request):
             'user_cell2': '',
             'user_cell4': '',
             'user_cell5': '',
+            'timer_enabled': t_en,
+            'timer_seconds': t_sec,
+            'timer_fuse_animation': t_fuse,
+            'solve_seconds': None,
         })
 
     center = request.session.get('ar_neighbors_center', 0)
@@ -129,6 +308,7 @@ def ar_neighbors(request):
     message = ''
     success = None
     skipped = False
+    solve_seconds = None
 
     def _parse_cell(val):
         try:
@@ -147,7 +327,6 @@ def ar_neighbors(request):
         u4 = _parse_cell(request.POST.get('cell4'))
         u5 = _parse_cell(request.POST.get('cell5'))
         if u1 is None or u2 is None or u4 is None or u5 is None:
-            message = "Введите все 4 числа"
             success = None
         else:
             # Стандартный порядок (чек): [CCW2, CCW1, center, CW1, CW2] — напр. 26 0 32 15 19
@@ -168,6 +347,23 @@ def ar_neighbors(request):
                 message = ""
                 success = False
 
+    if request.POST.get('action') == 'check' and success in ('full', 'almost'):
+        t0 = request.session.get('ar_neighbors_round_started_at')
+        if t0 is not None:
+            try:
+                elapsed = max(0.0, time.time() - float(t0))
+                solve_seconds = round(elapsed, 1)
+                t_en_rt, t_lim_rt, _ = _get_ar_neighbors_timer(request)
+                if (
+                    t_en_rt
+                    and t_lim_rt is not None
+                    and elapsed > float(t_lim_rt)
+                ):
+                    solve_seconds = None
+            except (TypeError, ValueError):
+                solve_seconds = None
+
+    t_en, t_sec, t_fuse = _get_ar_neighbors_timer(request)
     return render(request, 'ar/ar_neighbors.html', {
         'center': center,
         'message': message,
@@ -177,6 +373,10 @@ def ar_neighbors(request):
         'user_cell2': request.POST.get('cell2', ''),
         'user_cell4': request.POST.get('cell4', ''),
         'user_cell5': request.POST.get('cell5', ''),
+        'timer_enabled': t_en,
+        'timer_seconds': t_sec,
+        'timer_fuse_animation': t_fuse,
+        'solve_seconds': solve_seconds,
     })
 
 
@@ -267,6 +467,7 @@ def ar_completes(request):
     except (TypeError, ValueError):
         timer_seconds = 10
     timer_seconds = max(1, min(120, timer_seconds))
+    timer_fuse_animation = bool(request.session.get('ar_completes_timer_fuse_animation', True))
 
     if request.method == 'POST' and request.POST.get('action') == 'settings':
         selected_d = []
@@ -305,6 +506,14 @@ def ar_completes(request):
         except (TypeError, ValueError):
             sec = timer_seconds
         request.session['ar_completes_timer_seconds'] = max(1, min(120, sec))
+        raw_fa = request.POST.get('timer_fuse_animation', '0')
+        request.session['ar_completes_timer_fuse_animation'] = str(raw_fa).strip() in (
+            '1',
+            'on',
+            'true',
+            'True',
+            'yes',
+        )
         return redirect(reverse('ar_completes'))
 
     denoms = _get_complete_denominations(request)
@@ -319,6 +528,7 @@ def ar_completes(request):
         request.session['ar_complete_denom'] = denom
         request.session['ar_complete_total'] = total
         request.session['ar_complete_payout'] = payout
+        request.session['ar_completes_round_started_at'] = time.time()
         c_inp, c_on = _ar_completes_denom_ui(request, denoms)
         return render(request, 'ar/ar_completes.html', {
             'number': number,
@@ -337,6 +547,8 @@ def ar_completes(request):
             'selected_group_keys': _selected_group_keys(numbers),
             'timer_enabled': timer_enabled,
             'timer_seconds': timer_seconds,
+            'timer_fuse_animation': timer_fuse_animation,
+            'solve_seconds': None,
         })
 
     number = request.session.get('ar_complete_number', 0)
@@ -346,6 +558,7 @@ def ar_completes(request):
     message = ''
     success = None
     skipped = False
+    solve_seconds = None
 
     if request.POST.get('action') == 'skip':
         message = f'Пропущено. Ставка: {correct_total}, выплата: {correct_payout}'
@@ -373,6 +586,20 @@ def ar_completes(request):
             message = f'Нет. Правильно: {", ".join(errors)}'
             success = False
 
+    if request.POST.get('action') == 'check' and success is True:
+        t0 = request.session.get('ar_completes_round_started_at')
+        if t0 is not None:
+            try:
+                elapsed = max(0.0, time.time() - float(t0))
+                solve_seconds = round(elapsed, 1)
+                if (
+                    timer_enabled
+                    and elapsed > float(timer_seconds)
+                ):
+                    solve_seconds = None
+            except (TypeError, ValueError):
+                solve_seconds = None
+
     denoms_ctx = _get_complete_denominations(request)
     c_inp, c_on = _ar_completes_denom_ui(request, denoms_ctx)
     return render(request, 'ar/ar_completes.html', {
@@ -392,6 +619,8 @@ def ar_completes(request):
         'selected_group_keys': _selected_group_keys(_get_complete_numbers(request)),
         'timer_enabled': timer_enabled,
         'timer_seconds': timer_seconds,
+        'timer_fuse_animation': timer_fuse_animation,
+        'solve_seconds': solve_seconds,
     })
 
 
@@ -412,6 +641,7 @@ SERIES_STAKE_DEFAULT_STAKE_STEP = 5
 SERIES_STAKE_TIMER_DEFAULT_ENABLED = True
 SERIES_STAKE_TIMER_DEFAULT_SECONDS = 30
 SERIES_STAKE_TIMER_SECONDS_MAX = 120
+SERIES_STAKE_TIMER_FUSE_ANIM_DEFAULT = True
 
 # Границы суммы ставки по серии: min = min_серии × первый множитель, max = max_номера × второй.
 SERIES_STAKE_BET_BOUNDS_SMP = {
@@ -488,6 +718,17 @@ def _get_series_stake_timer(request):
         SERIES_STAKE_TIMER_DEFAULT_SECONDS,
     )
     return enabled, sec
+
+
+def _get_series_stake_timer_fuse_animation(request):
+    """Анимация горящего фитиля при включённом таймере (логика отсчёта та же)."""
+    raw = request.session.get(
+        'ar_series_stake_timer_fuse_animation',
+        SERIES_STAKE_TIMER_FUSE_ANIM_DEFAULT,
+    )
+    if isinstance(raw, str):
+        return raw.strip().lower() in ('1', 'true', 'on', 'yes')
+    return bool(raw)
 
 
 def _get_series_stake_ar_params(request):
@@ -660,6 +901,7 @@ def _series_stake_template_ctx(request, extra=None):
         SERIES_STAKE_SERIES_LABEL.get(round_sk) if round_sk else None
     )
     t_en, t_sec = _get_series_stake_timer(request)
+    t_fuse_anim = _get_series_stake_timer_fuse_animation(request)
     ctx = {
         'ar_presets': SERIES_STAKE_AR_PRESETS,
         'ar_custom_value': SERIES_STAKE_AR_CUSTOM,
@@ -681,6 +923,7 @@ def _series_stake_template_ctx(request, extra=None):
         'selected_series_mode': _get_series_stake_series_mode(request),
         'timer_enabled': t_en,
         'timer_seconds': t_sec,
+        'timer_fuse_animation': t_fuse_anim,
         'solve_seconds': None,
     }
     if extra:
@@ -1009,6 +1252,14 @@ def ar_series_stake(request):
             SERIES_STAKE_TIMER_SECONDS_MAX,
             SERIES_STAKE_TIMER_DEFAULT_SECONDS,
         )
+        raw_fa = request.POST.get('timer_fuse_animation', '0')
+        request.session['ar_series_stake_timer_fuse_animation'] = str(raw_fa).strip() in (
+            '1',
+            'on',
+            'true',
+            'True',
+            'yes',
+        )
         return redirect(reverse('ar_series_stake'))
 
     if request.method == 'GET' or (request.method == 'POST' and request.POST.get('action') == 'next'):
@@ -1121,10 +1372,13 @@ def ar_series_stake(request):
                 t0 = request.session.get('ar_series_stake_round_started_at')
                 if t0 is not None:
                     try:
-                        solve_seconds = round(
-                            max(0.0, time.time() - float(t0)),
-                            1,
-                        )
+                        elapsed = max(0.0, time.time() - float(t0))
+                        solve_seconds = round(elapsed, 1)
+                        t_en, t_lim = _get_series_stake_timer(request)
+                        # «Считали» только если уложились в лимит таймера; после таймаута —
+                        # успех возможен, но строку времени не показываем.
+                        if t_en and t_lim is not None and elapsed > float(t_lim):
+                            solve_seconds = None
                     except (TypeError, ValueError):
                         solve_seconds = None
             else:
@@ -1232,7 +1486,23 @@ def ar_roulette(request):
 
         request.session['ar_roulette_color_per_custom_input'] = custom_raw
         request.session['ar_roulette_color_per_custom_on'] = custom_on
-        process_timer_settings(request)
+        request.session['ar_roulette_timer_enabled'] = (
+            request.POST.get('timer_enabled') == 'on'
+        )
+        request.session['ar_roulette_timer_seconds'] = _clamp_int(
+            request.POST.get('timer_seconds'),
+            1,
+            AR_ROULETTE_TIMER_SECONDS_MAX,
+            AR_ROULETTE_TIMER_DEFAULT_SECONDS,
+        )
+        raw_fa = request.POST.get('timer_fuse_animation', '0')
+        request.session['ar_roulette_timer_fuse_animation'] = str(raw_fa).strip() in (
+            '1',
+            'on',
+            'true',
+            'True',
+            'yes',
+        )
         request.session['ar_roulette_min'] = min_val
         request.session['ar_roulette_max'] = max_val
         request.session['ar_roulette_step'] = step
@@ -1254,7 +1524,9 @@ def ar_roulette(request):
         multiplier = random.choice(multipliers)
         request.session['ar_roulette_current_number'] = number
         request.session['ar_roulette_current_multiplier'] = multiplier
+        request.session['ar_roulette_round_started_at'] = time.time()
         c_inp, c_on = _ar_roulette_color_per_ui(request, multipliers)
+        t_en, t_sec, t_fuse = _get_ar_roulette_timer(request)
         return render(request, 'ar/ar_roulette.html', {
             'number': number,
             'multiplier': multiplier,
@@ -1270,11 +1542,16 @@ def ar_roulette(request):
             'message': '',
             'success': None,
             'skipped': False,
+            'timer_enabled': t_en,
+            'timer_seconds': t_sec,
+            'timer_fuse_animation': t_fuse,
+            'solve_seconds': None,
         })
 
     message = ''
     success = None
     skipped = False
+    solve_seconds = None
     action = request.POST.get('action')
     user_answer = request.POST.get('user_answer', '').strip()
     correct = number * multiplier
@@ -1289,6 +1566,21 @@ def ar_roulette(request):
             if user_val == correct:
                 message = "Правильно!"
                 success = True
+                t0 = request.session.get('ar_roulette_round_started_at')
+                if t0 is not None:
+                    try:
+                        elapsed = max(0.0, time.time() - float(t0))
+                        solve_seconds = round(elapsed, 1)
+                        t_en_rt, t_lim_rt, _ = _get_ar_roulette_timer(request)
+                        # «Считали» только если уложились в лимит таймера
+                        if (
+                            t_en_rt
+                            and t_lim_rt is not None
+                            and elapsed > float(t_lim_rt)
+                        ):
+                            solve_seconds = None
+                    except (TypeError, ValueError):
+                        solve_seconds = None
             else:
                 message = f"Неправильно! Правильный ответ: {correct}"
                 success = False
@@ -1297,6 +1589,7 @@ def ar_roulette(request):
             success = False
 
     c_inp, c_on = _ar_roulette_color_per_ui(request, multipliers)
+    t_en, t_sec, t_fuse = _get_ar_roulette_timer(request)
     return render(request, 'ar/ar_roulette.html', {
         'number': number,
         'multiplier': multiplier,
@@ -1312,6 +1605,10 @@ def ar_roulette(request):
         'message': message,
         'success': success,
         'skipped': skipped,
+        'timer_enabled': t_en,
+        'timer_seconds': t_sec,
+        'timer_fuse_animation': t_fuse,
+        'solve_seconds': solve_seconds,
     })
 
 
@@ -1392,7 +1689,23 @@ def ar_payout_through_cash(request):
 
         request.session['ar_ptc_color_per_custom_input'] = custom_raw
         request.session['ar_ptc_color_per_custom_on'] = custom_on
-        process_timer_settings(request)
+        request.session['ar_ptc_timer_enabled'] = (
+            request.POST.get('timer_enabled') == 'on'
+        )
+        request.session['ar_ptc_timer_seconds'] = _clamp_int(
+            request.POST.get('timer_seconds'),
+            1,
+            AR_PTC_TIMER_SECONDS_MAX,
+            AR_PTC_TIMER_DEFAULT_SECONDS,
+        )
+        raw_fa = request.POST.get('timer_fuse_animation', '0')
+        request.session['ar_ptc_timer_fuse_animation'] = str(raw_fa).strip() in (
+            '1',
+            'on',
+            'true',
+            'True',
+            'yes',
+        )
         use_stacks = request.POST.get('ar_ptc_use_stacks') == 'on'
         request.session['ar_ptc_min'] = min_val
         request.session['ar_ptc_max'] = max_val
@@ -1469,7 +1782,9 @@ def ar_payout_through_cash(request):
         request.session['ar_ptc_color'] = color
         request.session['ar_ptc_color_per_val'] = color_per
         request.session['ar_ptc_cash'] = cash
+        request.session['ar_ptc_round_started_at'] = time.time()
         c_inp, c_on = _ar_ptc_color_per_ui(request, color_per_opts)
+        t_en, t_sec, t_fuse = _get_ar_ptc_timer(request)
         return render(request, 'ar/ar_payout_through_cash.html', {
             'color': color,
             'color_per': color_per,
@@ -1491,6 +1806,10 @@ def ar_payout_through_cash(request):
             'message': '',
             'success': None,
             'skipped': False,
+            'timer_enabled': t_en,
+            'timer_seconds': t_sec,
+            'timer_fuse_animation': t_fuse,
+            'solve_seconds': None,
         })
 
     message = ''
@@ -1550,7 +1869,25 @@ def ar_payout_through_cash(request):
                 message = f"Введите число. Правильный ответ: {correct}"
                 success = False
 
+    solve_seconds = None
+    if action == 'check' and success is True:
+        t0 = request.session.get('ar_ptc_round_started_at')
+        if t0 is not None:
+            try:
+                elapsed = max(0.0, time.time() - float(t0))
+                solve_seconds = round(elapsed, 1)
+                t_en_rt, t_lim_rt, _ = _get_ar_ptc_timer(request)
+                if (
+                    t_en_rt
+                    and t_lim_rt is not None
+                    and elapsed > float(t_lim_rt)
+                ):
+                    solve_seconds = None
+            except (TypeError, ValueError):
+                solve_seconds = None
+
     c_inp, c_on = _ar_ptc_color_per_ui(request, color_per_opts)
+    t_en, t_sec, t_fuse = _get_ar_ptc_timer(request)
     return render(request, 'ar/ar_payout_through_cash.html', {
         'color': color,
         'color_per': color_per,
@@ -1572,4 +1909,8 @@ def ar_payout_through_cash(request):
         'message': message,
         'success': success,
         'skipped': skipped,
+        'timer_enabled': t_en,
+        'timer_seconds': t_sec,
+        'timer_fuse_animation': t_fuse,
+        'solve_seconds': solve_seconds,
     })

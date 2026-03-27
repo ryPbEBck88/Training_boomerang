@@ -4,15 +4,21 @@
 {% block main_class %}payout-main{% endblock %}
 {% block content %}
 <div class="payout-screen">
-<div class="payout-page">
-	<div class="payout-header neighbors-header">
+<div class="payout-page payout-page--neighbors">
+	<div class="payout-header series-stake-header neighbors-header">
 		<button type="button" class="neighbors-help-btn" id="neighborsHelpBtn" aria-label="Справка" title="Справка">
-			<svg class="neighbors-help-icon" viewBox="0 0 24 24">
+			<svg class="neighbors-help-icon" viewBox="0 0 24 24" aria-hidden="true">
 				<circle cx="12" cy="12" r="10" fill="#2563eb"/>
 				<text x="12" y="17" text-anchor="middle" fill="white" font-size="14" font-weight="bold" font-family="system-ui,sans-serif">?</text>
 			</svg>
 		</button>
-		<div class="payout-bet neighbors-title">Соседи</div>
+		<div class="payout-bet series-stake-title neighbors-title">Соседи</div>
+		<button type="button" class="payout-settings-btn series-stake-settings-btn" id="neighborsSettingsBtn" title="Настройки" aria-label="Настройки">
+			<svg class="payout-settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+				<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
+			</svg>
+		</button>
 	</div>
 	<div class="neighbors-help-overlay" id="neighborsHelpOverlay" aria-hidden="true">
 		<div class="neighbors-help-modal">
@@ -20,6 +26,45 @@
 			<button type="button" class="btn btn-primary neighbors-help-close" id="neighborsHelpClose">Понятно</button>
 		</div>
 	</div>
+
+	<div class="payout-settings-overlay" id="neighborsSettingsOverlay">
+		<div class="payout-settings-modal series-stake-settings-modal">
+			<h3 class="payout-settings-title">Настройки</h3>
+			<form method="post" autocomplete="off" id="neighborsSettingsForm">
+				{% csrf_token %}
+				<input type="hidden" name="action" value="neighbors_timer_settings">
+				<div class="payout-settings-fields">
+					<div class="series-stake-timer-settings neighbors-settings-timer" role="group" aria-labelledby="neighborsTimerLabel">
+						<span class="series-stake-timer-settings-hint" id="neighborsTimerLabel">Таймер</span>
+						<button type="button" class="series-stake-timer-switch{% if timer_enabled %} is-on{% endif %}" id="neighborsTimerSwitch" role="switch" aria-checked="{% if timer_enabled %}true{% else %}false{% endif %}" aria-labelledby="neighborsTimerLabel"></button>
+						<input type="checkbox" name="timer_enabled" id="neighborsTimerCb" class="neighbors-sr-only" {% if timer_enabled %}checked{% endif %} tabindex="-1" aria-hidden="true">
+						<label class="series-stake-timer-sec"><span class="series-stake-timer-sec-lbl">сек</span><input type="number" name="timer_seconds" class="series-stake-timer-sec-input series-stake-param-input" min="1" max="120" value="{{ timer_seconds }}" inputmode="numeric" title="Секунд до автопроверки" aria-label="Секунд до автопроверки"></label>
+					</div>
+					<div class="series-stake-timer-settings series-stake-timer-settings--fuse neighbors-settings-fuse" id="neighborsFuseAnimRow" role="group" aria-labelledby="neighborsFuseAnimLabel">
+						<span class="series-stake-timer-settings-hint" id="neighborsFuseAnimLabel">Анимация фитиля</span>
+						<button type="button" class="series-stake-timer-switch{% if timer_fuse_animation %} is-on{% endif %}" id="neighborsFuseAnimSwitch" role="switch" aria-checked="{% if timer_fuse_animation %}true{% else %}false{% endif %}" aria-labelledby="neighborsFuseAnimLabel"></button>
+						<input type="hidden" name="timer_fuse_animation" id="neighborsFuseAnimEnabled" value="{% if timer_fuse_animation %}1{% else %}0{% endif %}">
+					</div>
+				</div>
+				<div class="payout-settings-actions">
+					<button type="submit" class="btn btn-primary">Сохранить</button>
+					<button type="button" class="btn btn-secondary" id="neighborsSettingsClose">Отмена</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	{% if timer_enabled and success is None and not skipped %}
+		{% if timer_fuse_animation %}
+		<div class="neighbors-fuse-wrap">
+			{% include "partials/fuse_timer.html" with prefix="ar-neighbors" %}
+		</div>
+		{% else %}
+		<div class="neighbors-fuse-fill-stub" aria-hidden="true">
+			<div id="ar-neighbors-fuse-fill" style="width:100%"></div>
+		</div>
+		{% endif %}
+	{% endif %}
 
 	<form method="post" autocomplete="off" class="payout-form neighbors-form">
 		{% csrf_token %}
@@ -85,6 +130,14 @@
 	</div>
 	{% endif %}
 
+	<div id="neighborsTimeupOverlay" class="payout-success-overlay self-draw-error-overlay" style="display: none;" aria-hidden="true">
+		<button type="button" class="payout-success-tap" id="neighborsTimeupClose" style="position:absolute;inset:0;border:none;background:transparent;cursor:pointer;" aria-label="Закрыть"></button>
+		<div class="self-draw-error-content">
+			<div class="payout-success-text self-draw-error-text">Время вышло!</div>
+			<small class="self-draw-error-hint">Нажмите, чтобы продолжить</small>
+		</div>
+	</div>
+
 	{% if success or skipped %}
 	<form method="post" class="payout-success-overlay" id="neighborsSuccessOverlay">
 		{% csrf_token %}
@@ -98,6 +151,7 @@
 		{% endif %}
 		<div class="payout-success-text">
 			{% if success == 'full' %}{% include "partials/payout_check_text.html" %}{% elif success == 'check' %}Правильно по часовой стрелке! ✓{% elif success == 'almost' %}👍 Почти! Правильно по часовой стрелке.{% else %}{{ message }}{% endif %}
+			{% if solve_seconds is not None %}<small class="neighbors-solve-time">Считали: {{ solve_seconds|floatformat:1 }} с</small>{% endif %}
 		</div>
 	</form>
 	{% endif %}
@@ -105,15 +159,28 @@
 </div>
 
 <style>
-.neighbors-header {
+.payout-main .main-card:has(.payout-page--neighbors) {
+	padding-top: 14px;
+}
+.payout-page.payout-page--neighbors {
+	padding-top: 46px;
+}
+.payout-page--neighbors .payout-header.series-stake-header {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	position: relative;
+	top: auto;
+	left: auto;
+	right: auto;
 	gap: 0.5rem;
 	min-height: 2.5rem;
+	padding: 0 48px;
+	box-sizing: border-box;
+	width: 100%;
+	margin-bottom: 0;
 }
-.neighbors-help-btn {
+.payout-page--neighbors .payout-header .neighbors-help-btn {
 	position: absolute;
 	left: 0;
 	background: none;
@@ -124,13 +191,169 @@
 	align-items: center;
 	justify-content: center;
 }
+.payout-page--neighbors .payout-header.series-stake-header .series-stake-settings-btn {
+	position: absolute;
+	right: 0;
+	width: 40px;
+	height: 40px;
+	padding: 0;
+	box-sizing: border-box;
+	border: none;
+	background: transparent;
+	color: var(--accent, #2563eb);
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	-webkit-tap-highlight-color: transparent;
+}
+.payout-page--neighbors .payout-header.series-stake-header .series-stake-settings-btn:hover {
+	color: var(--accent-hover, #1d4ed8);
+	background: rgba(37, 99, 235, 0.08);
+	border-radius: var(--radius-sm, 8px);
+}
 .neighbors-help-icon {
 	width: 28px;
 	height: 28px;
 	display: block;
 }
-.neighbors-help-btn:hover .neighbors-help-icon circle { fill: #1d4ed8; }
+.payout-page--neighbors .neighbors-help-btn:hover .neighbors-help-icon circle { fill: #1d4ed8; }
+.payout-page--neighbors .payout-header .payout-settings-icon {
+	width: 24px;
+	height: 24px;
+	display: block;
+}
 .neighbors-title { margin: 0; text-align: center; }
+.neighbors-fuse-wrap {
+	margin: 0.35rem auto 0.5rem;
+	max-width: 340px;
+	width: 100%;
+}
+.neighbors-fuse-wrap .fuse-timer {
+	width: 100%;
+	max-width: none;
+	margin: 0;
+}
+.neighbors-solve-time {
+	display: block;
+	margin-top: 0.65rem;
+	font-size: 1rem;
+	font-weight: 600;
+	opacity: 0.95;
+}
+.neighbors-fuse-fill-stub {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+.neighbors-sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+.series-stake-settings-modal { max-width: 380px; }
+#neighborsSettingsOverlay .series-stake-timer-settings {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	flex-wrap: wrap;
+	margin: 0 0 10px;
+}
+#neighborsSettingsOverlay .neighbors-settings-timer {
+	margin-top: 0;
+	padding-top: 0;
+	border-top: none;
+	margin-bottom: 0;
+}
+#neighborsSettingsOverlay .neighbors-settings-fuse {
+	margin-top: 4px;
+	margin-bottom: 10px;
+}
+#neighborsSettingsOverlay .series-stake-timer-settings--fuse.is-inactive {
+	opacity: 0.45;
+	pointer-events: none;
+}
+#neighborsSettingsOverlay .series-stake-timer-settings-hint {
+	font-size: 0.875rem;
+	font-weight: 500;
+	color: var(--text-muted, #64748b);
+	flex: 1 1 auto;
+	min-width: 0;
+}
+#neighborsSettingsOverlay .series-stake-timer-switch {
+	position: relative;
+	flex-shrink: 0;
+	width: 48px;
+	height: 28px;
+	padding: 0;
+	border: none;
+	border-radius: 14px;
+	background: #cbd5e1;
+	box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.2);
+	cursor: pointer;
+	transition: background 0.22s ease, box-shadow 0.22s ease;
+	-webkit-tap-highlight-color: transparent;
+}
+#neighborsSettingsOverlay .series-stake-timer-switch::after {
+	content: '';
+	position: absolute;
+	top: 3px;
+	left: 3px;
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	background: #fff;
+	box-shadow: 0 1px 4px rgba(15, 23, 42, 0.25);
+	transition: transform 0.24s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s;
+}
+#neighborsSettingsOverlay .series-stake-timer-switch.is-on {
+	background: linear-gradient(180deg, #34d399 0%, #059669 100%);
+	box-shadow: inset 0 1px 2px rgba(255,255,255,0.35), 0 0 0 1px rgba(5, 150, 105, 0.35);
+}
+#neighborsSettingsOverlay .series-stake-timer-switch.is-on::after {
+	transform: translateX(20px);
+}
+#neighborsSettingsOverlay .series-stake-timer-sec {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0;
+	flex-shrink: 0;
+}
+#neighborsSettingsOverlay .series-stake-timer-sec-lbl {
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: var(--text-muted, #64748b);
+}
+#neighborsSettingsOverlay .series-stake-timer-sec-input {
+	width: 4rem !important;
+	max-width: none !important;
+	min-height: 2.25rem !important;
+	text-align: center !important;
+}
+#neighborsSettingsOverlay .series-stake-param-input {
+	min-height: 2.25rem;
+	padding: 6px 10px;
+	font-size: 0.875rem;
+	border: 1px solid var(--border, #cbd5e1);
+	border-radius: var(--radius-sm, 8px);
+	background: var(--surface, #fff);
+	color: var(--text);
+	box-sizing: border-box;
+}
 .neighbors-help-overlay {
 	display: none;
 	position: fixed;
@@ -221,6 +444,55 @@ document.addEventListener('DOMContentLoaded', function() {
 		if (helpClose) helpClose.addEventListener('click', function() { helpOverlay.classList.remove('is-open'); });
 		helpOverlay.addEventListener('click', function(e) { if (e.target === helpOverlay) helpOverlay.classList.remove('is-open'); });
 	}
+	var settingsBtn = document.getElementById('neighborsSettingsBtn');
+	var settingsOverlay = document.getElementById('neighborsSettingsOverlay');
+	var settingsClose = document.getElementById('neighborsSettingsClose');
+	if (settingsBtn && settingsOverlay) {
+		settingsBtn.addEventListener('click', function() { settingsOverlay.classList.add('is-open'); });
+		if (settingsClose) settingsClose.addEventListener('click', function() { settingsOverlay.classList.remove('is-open'); });
+		settingsOverlay.addEventListener('click', function(e) { if (e.target === settingsOverlay) settingsOverlay.classList.remove('is-open'); });
+	}
+	(function setupNeighborsTimerSwitch() {
+		var sw = document.getElementById('neighborsTimerSwitch');
+		var cb = document.getElementById('neighborsTimerCb');
+		var fuseAnimSw = document.getElementById('neighborsFuseAnimSwitch');
+		var fuseAnimHidden = document.getElementById('neighborsFuseAnimEnabled');
+		var fuseAnimRow = document.getElementById('neighborsFuseAnimRow');
+		function syncFuseAnim() {
+			if (!fuseAnimSw || !fuseAnimHidden) return;
+			var faOn = fuseAnimHidden.value === '1';
+			fuseAnimSw.classList.toggle('is-on', faOn);
+			fuseAnimSw.setAttribute('aria-checked', faOn ? 'true' : 'false');
+		}
+		function updateFuseRow() {
+			if (!fuseAnimRow || !fuseAnimSw || !cb) return;
+			var timerOn = cb.checked;
+			fuseAnimRow.classList.toggle('is-inactive', !timerOn);
+			fuseAnimSw.disabled = !timerOn;
+			fuseAnimSw.setAttribute('tabindex', timerOn ? '0' : '-1');
+		}
+		if (sw && cb) {
+			function sync() {
+				sw.classList.toggle('is-on', cb.checked);
+				sw.setAttribute('aria-checked', cb.checked ? 'true' : 'false');
+			}
+			sw.addEventListener('click', function() {
+				cb.checked = !cb.checked;
+				sync();
+				updateFuseRow();
+			});
+			sync();
+		}
+		if (fuseAnimSw && fuseAnimHidden) {
+			syncFuseAnim();
+			updateFuseRow();
+			fuseAnimSw.addEventListener('click', function() {
+				if (fuseAnimSw.disabled) return;
+				fuseAnimHidden.value = fuseAnimHidden.value === '1' ? '0' : '1';
+				syncFuseAnim();
+			});
+		}
+	})();
 	const successOverlay = document.getElementById('neighborsSuccessOverlay');
 	const errorOverlay = document.getElementById('neighborsErrorOverlay');
 	const errorCloseBtn = document.getElementById('neighborsErrorClose');
@@ -241,7 +513,45 @@ document.addEventListener('DOMContentLoaded', function() {
 			}
 		});
 	}
+	var timeupOverlay = document.getElementById('neighborsTimeupOverlay');
+	var timeupClose = document.getElementById('neighborsTimeupClose');
+	if (timeupOverlay && timeupClose) {
+		function hideNeighborsTimeup() {
+			timeupOverlay.style.display = 'none';
+			timeupOverlay.setAttribute('aria-hidden', 'true');
+		}
+		timeupClose.addEventListener('click', hideNeighborsTimeup);
+		timeupOverlay.addEventListener('click', function(e) {
+			if (e.target === timeupOverlay) hideNeighborsTimeup();
+		});
+		document.addEventListener('keydown', function(e) {
+			if (e.key !== 'Enter') return;
+			if (timeupOverlay.style.display !== 'flex') return;
+			e.preventDefault();
+			hideNeighborsTimeup();
+		});
+	}
 });
 </script>
+{% if timer_enabled and success is None and not skipped %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+	if (typeof initFuseTimer !== 'function') return;
+	initFuseTimer({
+		prefix: 'ar-neighbors',
+		seconds: {{ timer_seconds }},
+		settingsOverlay: '#neighborsSettingsOverlay',
+		clickOnTimeout: false,
+		onTimeout: function() {
+			var el = document.getElementById('neighborsTimeupOverlay');
+			if (el) {
+				el.style.display = 'flex';
+				el.setAttribute('aria-hidden', 'false');
+			}
+		}
+	});
+});
+</script>
+{% endif %}
 <p class="payout-back"><a href="{% url 'ar_index' %}">← К списку игр</a></p>
 {% endblock %}

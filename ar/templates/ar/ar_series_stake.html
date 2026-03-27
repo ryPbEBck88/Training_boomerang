@@ -90,6 +90,11 @@
 						<input type="hidden" name="timer_enabled" id="seriesStakeTimerEnabled" value="{% if timer_enabled %}1{% else %}0{% endif %}">
 						<label class="series-stake-timer-sec"><span class="series-stake-timer-sec-lbl">сек</span><input type="number" name="timer_seconds" class="series-stake-timer-sec-input series-stake-param-input" min="1" max="120" value="{{ timer_seconds }}" inputmode="numeric" title="Секунд до автопроверки" aria-label="Секунд до автопроверки"></label>
 					</div>
+					<div class="series-stake-timer-settings series-stake-timer-settings--fuse" id="seriesStakeFuseAnimRow" role="group" aria-labelledby="seriesStakeFuseAnimLabel">
+						<span class="series-stake-timer-settings-hint" id="seriesStakeFuseAnimLabel">Анимация фитиля</span>
+						<button type="button" class="series-stake-timer-switch{% if timer_fuse_animation %} is-on{% endif %}" id="seriesStakeFuseAnimSwitch" role="switch" aria-checked="{% if timer_fuse_animation %}true{% else %}false{% endif %}" aria-labelledby="seriesStakeFuseAnimLabel"></button>
+						<input type="hidden" name="timer_fuse_animation" id="seriesStakeFuseAnimEnabled" value="{% if timer_fuse_animation %}1{% else %}0{% endif %}">
+					</div>
 				</div>
 				<script type="application/json" id="seriesStakePresetData">{{ ar_preset_params_json|safe }}</script>
 				<script type="application/json" id="seriesStakeBoundsData">{{ series_stake_bounds_mul_json|safe }}</script>
@@ -133,7 +138,7 @@
 				<p><strong>Рандом</strong> — перед каждым новым заданием случайно выбирается один из пресетов AR, чтобы не застревать на одних и тех же цифрах.</p>
 				<p><strong>Серия</strong> — какой тип серии считать в раунде: конкретный или <strong>Рандом</strong> по четырём видам.</p>
 				<p><strong>Ставка: min, max, step</strong> — в каких пределах случайно выбирается <strong>сумма задания</strong> на экране. Тренажёр подрезает диапазон под правила выбранной серии (минимальная сумма серии × нужный множитель и т.д.).</p>
-				<p><strong>Таймер</strong> — по желанию: отсчёт до автоматической отправки ответа; длительность в секундах в поле рядом.</p>
+				<p><strong>Таймер</strong> — по желанию: отсчёт до автоматической отправки ответа; длительность в секундах в поле рядом. При включённом таймере можно отдельно включить или выключить <strong>анимацию фитиля</strong> (отсчёт и автопроверка те же).</p>
 					</div>
 				</div>
 				<div id="seriesStakePanelTheory" class="series-stake-doc-panel">
@@ -184,9 +189,15 @@
 		<p class="series-stake-description{% if task_description|length > 24 %} series-stake-description--compact{% endif %}">{{ task_description }}</p>
 	</div>
 	{% if timer_enabled and success is None and not skipped %}
-	<div class="series-stake-ux-width series-stake-fuse-wrap">
-		{% include "partials/fuse_timer.html" with prefix="series-stake" %}
-	</div>
+		{% if timer_fuse_animation %}
+		<div class="series-stake-ux-width series-stake-fuse-wrap">
+			{% include "partials/fuse_timer.html" with prefix="series-stake" %}
+		</div>
+		{% else %}
+		<div class="series-stake-fuse-fill-stub" aria-hidden="true">
+			<div id="series-stake-fuse-fill" style="width:100%"></div>
+		</div>
+		{% endif %}
 	{% endif %}
 
 	<form method="post" autocomplete="off" class="payout-form neighbors-form">
@@ -236,6 +247,14 @@
 		</div>
 	</div>
 	{% endif %}
+
+	<div id="seriesStakeTimeupOverlay" class="payout-success-overlay self-draw-error-overlay" style="display: none;" aria-hidden="true">
+		<button type="button" class="payout-success-tap" id="seriesStakeTimeupClose" style="position:absolute;inset:0;border:none;background:transparent;cursor:pointer;" aria-label="Закрыть"></button>
+		<div class="self-draw-error-content">
+			<div class="payout-success-text self-draw-error-text">Время вышло!</div>
+			<small class="self-draw-error-hint">Нажмите, чтобы продолжить</small>
+		</div>
+	</div>
 
 	{% if success or skipped %}
 	<form method="post" class="payout-success-overlay" id="seriesStakeSuccessOverlay">
@@ -518,6 +537,25 @@
 	min-height: 2.25rem !important;
 	text-align: center !important;
 }
+.series-stake-timer-settings--fuse {
+	margin-top: 6px;
+	margin-bottom: 0;
+}
+.series-stake-timer-settings--fuse.is-inactive {
+	opacity: 0.45;
+	pointer-events: none;
+}
+.series-stake-fuse-fill-stub {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
 .series-stake-solve-time {
 	display: block;
 	margin-top: 0.65rem;
@@ -727,6 +765,22 @@ var seriesStakeArRandomValue = '{{ ar_random_value|escapejs }}';
 document.addEventListener('DOMContentLoaded', function() {
 	var timerSw = document.getElementById('seriesStakeTimerSwitch');
 	var timerHidden = document.getElementById('seriesStakeTimerEnabled');
+	var fuseAnimSw = document.getElementById('seriesStakeFuseAnimSwitch');
+	var fuseAnimHidden = document.getElementById('seriesStakeFuseAnimEnabled');
+	var fuseAnimRow = document.getElementById('seriesStakeFuseAnimRow');
+	function syncSeriesStakeFuseAnimSwitch() {
+		if (!fuseAnimSw || !fuseAnimHidden) return;
+		var faOn = fuseAnimHidden.value === '1';
+		fuseAnimSw.classList.toggle('is-on', faOn);
+		fuseAnimSw.setAttribute('aria-checked', faOn ? 'true' : 'false');
+	}
+	function updateSeriesStakeFuseAnimRow() {
+		if (!fuseAnimRow || !fuseAnimSw) return;
+		var timerOn = timerHidden && timerHidden.value === '1';
+		fuseAnimRow.classList.toggle('is-inactive', !timerOn);
+		fuseAnimSw.disabled = !timerOn;
+		fuseAnimSw.setAttribute('tabindex', timerOn ? '0' : '-1');
+	}
 	if (timerSw && timerHidden) {
 		function syncSeriesStakeTimerSwitch() {
 			var on = timerHidden.value === '1';
@@ -737,6 +791,16 @@ document.addEventListener('DOMContentLoaded', function() {
 		timerSw.addEventListener('click', function() {
 			timerHidden.value = timerHidden.value === '1' ? '0' : '1';
 			syncSeriesStakeTimerSwitch();
+			updateSeriesStakeFuseAnimRow();
+		});
+	}
+	if (fuseAnimSw && fuseAnimHidden) {
+		syncSeriesStakeFuseAnimSwitch();
+		updateSeriesStakeFuseAnimRow();
+		fuseAnimSw.addEventListener('click', function() {
+			if (fuseAnimSw.disabled) return;
+			fuseAnimHidden.value = fuseAnimHidden.value === '1' ? '0' : '1';
+			syncSeriesStakeFuseAnimSwitch();
 		});
 	}
 	var seriesStakeHelpHub = document.getElementById('seriesStakeHelpHubOverlay');
@@ -911,6 +975,24 @@ document.addEventListener('DOMContentLoaded', function() {
 			}
 		});
 	}
+	var seriesStakeTimeup = document.getElementById('seriesStakeTimeupOverlay');
+	var seriesStakeTimeupClose = document.getElementById('seriesStakeTimeupClose');
+	if (seriesStakeTimeup && seriesStakeTimeupClose) {
+		function hideSeriesStakeTimeup() {
+			seriesStakeTimeup.style.display = 'none';
+			seriesStakeTimeup.setAttribute('aria-hidden', 'true');
+		}
+		seriesStakeTimeupClose.addEventListener('click', hideSeriesStakeTimeup);
+		seriesStakeTimeup.addEventListener('click', function(e) {
+			if (e.target === seriesStakeTimeup) hideSeriesStakeTimeup();
+		});
+		document.addEventListener('keydown', function(e) {
+			if (e.key !== 'Enter') return;
+			if (seriesStakeTimeup.style.display !== 'flex') return;
+			e.preventDefault();
+			hideSeriesStakeTimeup();
+		});
+	}
 });
 </script>
 <p class="payout-back"><a href="{% url 'ar_index' %}">← К списку игр</a></p>
@@ -924,8 +1006,15 @@ document.addEventListener('DOMContentLoaded', function() {
 	initFuseTimer({
 		prefix: 'series-stake',
 		seconds: {{ timer_seconds }},
-		timeoutButton: 'button[name="action"][value="check"]',
-		settingsOverlay: '#seriesStakeSettingsOverlay'
+		settingsOverlay: '#seriesStakeSettingsOverlay',
+		clickOnTimeout: false,
+		onTimeout: function() {
+			var el = document.getElementById('seriesStakeTimeupOverlay');
+			if (el) {
+				el.style.display = 'flex';
+				el.setAttribute('aria-hidden', 'false');
+			}
+		}
 	});
 });
 </script>

@@ -65,6 +65,11 @@
 							<input type="hidden" name="timer_enabled" id="completesTimerEnabled" value="{% if timer_enabled %}1{% else %}0{% endif %}">
 							<label class="series-stake-timer-sec"><span class="series-stake-timer-sec-lbl">сек</span><input type="number" name="timer_seconds" class="series-stake-timer-sec-input series-stake-param-input" min="1" max="120" value="{{ timer_seconds }}" inputmode="numeric" title="Секунд до автопроверки" aria-label="Секунд до автопроверки"></label>
 						</div>
+						<div class="series-stake-timer-settings series-stake-timer-settings--fuse completes-settings-fuse{% if not timer_enabled %} is-inactive{% endif %}" id="completesFuseAnimRow" role="group" aria-labelledby="completesFuseAnimLabel">
+							<span class="series-stake-timer-settings-hint" id="completesFuseAnimLabel">Анимация фитиля</span>
+							<button type="button" class="series-stake-timer-switch{% if timer_fuse_animation %} is-on{% endif %}" id="completesFuseAnimSwitch" role="switch" aria-checked="{% if timer_fuse_animation %}true{% else %}false{% endif %}" aria-labelledby="completesFuseAnimLabel"{% if not timer_enabled %} disabled tabindex="-1"{% endif %}></button>
+							<input type="hidden" name="timer_fuse_animation" id="completesFuseAnimEnabled" value="{% if timer_fuse_animation %}1{% else %}0{% endif %}">
+						</div>
 					</div>
 				</div>
 				<div class="payout-settings-actions">
@@ -75,9 +80,15 @@
 		</div>
 	</div>
 	{% if timer_enabled and success is None and not skipped %}
-	<div class="series-stake-ux-width series-stake-fuse-wrap">
-		{% include "partials/fuse_timer.html" with prefix="ar-completes" %}
-	</div>
+		{% if timer_fuse_animation %}
+		<div class="series-stake-ux-width series-stake-fuse-wrap">
+			{% include "partials/fuse_timer.html" with prefix="ar-completes" %}
+		</div>
+		{% else %}
+		<div class="completes-fuse-fill-stub" aria-hidden="true">
+			<div id="ar-completes-fuse-fill" style="width:100%"></div>
+		</div>
+		{% endif %}
 	{% endif %}
 
 	<div class="neighbors-help-overlay series-stake-doc-hub-overlay" id="completesHelpOverlay" aria-hidden="true">
@@ -146,6 +157,14 @@
 	</div>
 	{% endif %}
 
+	<div id="completesTimeupOverlay" class="payout-success-overlay self-draw-error-overlay" style="display: none;" aria-hidden="true">
+		<button type="button" class="payout-success-tap" id="completesTimeupClose" style="position:absolute;inset:0;border:none;background:transparent;cursor:pointer;" aria-label="Закрыть"></button>
+		<div class="self-draw-error-content">
+			<div class="payout-success-text self-draw-error-text">Время вышло!</div>
+			<small class="self-draw-error-hint">Нажмите, чтобы продолжить</small>
+		</div>
+	</div>
+
 	{% if success or skipped %}
 	<form method="post" class="payout-success-overlay" id="completesSuccessOverlay">
 		{% csrf_token %}
@@ -157,7 +176,7 @@
 			<span></span><span></span><span></span><span></span><span></span><span></span>
 		</div>
 		{% endif %}
-		<div class="payout-success-text">{% if success %}{% include "partials/payout_check_text.html" %}{% else %}{{ message }}{% endif %}</div>
+		<div class="payout-success-text">{% if success %}{% include "partials/payout_check_text.html" %}{% if solve_seconds is not None %}<small class="completes-solve-time">Считали: {{ solve_seconds|floatformat:1 }} с</small>{% endif %}{% else %}{{ message }}{% endif %}</div>
 	</form>
 	{% endif %}
 </div>
@@ -433,6 +452,32 @@
 	color: var(--text);
 	box-sizing: border-box;
 }
+#completesSettingsOverlay .series-stake-timer-settings--fuse.completes-settings-fuse {
+	margin-top: 4px;
+	margin-bottom: 10px;
+}
+#completesSettingsOverlay .series-stake-timer-settings--fuse.is-inactive {
+	opacity: 0.45;
+	pointer-events: none;
+}
+.completes-fuse-fill-stub {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+.completes-solve-time {
+	display: block;
+	margin-top: 0.65rem;
+	font-size: 1rem;
+	font-weight: 600;
+	opacity: 0.95;
+}
 .series-stake-timer-settings {
 	display: flex;
 	align-items: center;
@@ -579,6 +624,22 @@ document.addEventListener('DOMContentLoaded', function() {
 	var settingsClose = document.getElementById('completesSettingsClose');
 	var timerBtn = document.getElementById('completesTimerSwitch');
 	var timerHidden = document.getElementById('completesTimerEnabled');
+	var fuseAnimSw = document.getElementById('completesFuseAnimSwitch');
+	var fuseAnimHidden = document.getElementById('completesFuseAnimEnabled');
+	var fuseAnimRow = document.getElementById('completesFuseAnimRow');
+	function syncCompletesFuseAnimSwitch() {
+		if (!fuseAnimSw || !fuseAnimHidden) return;
+		var faOn = fuseAnimHidden.value === '1';
+		fuseAnimSw.classList.toggle('is-on', faOn);
+		fuseAnimSw.setAttribute('aria-checked', faOn ? 'true' : 'false');
+	}
+	function updateCompletesFuseAnimRow() {
+		if (!fuseAnimRow || !fuseAnimSw || !timerHidden) return;
+		var timerOn = timerHidden.value === '1';
+		fuseAnimRow.classList.toggle('is-inactive', !timerOn);
+		fuseAnimSw.disabled = !timerOn;
+		fuseAnimSw.setAttribute('tabindex', timerOn ? '0' : '-1');
+	}
 	if (timerBtn && timerHidden) {
 		timerBtn.addEventListener('click', function() {
 			var isOn = timerHidden.value === '1';
@@ -586,6 +647,16 @@ document.addEventListener('DOMContentLoaded', function() {
 			timerHidden.value = next ? '1' : '0';
 			timerBtn.classList.toggle('is-on', next);
 			timerBtn.setAttribute('aria-checked', next ? 'true' : 'false');
+			updateCompletesFuseAnimRow();
+		});
+	}
+	if (fuseAnimSw && fuseAnimHidden) {
+		syncCompletesFuseAnimSwitch();
+		updateCompletesFuseAnimRow();
+		fuseAnimSw.addEventListener('click', function() {
+			if (fuseAnimSw.disabled) return;
+			fuseAnimHidden.value = fuseAnimHidden.value === '1' ? '0' : '1';
+			syncCompletesFuseAnimSwitch();
 		});
 	}
 	if (settingsBtn && settingsOverlay) {
@@ -607,13 +678,38 @@ document.addEventListener('DOMContentLoaded', function() {
 			}
 		});
 	}
+	var completesTimeup = document.getElementById('completesTimeupOverlay');
+	var completesTimeupClose = document.getElementById('completesTimeupClose');
+	if (completesTimeup && completesTimeupClose) {
+		function hideCompletesTimeup() {
+			completesTimeup.style.display = 'none';
+			completesTimeup.setAttribute('aria-hidden', 'true');
+		}
+		completesTimeupClose.addEventListener('click', hideCompletesTimeup);
+		completesTimeup.addEventListener('click', function(e) {
+			if (e.target === completesTimeup) hideCompletesTimeup();
+		});
+		document.addEventListener('keydown', function(e) {
+			if (e.key !== 'Enter') return;
+			if (completesTimeup.style.display !== 'flex') return;
+			e.preventDefault();
+			hideCompletesTimeup();
+		});
+	}
 	{% if timer_enabled and success is None and not skipped %}
 	if (typeof initFuseTimer === 'function') {
 		initFuseTimer({
 			prefix: 'ar-completes',
 			seconds: {{ timer_seconds }},
-			timeoutButton: 'button[name="action"][value="check"]',
-			settingsOverlay: '#completesSettingsOverlay'
+			settingsOverlay: '#completesSettingsOverlay',
+			clickOnTimeout: false,
+			onTimeout: function() {
+				var el = document.getElementById('completesTimeupOverlay');
+				if (el) {
+					el.style.display = 'flex';
+					el.setAttribute('aria-hidden', 'false');
+				}
+			}
 		});
 	}
 	{% endif %}

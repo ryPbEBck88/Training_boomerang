@@ -1720,6 +1720,27 @@ main h2 {
 .fuse-timer-spark { position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; background: radial-gradient(circle,#fff3b0 0%,#ffcc00 30%,#ff9800 60%,transparent 80%); border-radius: 50%; box-shadow: 0 0 6px #ffcc00,0 0 10px #ff9800,0 0 14px rgba(255,152,0,0.6); animation: self-draw-spark-fly 0.7s ease-out infinite; animation-delay: var(--delay,0s); animation-duration: var(--dur,0.7s); transform-origin: center center; pointer-events: none; }
 .fuse-timer-spark::before { content: ''; position: absolute; inset: -2px; background: radial-gradient(circle,rgba(255,204,0,0.5) 0%,transparent 70%); border-radius: 50%; filter: blur(2px); }
 
+/* После истечения времени убираем весь виджет (трек + горящая часть + пламя). Обёртка *-fuse-wrap — чтобы убрать и внешние отступы. Stub: [class*="fuse-fill-stub"]. */
+.fuse-timer.fuse-timer--exhausted,
+[class*="fuse-fill-stub"].fuse-timer--exhausted,
+[class*="-fuse-wrap"].fuse-timer--exhausted,
+[id$="-fuse-wrap"].fuse-timer--exhausted {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  max-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+  border: none !important;
+}
+.fuse-timer.fuse-timer--exhausted .fuse-timer-flame,
+.fuse-timer.fuse-timer--exhausted .fuse-timer-spark {
+  animation: none !important;
+}
+
 .self-draw-settings-overlay {
   position: fixed;
   inset: 0;

@@ -107,7 +107,12 @@
 						<span class="series-stake-timer-settings-hint" id="ptcTimerLabel">Таймер</span>
 						<button type="button" class="series-stake-timer-switch{% if timer_enabled %} is-on{% endif %}" id="ptcTimerSwitch" role="switch" aria-checked="{% if timer_enabled %}true{% else %}false{% endif %}" aria-labelledby="ptcTimerLabel"></button>
 						<input type="checkbox" name="timer_enabled" id="ptcTimerCb" class="color-in-cash-sr-only" {% if timer_enabled %}checked{% endif %} tabindex="-1" aria-hidden="true">
-						<label class="series-stake-timer-sec"><span class="series-stake-timer-sec-lbl">сек</span><input type="number" name="timer_seconds" class="series-stake-timer-sec-input series-stake-param-input" min="1" max="60" value="{{ timer_seconds }}" inputmode="numeric" title="Секунд до автопроверки" aria-label="Секунд до автопроверки"></label>
+						<label class="series-stake-timer-sec"><span class="series-stake-timer-sec-lbl">сек</span><input type="number" name="timer_seconds" class="series-stake-timer-sec-input series-stake-param-input" min="1" max="120" value="{{ timer_seconds }}" inputmode="numeric" title="Секунд до автопроверки" aria-label="Секунд до автопроверки"></label>
+					</div>
+					<div class="series-stake-timer-settings series-stake-timer-settings--fuse ptc-settings-fuse" id="ptcFuseAnimRow" role="group" aria-labelledby="ptcFuseAnimLabel">
+						<span class="series-stake-timer-settings-hint" id="ptcFuseAnimLabel">Анимация фитиля</span>
+						<button type="button" class="series-stake-timer-switch{% if timer_fuse_animation %} is-on{% endif %}" id="ptcFuseAnimSwitch" role="switch" aria-checked="{% if timer_fuse_animation %}true{% else %}false{% endif %}" aria-labelledby="ptcFuseAnimLabel"></button>
+						<input type="hidden" name="timer_fuse_animation" id="ptcFuseAnimEnabled" value="{% if timer_fuse_animation %}1{% else %}0{% endif %}">
 					</div>
 				</div>
 				<div class="payout-settings-actions">
@@ -136,9 +141,15 @@
 		<p class="series-stake-description ptc-question">Сколько цветных фишек осталось?</p>
 	</div>
 	{% if timer_enabled and success is None and not skipped %}
-	<div class="series-stake-ux-width series-stake-fuse-wrap">
-		{% include "partials/fuse_timer.html" with prefix="ar-ptc" %}
-	</div>
+		{% if timer_fuse_animation %}
+		<div class="series-stake-ux-width series-stake-fuse-wrap">
+			{% include "partials/fuse_timer.html" with prefix="ar-ptc" %}
+		</div>
+		{% else %}
+		<div class="ptc-fuse-fill-stub" aria-hidden="true">
+			<div id="ar-ptc-fuse-fill" style="width:100%"></div>
+		</div>
+		{% endif %}
 	{% endif %}
 
 	<form method="post" autocomplete="off" class="payout-form neighbors-form">
@@ -199,6 +210,14 @@
 	</div>
 	{% endif %}
 
+	<div id="arPtcTimeupOverlay" class="payout-success-overlay self-draw-error-overlay" style="display: none;" aria-hidden="true">
+		<button type="button" class="payout-success-tap" id="arPtcTimeupClose" style="position:absolute;inset:0;border:none;background:transparent;cursor:pointer;" aria-label="Закрыть"></button>
+		<div class="self-draw-error-content">
+			<div class="payout-success-text self-draw-error-text">Время вышло!</div>
+			<small class="self-draw-error-hint">Нажмите, чтобы продолжить</small>
+		</div>
+	</div>
+
 	{% if success or skipped %}
 	<form method="post" action="{% if mix_mode %}{% url 'ar_mix_continue' %}{% endif %}" class="payout-success-overlay" id="arPtcSuccessOverlay">
 		{% csrf_token %}
@@ -210,7 +229,7 @@
 			<span></span><span></span><span></span><span></span><span></span><span></span>
 		</div>
 		{% endif %}
-		<div class="payout-success-text">{% if success %}{% include "partials/payout_check_text.html" %}{% else %}{{ message }}{% endif %}</div>
+		<div class="payout-success-text">{% if success %}{% include "partials/payout_check_text.html" %}{% if solve_seconds is not None %}<small class="ptc-solve-time">Считали: {{ solve_seconds|floatformat:1 }} с</small>{% endif %}{% else %}{{ message }}{% endif %}</div>
 	</form>
 	{% endif %}
 </div>
@@ -582,6 +601,32 @@
 	border-top: 1px solid var(--border, #e2e8f0);
 	margin-bottom: 0;
 }
+#arPtcSettingsOverlay .series-stake-timer-settings--fuse.ptc-settings-fuse {
+	margin-top: 4px;
+	margin-bottom: 10px;
+}
+#arPtcSettingsOverlay .series-stake-timer-settings--fuse.is-inactive {
+	opacity: 0.45;
+	pointer-events: none;
+}
+.ptc-fuse-fill-stub {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+.payout-page--payout-through-cash .ptc-solve-time {
+	display: block;
+	margin-top: 0.65rem;
+	font-size: 1rem;
+	font-weight: 600;
+	opacity: 0.95;
+}
 #arPtcSettingsOverlay .series-stake-timer-settings-hint {
 	font-size: 0.875rem;
 	font-weight: 500;
@@ -755,16 +800,43 @@ document.addEventListener('DOMContentLoaded', function() {
 	(function setupPtcTimerSwitch() {
 		var sw = document.getElementById('ptcTimerSwitch');
 		var cb = document.getElementById('ptcTimerCb');
-		if (!sw || !cb) return;
-		function sync() {
-			sw.classList.toggle('is-on', cb.checked);
-			sw.setAttribute('aria-checked', cb.checked ? 'true' : 'false');
+		var fuseAnimSw = document.getElementById('ptcFuseAnimSwitch');
+		var fuseAnimHidden = document.getElementById('ptcFuseAnimEnabled');
+		var fuseAnimRow = document.getElementById('ptcFuseAnimRow');
+		function syncPtcFuseAnimSwitch() {
+			if (!fuseAnimSw || !fuseAnimHidden) return;
+			var faOn = fuseAnimHidden.value === '1';
+			fuseAnimSw.classList.toggle('is-on', faOn);
+			fuseAnimSw.setAttribute('aria-checked', faOn ? 'true' : 'false');
 		}
-		sw.addEventListener('click', function() {
-			cb.checked = !cb.checked;
+		function updatePtcFuseAnimRow() {
+			if (!fuseAnimRow || !fuseAnimSw || !cb) return;
+			var timerOn = cb.checked;
+			fuseAnimRow.classList.toggle('is-inactive', !timerOn);
+			fuseAnimSw.disabled = !timerOn;
+			fuseAnimSw.setAttribute('tabindex', timerOn ? '0' : '-1');
+		}
+		if (sw && cb) {
+			function sync() {
+				sw.classList.toggle('is-on', cb.checked);
+				sw.setAttribute('aria-checked', cb.checked ? 'true' : 'false');
+			}
+			sw.addEventListener('click', function() {
+				cb.checked = !cb.checked;
+				sync();
+				updatePtcFuseAnimRow();
+			});
 			sync();
-		});
-		sync();
+		}
+		if (fuseAnimSw && fuseAnimHidden) {
+			syncPtcFuseAnimSwitch();
+			updatePtcFuseAnimRow();
+			fuseAnimSw.addEventListener('click', function() {
+				if (fuseAnimSw.disabled) return;
+				fuseAnimHidden.value = fuseAnimHidden.value === '1' ? '0' : '1';
+				syncPtcFuseAnimSwitch();
+			});
+		}
 	})();
 	(function setupPtcStacksSwitch() {
 		var sw = document.getElementById('ptcStacksSwitch');
@@ -872,12 +944,46 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 	}
 	updatePtcColorPerSummary();
+
+	var arPtcTimeup = document.getElementById('arPtcTimeupOverlay');
+	var arPtcTimeupClose = document.getElementById('arPtcTimeupClose');
+	if (arPtcTimeup && arPtcTimeupClose) {
+		function hideArPtcTimeup() {
+			arPtcTimeup.style.display = 'none';
+			arPtcTimeup.setAttribute('aria-hidden', 'true');
+		}
+		arPtcTimeupClose.addEventListener('click', hideArPtcTimeup);
+		arPtcTimeup.addEventListener('click', function(e) {
+			if (e.target === arPtcTimeup) hideArPtcTimeup();
+		});
+		document.addEventListener('keydown', function(e) {
+			if (e.key !== 'Enter') return;
+			if (arPtcTimeup.style.display !== 'flex') return;
+			e.preventDefault();
+			hideArPtcTimeup();
+		});
+	}
 });
 </script>
 {% if timer_enabled and success is None and not skipped %}
-{% block extra_scripts %}
-<script>document.addEventListener('DOMContentLoaded',function(){if(typeof initFuseTimer==='function')initFuseTimer({prefix:'ar-ptc',seconds:{{ timer_seconds }},timeoutButton:'button[value="check"]',settingsOverlay:'#arPtcSettingsOverlay'});});</script>
-{% endblock %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+	if (typeof initFuseTimer !== 'function') return;
+	initFuseTimer({
+		prefix: 'ar-ptc',
+		seconds: {{ timer_seconds }},
+		settingsOverlay: '#arPtcSettingsOverlay',
+		clickOnTimeout: false,
+		onTimeout: function() {
+			var el = document.getElementById('arPtcTimeupOverlay');
+			if (el) {
+				el.style.display = 'flex';
+				el.setAttribute('aria-hidden', 'false');
+			}
+		}
+	});
+});
+</script>
 {% endif %}
 <p class="payout-back"><a href="{% url 'ar_index' %}">← К списку игр</a></p>
 {% endblock %}
