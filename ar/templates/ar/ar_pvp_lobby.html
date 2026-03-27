@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}AR PvP Lobby{% endblock %}
+
+{% block extra_head %}
+<style>
+.pvp-lobby {
+	max-width: 760px;
+	margin: 0 auto;
+	display: grid;
+	gap: 16px;
+}
+.pvp-lobby-head {
+	text-align: center;
+	display: grid;
+	gap: 6px;
+}
+.pvp-lobby-head h1 {
+	margin: 0;
+	font-size: 1.5rem;
+}
+.pvp-lobby-head p {
+	margin: 0;
+	color: #64748b;
+}
+.pvp-lobby-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+}
+.pvp-box {
+	display: grid;
+	gap: 10px;
+	padding: 14px;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	background: #f8fafc;
+}
+.pvp-box h2 {
+	margin: 0;
+	font-size: 1.1rem;
+}
+.pvp-box label {
+	display: grid;
+	gap: 4px;
+}
+.pvp-box input {
+	padding: 8px 10px;
+	border: 1px solid #cbd5e1;
+	border-radius: 8px;
+}
+.pvp-box input[type="checkbox"] {
+	width: 18px;
+	height: 18px;
+	padding: 0;
+}
+.pvp-switch-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+.pvp-mini-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px;
+}
+.pvp-error {
+	margin: 0;
+	color: #b91c1c;
+	font-weight: 600;
+}
+@media (max-width: 760px) {
+	.pvp-lobby-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pvp-lobby">
+	<div class="pvp-lobby-head">
+		<h1>AR PvP — Заставки (MVP)</h1>
+		<p>Сейчас: комната на 2 игрока. Архитектура уже поддерживает масштабирование до 5/10.</p>
+	</div>
+
+	<div class="pvp-lobby-grid">
+	<div class="pvp-box">
+		<h2>Создать комнату</h2>
+		<form method="post" action="{% url 'ar_pvp_create_room' %}" class="pvp-form">
+			{% csrf_token %}
+			<label>
+				<span>Имя</span>
+				<input type="text" name="name" maxlength="64" placeholder="Игрок 1">
+			</label>
+			<label>
+				<span>Макс. игроков</span>
+				<input type="number" name="max_players" min="2" max="10" value="{{ default_max_players }}">
+			</label>
+			<label>
+				<span>До скольки очков</span>
+				<input type="number" name="target_score" min="1" max="20" value="{{ default_target_score }}">
+			</label>
+			<div class="pvp-switch-row">
+				<span>Таймер</span>
+				<input type="checkbox" name="timer_enabled" {% if default_timer_enabled %}checked{% endif %}>
+			</div>
+			<label>
+				<span>Секунд на раунд</span>
+				<input type="number" name="timer_seconds" min="1" max="120" value="{{ default_timer_seconds }}">
+			</label>
+			<div class="pvp-switch-row">
+				<span>Режим стеков (как в ar_bets)</span>
+				<input type="checkbox" name="use_stacks" {% if default_use_stacks %}checked{% endif %}>
+			</div>
+			<div class="pvp-mini-grid">
+				<label>
+					<span>Стеков</span>
+					<input type="number" name="stacks_count" min="1" max="8" value="{{ default_stacks_count }}">
+				</label>
+				<label>
+					<span>min / max</span>
+					<div style="display:flex;gap:6px;">
+						<input type="number" name="min_chips" min="0" max="20" value="{{ default_min_chips }}">
+						<input type="number" name="max_chips" min="0" max="20" value="{{ default_max_chips }}">
+					</div>
+				</label>
+			</div>
+			<button type="submit" class="btn btn-primary">Создать</button>
+		</form>
+	</div>
+
+	<div class="pvp-box">
+		<h2>Войти в комнату</h2>
+		<form method="post" action="{% url 'ar_pvp_join_room' %}">
+			{% csrf_token %}
+			<label>
+				<span>Код комнаты</span>
+				<input type="text" name="room_code" maxlength="8" style="text-transform:uppercase;" placeholder="Например AB12CD" required>
+			</label>
+			<label>
+				<span>Имя</span>
+				<input type="text" name="name" maxlength="64" placeholder="Игрок 2">
+			</label>
+			<button type="submit" class="btn btn-secondary">Войти</button>
+		</form>
+		{% if join_error %}
+		<p class="pvp-error">{{ join_error }}</p>
+		{% endif %}
+	</div>
+	</div>
+
+	<p class="payout-back"><a href="{% url 'ar_index' %}">← К разделу AR</a></p>
+</div>
+{% endblock %}

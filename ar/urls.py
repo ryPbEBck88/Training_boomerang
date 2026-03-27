@@ -4,6 +4,15 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name='ar_index'),
+    path('pvp/', views.ar_pvp_lobby, name='ar_pvp_lobby'),
+    path('pvp/create/', views.ar_pvp_create_room, name='ar_pvp_create_room'),
+    path('pvp/join/', views.ar_pvp_join_room, name='ar_pvp_join_room'),
+    path('pvp/room/<str:code>/', views.ar_pvp_room, name='ar_pvp_room'),
+    path('pvp/api/<str:code>/state/', views.ar_pvp_state, name='ar_pvp_state'),
+    path('pvp/api/<str:code>/round/', views.ar_pvp_round, name='ar_pvp_round'),
+    path('pvp/api/<str:code>/ready/', views.ar_pvp_toggle_ready, name='ar_pvp_toggle_ready'),
+    path('pvp/api/<str:code>/answer/', views.ar_pvp_submit_answer, name='ar_pvp_submit_answer'),
+    path('pvp/api/<str:code>/next/', views.ar_pvp_next_round, name='ar_pvp_next_round'),
     path('series/', views.ar_series, name='ar_series'),
     path('neighbors/', views.ar_neighbors, name='ar_neighbors'),
     path('completes/', views.ar_completes, name='ar_completes'),

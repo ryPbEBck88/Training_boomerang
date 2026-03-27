@@ -1,0 +1,429 @@
+{% extends "base.html" %}
+{% block title %}AR PvP Room {{ room_code }}{% endblock %}
+
+{% block extra_head %}
+<style>
+.pvp-room {
+	max-width: 900px;
+	margin: 0 auto;
+	display: grid;
+	gap: 14px;
+}
+.pvp-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+.pvp-head h1 {
+	margin: 0;
+	font-size: 1.45rem;
+}
+.pvp-code {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 10px;
+	border-radius: 999px;
+	border: 1px solid #bfdbfe;
+	background: #eff6ff;
+	color: #1e40af;
+	font-weight: 700;
+}
+.pvp-status {
+	padding: 10px 12px;
+	border-radius: 10px;
+	background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+	color: #334155;
+	border: 1px solid #e2e8f0;
+}
+.pvp-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+}
+.pvp-card {
+	padding: 12px;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	background: #fff;
+}
+.pvp-card h2 {
+	margin: 0 0 10px;
+	font-size: 1.05rem;
+}
+.pvp-players {
+	display: grid;
+	gap: 8px;
+}
+.pvp-player {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	gap: 8px;
+	align-items: center;
+	padding: 9px 10px;
+	border-radius: 10px;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+}
+.pvp-player--self {
+	background: #eff6ff;
+	border-color: #bfdbfe;
+}
+.pvp-player-name {
+	font-weight: 600;
+}
+.pvp-player-meta {
+	font-size: 0.82rem;
+	color: #64748b;
+}
+.pvp-score {
+	font-weight: 800;
+	color: #0f172a;
+}
+.pvp-meta {
+	display: grid;
+	gap: 6px;
+	color: #475569;
+}
+.pvp-timer {
+	margin-top: 8px;
+	height: 8px;
+	border-radius: 999px;
+	background: #e2e8f0;
+	overflow: hidden;
+}
+.pvp-timer > div {
+	height: 100%;
+	width: 100%;
+	background: linear-gradient(90deg, #34d399 0%, #10b981 60%, #f59e0b 100%);
+	transition: width 0.8s linear;
+}
+.pvp-task {
+	padding: 12px;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	display: grid;
+	gap: 10px;
+	background: #fff;
+}
+.pvp-task-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+.pvp-task-title {
+	margin: 0;
+	font-size: 1.05rem;
+}
+.pvp-task-actions {
+	display: inline-flex;
+	gap: 6px;
+}
+.pvp-zastavki-wrap {
+	border: 1px solid #cbd5e1;
+	border-radius: 12px;
+	overflow: hidden;
+	background: #0f172a;
+}
+.pvp-zastavki-frame {
+	width: 100%;
+	height: 360px;
+	border: 0;
+	display: block;
+}
+.pvp-question {
+	font-weight: 700;
+	font-size: 1.05rem;
+}
+.pvp-answer {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+.pvp-answer input {
+	max-width: 180px;
+	padding: 8px 10px;
+	border: 1px solid #cbd5e1;
+	border-radius: 8px;
+}
+.pvp-actions {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+.pvp-task--fullscreen {
+	position: fixed;
+	inset: 0;
+	z-index: 9999;
+	border-radius: 0;
+	border: 0;
+	padding: 10px;
+	background: #0b1220;
+}
+.pvp-task--fullscreen .pvp-task-title {
+	color: #f8fafc;
+}
+.pvp-task--fullscreen .pvp-zastavki-wrap {
+	flex: 1 1 auto;
+	min-height: 0;
+}
+.pvp-task--fullscreen .pvp-zastavki-frame {
+	height: calc(100dvh - 170px);
+}
+.pvp-task--fullscreen .pvp-answer {
+	background: rgba(15, 23, 42, 0.7);
+	padding: 8px;
+	border-radius: 10px;
+}
+.pvp-task--fullscreen .pvp-answer input {
+	flex: 1 1 auto;
+	max-width: none;
+}
+@media (max-width: 760px) {
+	.pvp-grid { grid-template-columns: 1fr; }
+	.pvp-zastavki-frame { height: 300px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pvp-room">
+	<div class="pvp-head">
+		<h1>AR PvP — Заставки</h1>
+		<div class="pvp-code">Комната <code>{{ room_code }}</code></div>
+	</div>
+	<div id="pvpStatus" class="pvp-status">Загрузка…</div>
+
+	<div class="pvp-grid">
+		<div class="pvp-card">
+			<h2>Игроки</h2>
+			<div id="pvpPlayers" class="pvp-players"></div>
+		</div>
+		<div class="pvp-card">
+			<h2>Раунд</h2>
+			<div id="pvpRoundMeta" class="pvp-meta"></div>
+			<div class="pvp-timer"><div id="pvpTimerFill"></div></div>
+		</div>
+	</div>
+
+	<div id="pvpTask" class="pvp-task">
+		<div class="pvp-task-head">
+			<h2 class="pvp-task-title">Задание (PvP: номер 0)</h2>
+			<div class="pvp-task-actions">
+				<button id="pvpExpandBtn" class="btn btn-secondary" type="button">Развернуть</button>
+				<button id="pvpCollapseBtn" class="btn btn-secondary" type="button" style="display:none;">Свернуть</button>
+			</div>
+		</div>
+		<div class="pvp-zastavki-wrap">
+			<iframe
+				class="pvp-zastavki-frame"
+				src="{% url 'ar_bets' %}?pvp_preview=1&pvp_room={{ room_code }}"
+				title="AR Заставки preview"
+				loading="lazy"
+			></iframe>
+		</div>
+		<form id="pvpAnswerForm" class="pvp-answer">
+			<input id="pvpAnswerInput" type="number" inputmode="numeric" placeholder="Ответ">
+			<button class="btn btn-primary" type="submit">Ответить</button>
+		</form>
+	</div>
+
+	<div class="pvp-actions">
+		<button id="pvpReadyBtn" class="btn btn-primary" type="button">Готов</button>
+		<button id="pvpNextBtn" class="btn btn-secondary" type="button" style="display:none;">Следующий раунд</button>
+	</div>
+
+	<p class="payout-back"><a href="{% url 'ar_pvp_lobby' %}">← В PvP лобби</a></p>
+</div>
+
+{{ room_state_json|json_script:"pvp-initial-state" }}
+<script>
+(function() {
+	var state = JSON.parse(document.getElementById('pvp-initial-state').textContent || '{}');
+	var code = state.code || '{{ room_code }}';
+	var statusEl = document.getElementById('pvpStatus');
+	var playersEl = document.getElementById('pvpPlayers');
+	var roundMetaEl = document.getElementById('pvpRoundMeta');
+	var timerFill = document.getElementById('pvpTimerFill');
+	var readyBtn = document.getElementById('pvpReadyBtn');
+	var nextBtn = document.getElementById('pvpNextBtn');
+	var answerForm = document.getElementById('pvpAnswerForm');
+	var answerInput = document.getElementById('pvpAnswerInput');
+	var taskEl = document.getElementById('pvpTask');
+	var expandBtn = document.getElementById('pvpExpandBtn');
+	var collapseBtn = document.getElementById('pvpCollapseBtn');
+	var lastRoundStartTs = Date.now();
+	var wasInRound = false;
+
+	function getCsrf() {
+		var m = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/);
+		return m ? decodeURIComponent(m[1]) : '';
+	}
+
+	function render() {
+		if (!state || !state.players) return;
+		var me = state.players.find(function(p) { return p.is_self; });
+		var meAnswered = !!(me && me.answered);
+		var inRound = state.status === 'in_round';
+		statusEl.textContent =
+			state.status === 'lobby' ? 'Лобби: нажмите "Готов". Когда оба готовы — раунд стартует автоматически.' :
+			state.status === 'in_round' ? 'Раунд идет: посчитайте и отправьте ответ как можно быстрее.' :
+			state.status === 'round_result' ? ('Раунд завершен. ' + (state.winner_name ? ('Победитель: ' + state.winner_name + '.') : 'Никто не ответил верно.')) :
+			'Матч завершен. Хост может начать заново.';
+		if (state.status === 'round_result' && me && typeof me.last_answer === 'number' && typeof state.correct_answer === 'number') {
+			if (me.last_answer === state.correct_answer) {
+				statusEl.textContent = 'Раунд завершен. Верно: ' + me.last_answer + '.';
+			} else {
+				statusEl.textContent = 'Раунд завершен. Ваш ответ: ' + me.last_answer + ', верный: ' + state.correct_answer + '.';
+			}
+		}
+
+		playersEl.innerHTML = '';
+		state.players.forEach(function(p) {
+			var row = document.createElement('div');
+			row.className = 'pvp-player' + (p.is_self ? ' pvp-player--self' : '');
+			var left = document.createElement('div');
+			var suffix = p.is_self ? ' (вы)' : '';
+			left.innerHTML = '<div class="pvp-player-name">' + p.name + suffix + '</div>' +
+				'<div class="pvp-player-meta">' + (p.ready ? 'Готов' : 'Не готов') + '</div>';
+			var right = document.createElement('div');
+			right.className = 'pvp-score';
+			right.textContent = p.score + ' очк.';
+			row.appendChild(left);
+			row.appendChild(right);
+			playersEl.appendChild(row);
+		});
+
+		roundMetaEl.innerHTML = '';
+		[
+			'Игра: ' + (state.game_slug || 'ar_bets'),
+			'Раунд: ' + (state.round_number || 0),
+			'До: ' + (state.target_score || 5) + ' очков'
+		].forEach(function(t) {
+			var d = document.createElement('div');
+			d.textContent = t;
+			roundMetaEl.appendChild(d);
+		});
+
+		if (state.status !== 'in_round') {
+			timerFill.style.width = '100%';
+		}
+		readyBtn.style.display = state.status === 'lobby' ? '' : 'none';
+		readyBtn.textContent = me && me.ready ? 'Отменить готовность' : 'Готов';
+		answerForm.style.display = inRound && !meAnswered ? 'flex' : 'none';
+		nextBtn.style.display = (state.status === 'round_result' || state.status === 'finished') ? '' : 'none';
+		if (!inRound && taskEl.classList.contains('pvp-task--fullscreen')) {
+			closeTaskFullscreen();
+		}
+		if (inRound && !wasInRound && isMobileView()) {
+			openTaskFullscreen();
+		}
+		wasInRound = inRound;
+	}
+
+	function post(path, body) {
+		return fetch(path, {
+			method: 'POST',
+			headers: { 'X-CSRFToken': getCsrf(), 'Content-Type': 'application/x-www-form-urlencoded' },
+			body: body || ''
+		}).then(function(r) { return r.json(); });
+	}
+
+	function refresh() {
+		return fetch('/ar/pvp/api/' + code + '/state/').then(function(r) { return r.json(); }).then(function(data) {
+			if (data && data.ok) {
+				if (state.round_number !== data.state.round_number || state.status !== data.state.status) {
+					lastRoundStartTs = Date.now();
+				}
+				state = data.state;
+				render();
+			}
+		});
+	}
+
+	function animateTimer() {
+		if (!state || state.status !== 'in_round') return;
+		var secs = Number(state.round_seconds || 20);
+		var elapsed = (Date.now() - lastRoundStartTs) / 1000;
+		var pct = Math.max(0, Math.min(100, 100 - (elapsed / secs) * 100));
+		timerFill.style.width = pct + '%';
+	}
+
+	function isMobileView() {
+		return window.matchMedia('(max-width: 760px)').matches;
+	}
+
+	function syncTaskButtons() {
+		var expanded = taskEl.classList.contains('pvp-task--fullscreen') || !!document.fullscreenElement;
+		expandBtn.style.display = expanded ? 'none' : '';
+		collapseBtn.style.display = expanded ? '' : 'none';
+	}
+
+	function openTaskFullscreen() {
+		taskEl.classList.add('pvp-task--fullscreen');
+		if (taskEl.requestFullscreen) {
+			taskEl.requestFullscreen().catch(function() {});
+		}
+		syncTaskButtons();
+	}
+
+	function closeTaskFullscreen() {
+		taskEl.classList.remove('pvp-task--fullscreen');
+		if (document.fullscreenElement && document.exitFullscreen) {
+			document.exitFullscreen().catch(function() {});
+		}
+		syncTaskButtons();
+	}
+
+	readyBtn.addEventListener('click', function() {
+		post('/ar/pvp/api/' + code + '/ready/').then(function(data) {
+			if (data && data.ok) {
+				state = data.state;
+				lastRoundStartTs = Date.now();
+				render();
+			}
+		});
+	});
+
+	nextBtn.addEventListener('click', function() {
+		post('/ar/pvp/api/' + code + '/next/').then(function(data) {
+			if (data && data.ok) {
+				state = data.state;
+				lastRoundStartTs = Date.now();
+				render();
+			}
+		});
+	});
+
+	expandBtn.addEventListener('click', openTaskFullscreen);
+	collapseBtn.addEventListener('click', closeTaskFullscreen);
+	document.addEventListener('fullscreenchange', function() {
+		if (!document.fullscreenElement) {
+			taskEl.classList.remove('pvp-task--fullscreen');
+		}
+		syncTaskButtons();
+	});
+
+	answerForm.addEventListener('submit', function(e) {
+		e.preventDefault();
+		var v = (answerInput.value || '').trim();
+		if (!v) return;
+		post('/ar/pvp/api/' + code + '/answer/', 'answer=' + encodeURIComponent(v)).then(function(data) {
+			if (data && data.ok) {
+				answerInput.value = '';
+				state = data.state;
+				render();
+			}
+		});
+	});
+
+	render();
+	syncTaskButtons();
+	setInterval(refresh, 1200);
+	setInterval(animateTimer, 250);
+})();
+</script>
+{% endblock %}

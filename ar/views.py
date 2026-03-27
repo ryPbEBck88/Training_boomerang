@@ -2,9 +2,16 @@ import json
 import math
 import random
 import time
+import string
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.utils import timezone
+from django.db import transaction
+from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.clickjacking import xframe_options_sameorigin
+
+from .models import ArPvpPlayer, ArPvpRoom
 
 
 MULTIPLIER_OPTIONS = [1, 2, 5, 10, 25, 50, 125]
@@ -65,6 +72,422 @@ def _wheel_neighbors(center):
 
 def index(request):
     return render(request, 'ar/index.html')
+
+
+PVP_GAME_BETS = "ar_bets"
+PVP_DEFAULT_MAX_PLAYERS = 2
+PVP_DEFAULT_TARGET_SCORE = 5
+PVP_DEFAULT_TIMER_ENABLED = True
+PVP_DEFAULT_TIMER_SECONDS = 20
+PVP_DEFAULT_USE_STACKS = True
+PVP_DEFAULT_STACKS_COUNT = 1
+PVP_DEFAULT_MIN_CHIPS = 0
+PVP_DEFAULT_MAX_CHIPS = 5
+
+
+def _ensure_session_key(request):
+    if not request.session.session_key:
+        request.session.save()
+    return request.session.session_key
+
+
+def _gen_room_code():
+    alphabet = string.ascii_uppercase + string.digits
+    for _ in range(20):
+        code = "".join(random.choice(alphabet) for _ in range(6))
+        if not ArPvpRoom.objects.filter(code=code).exists():
+            return code
+    return "".join(random.choice(alphabet) for _ in range(8))
+
+
+def _serialize_room(room, self_session_key):
+    players = list(room.players.all().order_by("seat_no"))
+    answers = {}
+    payload = room.round_payload or {}
+    if isinstance(payload.get("answers"), dict):
+        answers = payload.get("answers") or {}
+    player_rows = []
+    for p in players:
+        a = answers.get(p.session_key, {})
+        ans_val = a.get("answer")
+        try:
+            ans_val = int(ans_val) if ans_val is not None else None
+        except (TypeError, ValueError):
+            ans_val = None
+        player_rows.append({
+            "name": p.display_name,
+            "seat": p.seat_no,
+            "ready": bool(p.is_ready),
+            "score": int(p.score),
+            "is_self": p.session_key == self_session_key,
+            "answered": p.answered_round == room.round_number and room.round_number > 0,
+            "last_correct": bool(a.get("correct", False)) if room.status != ArPvpRoom.STATUS_IN_ROUND else None,
+            "last_ms": int(a.get("ms", 0) or 0) if room.status != ArPvpRoom.STATUS_IN_ROUND else None,
+            "last_answer": ans_val if room.status != ArPvpRoom.STATUS_IN_ROUND else None,
+        })
+    return {
+        "code": room.code,
+        "status": room.status,
+        "game_slug": room.game_slug,
+        "max_players": room.max_players,
+        "target_score": room.target_score,
+        "timer_enabled": bool(room.timer_enabled),
+        "timer_seconds": int(room.timer_seconds),
+        "use_stacks": bool(room.use_stacks),
+        "stacks_count": int(room.stacks_count),
+        "min_chips": int(room.min_chips),
+        "max_chips": int(room.max_chips),
+        "round_number": room.round_number,
+        "round_seconds": int(room.timer_seconds) if room.timer_enabled else 0,
+        "question": payload.get("question"),
+        "positions": payload.get("positions", []),
+        "correct_answer": payload.get("correct_answer"),
+        "winner_name": payload.get("winner_name"),
+        "players": player_rows,
+        "can_start": (
+            room.status == ArPvpRoom.STATUS_LOBBY
+            and len(players) >= 2
+            and all(p.is_ready for p in players)
+        ),
+    }
+
+
+def _generate_bets_round_payload(room):
+    # PvP «Заставки»: фиксируем номер 0, чтобы все игроки видели одинаковый расклад
+    # и считали ответ по тем же коэффициентам, что на поле.
+    selected_number = 0
+    multipliers = [35, 17, 17, 17, 11, 11, 8]
+    n_positions = len(multipliers)
+    chip_counts = [0] * n_positions
+    if room.use_stacks:
+        max_capacity = n_positions * 20
+        chips_total = max(20, min(max_capacity, int(room.stacks_count) * 20))
+        available = list(range(n_positions))
+        while chips_total > 0 and available:
+            idx_pos = random.randint(0, len(available) - 1)
+            pos = available[idx_pos]
+            chip_counts[pos] += 1
+            chips_total -= 1
+            if chip_counts[pos] >= 20:
+                available.pop(idx_pos)
+    else:
+        lo = min(int(room.min_chips), int(room.max_chips))
+        hi = max(int(room.min_chips), int(room.max_chips))
+        lo = max(0, min(20, lo))
+        hi = max(0, min(20, hi))
+        for i in range(n_positions):
+            chip_counts[i] = random.randint(lo, hi)
+    positions = []
+    total = 0
+    for i, chips in enumerate(chip_counts):
+        positions.append({"idx": i + 1, "chips": chips})
+        total += chips * multipliers[i]
+    return {
+        "question": "Посчитайте выплату с учетом коэффициентов позиций.",
+        "positions": positions,
+        "selected_number": selected_number,
+        "multipliers": multipliers,
+        "correct_answer": total,
+        "answers": {},
+    }
+
+
+def _get_or_create_player(room, session_key, display_name=None):
+    player, created = ArPvpPlayer.objects.get_or_create(
+        room=room,
+        session_key=session_key,
+        defaults={
+            "display_name": (display_name or "Игрок").strip()[:64] or "Игрок",
+            "seat_no": room.players.count() + 1,
+        },
+    )
+    if not created and display_name:
+        n = display_name.strip()[:64]
+        if n:
+            player.display_name = n
+            player.save(update_fields=["display_name", "updated_at"])
+    return player
+
+
+def _start_round(room):
+    room.round_number += 1
+    room.status = ArPvpRoom.STATUS_IN_ROUND
+    room.round_started_at = timezone.now()
+    room.round_payload = _generate_bets_round_payload(room)
+    room.players.update(
+        answered_round=0,
+        last_answer_correct=False,
+        last_answer_ms=0,
+        is_ready=False,
+    )
+    room.save(update_fields=["round_number", "status", "round_started_at", "round_payload", "updated_at"])
+
+
+def _finalize_round(room):
+    payload = room.round_payload or {}
+    answers = payload.get("answers") or {}
+    winner_session = None
+    winner_ms = None
+    for session_key, row in answers.items():
+        if not row.get("correct"):
+            continue
+        ms = int(row.get("ms", 0) or 0)
+        if winner_ms is None or ms < winner_ms:
+            winner_ms = ms
+            winner_session = session_key
+    winner_name = None
+    if winner_session:
+        wp = room.players.filter(session_key=winner_session).first()
+        if wp:
+            wp.score = int(wp.score) + 1
+            wp.save(update_fields=["score", "updated_at"])
+            winner_name = wp.display_name
+    payload["winner_name"] = winner_name
+    room.round_payload = payload
+    room.status = ArPvpRoom.STATUS_ROUND_RESULT
+    if room.players.filter(score__gte=room.target_score).exists():
+        room.status = ArPvpRoom.STATUS_FINISHED
+    room.save(update_fields=["round_payload", "status", "updated_at"])
+
+
+def _maybe_auto_finalize_round(room):
+    if room.status != ArPvpRoom.STATUS_IN_ROUND:
+        return
+    payload = room.round_payload or {}
+    answers = payload.get("answers") or {}
+    players = list(room.players.all())
+    if players and len(answers) >= len(players):
+        _finalize_round(room)
+        return
+    if room.timer_enabled and room.round_started_at is not None:
+        elapsed = (timezone.now() - room.round_started_at).total_seconds()
+        if elapsed >= float(room.timer_seconds):
+            _finalize_round(room)
+
+
+def ar_pvp_lobby(request):
+    return render(request, "ar/ar_pvp_lobby.html", {
+        "default_max_players": PVP_DEFAULT_MAX_PLAYERS,
+        "default_target_score": PVP_DEFAULT_TARGET_SCORE,
+        "default_timer_enabled": PVP_DEFAULT_TIMER_ENABLED,
+        "default_timer_seconds": PVP_DEFAULT_TIMER_SECONDS,
+        "default_use_stacks": PVP_DEFAULT_USE_STACKS,
+        "default_stacks_count": PVP_DEFAULT_STACKS_COUNT,
+        "default_min_chips": PVP_DEFAULT_MIN_CHIPS,
+        "default_max_chips": PVP_DEFAULT_MAX_CHIPS,
+        "game_slug": PVP_GAME_BETS,
+    })
+
+
+@require_POST
+def ar_pvp_create_room(request):
+    session_key = _ensure_session_key(request)
+    display_name = (request.POST.get("name") or "Игрок 1").strip()[:64] or "Игрок 1"
+    max_players = _parse_int(request.POST.get("max_players"), PVP_DEFAULT_MAX_PLAYERS, 2, 10)
+    target_score = _parse_int(request.POST.get("target_score"), PVP_DEFAULT_TARGET_SCORE, 1, 20)
+    timer_enabled = request.POST.get("timer_enabled") == "on"
+    timer_seconds = _parse_int(request.POST.get("timer_seconds"), PVP_DEFAULT_TIMER_SECONDS, 1, 120)
+    use_stacks = request.POST.get("use_stacks", "on") == "on"
+    stacks_count = _parse_int(request.POST.get("stacks_count"), PVP_DEFAULT_STACKS_COUNT, 1, 8)
+    min_chips = _parse_int(request.POST.get("min_chips"), PVP_DEFAULT_MIN_CHIPS, 0, 20)
+    max_chips = _parse_int(request.POST.get("max_chips"), PVP_DEFAULT_MAX_CHIPS, 0, 20)
+    room = ArPvpRoom.objects.create(
+        code=_gen_room_code(),
+        game_slug=PVP_GAME_BETS,
+        max_players=max_players,
+        target_score=target_score,
+        timer_enabled=timer_enabled,
+        timer_seconds=timer_seconds,
+        use_stacks=use_stacks,
+        stacks_count=stacks_count,
+        min_chips=min_chips,
+        max_chips=max_chips,
+        host_session_key=session_key,
+    )
+    _get_or_create_player(room, session_key, display_name=display_name)
+    return redirect("ar_pvp_room", code=room.code)
+
+
+@require_POST
+def ar_pvp_join_room(request):
+    session_key = _ensure_session_key(request)
+    code = (request.POST.get("room_code") or "").strip().upper()
+    if not code:
+        return redirect("ar_pvp_lobby")
+    room = ArPvpRoom.objects.filter(code=code).first()
+    if not room:
+        return render(request, "ar/ar_pvp_lobby.html", {
+            "join_error": "Комната не найдена",
+            "default_max_players": PVP_DEFAULT_MAX_PLAYERS,
+            "default_target_score": PVP_DEFAULT_TARGET_SCORE,
+            "default_timer_enabled": PVP_DEFAULT_TIMER_ENABLED,
+            "default_timer_seconds": PVP_DEFAULT_TIMER_SECONDS,
+            "default_use_stacks": PVP_DEFAULT_USE_STACKS,
+            "default_stacks_count": PVP_DEFAULT_STACKS_COUNT,
+            "default_min_chips": PVP_DEFAULT_MIN_CHIPS,
+            "default_max_chips": PVP_DEFAULT_MAX_CHIPS,
+            "game_slug": PVP_GAME_BETS,
+        })
+    if room.players.count() >= room.max_players and not room.players.filter(session_key=session_key).exists():
+        return render(request, "ar/ar_pvp_lobby.html", {
+            "join_error": "Комната уже заполнена",
+            "default_max_players": PVP_DEFAULT_MAX_PLAYERS,
+            "default_target_score": PVP_DEFAULT_TARGET_SCORE,
+            "default_timer_enabled": PVP_DEFAULT_TIMER_ENABLED,
+            "default_timer_seconds": PVP_DEFAULT_TIMER_SECONDS,
+            "default_use_stacks": PVP_DEFAULT_USE_STACKS,
+            "default_stacks_count": PVP_DEFAULT_STACKS_COUNT,
+            "default_min_chips": PVP_DEFAULT_MIN_CHIPS,
+            "default_max_chips": PVP_DEFAULT_MAX_CHIPS,
+            "game_slug": PVP_GAME_BETS,
+        })
+    display_name = (request.POST.get("name") or "Игрок").strip()[:64] or "Игрок"
+    _get_or_create_player(room, session_key, display_name=display_name)
+    return redirect("ar_pvp_room", code=room.code)
+
+
+def ar_pvp_room(request, code):
+    session_key = _ensure_session_key(request)
+    room = ArPvpRoom.objects.filter(code=code).first()
+    if not room:
+        return redirect("ar_pvp_lobby")
+    if not room.players.filter(session_key=session_key).exists():
+        if room.players.count() >= room.max_players:
+            return redirect("ar_pvp_lobby")
+        _get_or_create_player(room, session_key, display_name="Игрок")
+    _maybe_auto_finalize_round(room)
+    room.refresh_from_db()
+    state = _serialize_room(room, session_key)
+    return render(request, "ar/ar_pvp_room.html", {
+        "room_code": room.code,
+        "room_state_json": json.dumps(state, ensure_ascii=False),
+    })
+
+
+@require_GET
+def ar_pvp_state(request, code):
+    session_key = _ensure_session_key(request)
+    room = ArPvpRoom.objects.filter(code=code).first()
+    if not room:
+        return JsonResponse({"ok": False, "error": "not_found"}, status=404)
+    if not room.players.filter(session_key=session_key).exists():
+        return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
+    _maybe_auto_finalize_round(room)
+    room.refresh_from_db()
+    return JsonResponse({"ok": True, "state": _serialize_room(room, session_key)})
+
+
+@require_GET
+def ar_pvp_round(request, code):
+    session_key = _ensure_session_key(request)
+    room = ArPvpRoom.objects.filter(code=code).first()
+    if not room:
+        return JsonResponse({"ok": False, "error": "not_found"}, status=404)
+    if not room.players.filter(session_key=session_key).exists():
+        return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
+    _maybe_auto_finalize_round(room)
+    room.refresh_from_db()
+    payload = room.round_payload or {}
+    return JsonResponse({
+        "ok": True,
+        "round": {
+            "status": room.status,
+            "round_number": room.round_number,
+            "question": payload.get("question"),
+            "positions": payload.get("positions", []),
+            "selected_number": payload.get("selected_number", 0),
+            "multipliers": payload.get("multipliers"),
+            "correct_answer": payload.get("correct_answer"),
+        },
+    })
+
+
+@require_POST
+def ar_pvp_toggle_ready(request, code):
+    session_key = _ensure_session_key(request)
+    with transaction.atomic():
+        room = ArPvpRoom.objects.select_for_update().filter(code=code).first()
+        if not room:
+            return JsonResponse({"ok": False, "error": "not_found"}, status=404)
+        player = room.players.filter(session_key=session_key).first()
+        if not player:
+            return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
+        if room.status != ArPvpRoom.STATUS_LOBBY:
+            return JsonResponse({"ok": False, "error": "round_started"}, status=400)
+        player.is_ready = not player.is_ready
+        player.save(update_fields=["is_ready", "updated_at"])
+        players = list(room.players.all())
+        if len(players) >= 2 and all(p.is_ready for p in players):
+            _start_round(room)
+        room.refresh_from_db()
+    return JsonResponse({"ok": True, "state": _serialize_room(room, session_key)})
+
+
+@require_POST
+def ar_pvp_submit_answer(request, code):
+    session_key = _ensure_session_key(request)
+    with transaction.atomic():
+        room = ArPvpRoom.objects.select_for_update().filter(code=code).first()
+        if not room:
+            return JsonResponse({"ok": False, "error": "not_found"}, status=404)
+        player = room.players.filter(session_key=session_key).first()
+        if not player:
+            return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
+        if room.status != ArPvpRoom.STATUS_IN_ROUND:
+            return JsonResponse({"ok": False, "error": "not_in_round"}, status=400)
+        if player.answered_round == room.round_number:
+            return JsonResponse({"ok": False, "error": "already_answered"}, status=400)
+        payload = room.round_payload or {}
+        correct_answer = int(payload.get("correct_answer", 0) or 0)
+        raw = (request.POST.get("answer") or "").strip()
+        try:
+            answer = int(raw)
+        except (TypeError, ValueError):
+            answer = None
+        elapsed_ms = 0
+        if room.round_started_at is not None:
+            elapsed_ms = max(0, int((timezone.now() - room.round_started_at).total_seconds() * 1000))
+        is_correct = answer is not None and answer == correct_answer
+        answers = payload.get("answers") or {}
+        answers[session_key] = {
+            "answer": answer,
+            "correct": bool(is_correct),
+            "ms": elapsed_ms,
+        }
+        payload["answers"] = answers
+        room.round_payload = payload
+        room.save(update_fields=["round_payload", "updated_at"])
+        player.answered_round = room.round_number
+        player.last_answer_correct = bool(is_correct)
+        player.last_answer_ms = elapsed_ms
+        player.save(update_fields=["answered_round", "last_answer_correct", "last_answer_ms", "updated_at"])
+        _maybe_auto_finalize_round(room)
+        room.refresh_from_db()
+    return JsonResponse({"ok": True, "state": _serialize_room(room, session_key)})
+
+
+@require_POST
+def ar_pvp_next_round(request, code):
+    session_key = _ensure_session_key(request)
+    with transaction.atomic():
+        room = ArPvpRoom.objects.select_for_update().filter(code=code).first()
+        if not room:
+            return JsonResponse({"ok": False, "error": "not_found"}, status=404)
+        if room.host_session_key != session_key:
+            return JsonResponse({"ok": False, "error": "host_only"}, status=403)
+        if room.status not in (ArPvpRoom.STATUS_ROUND_RESULT, ArPvpRoom.STATUS_FINISHED):
+            return JsonResponse({"ok": False, "error": "bad_state"}, status=400)
+        if room.status == ArPvpRoom.STATUS_FINISHED:
+            room.players.update(score=0, is_ready=False, answered_round=0, last_answer_correct=False, last_answer_ms=0)
+            room.round_number = 0
+            room.round_payload = {}
+            room.round_started_at = None
+            room.status = ArPvpRoom.STATUS_LOBBY
+            room.save(update_fields=["round_number", "round_payload", "round_started_at", "status", "updated_at"])
+        else:
+            _start_round(room)
+        room.refresh_from_db()
+    return JsonResponse({"ok": True, "state": _serialize_room(room, session_key)})
 
 
 def ar_completes_intersection(request):
@@ -216,8 +639,11 @@ def ar_bet_reveal(request):
     })
 
 
+@xframe_options_sameorigin
 def ar_bets(request):
     mix_mode = request.GET.get('mode') == 'mix'
+    pvp_preview = request.GET.get('pvp_preview') == '1'
+    pvp_room_code = (request.GET.get('pvp_room') or '').strip().upper()
     if request.method == 'POST' and request.POST.get('action') == 'ar_bets_timer':
         raw_te = request.POST.get('timer_enabled', '0')
         request.session['ar_bets_timer_enabled'] = str(raw_te).strip() in (
@@ -245,6 +671,8 @@ def ar_bets(request):
     t_en, t_sec, t_fuse = _get_ar_bets_timer(request)
     return render(request, 'ar/ar_bets.html', {
         'mix_mode': mix_mode,
+        'pvp_preview': pvp_preview,
+        'pvp_room_code': pvp_room_code,
         'timer_enabled': t_en,
         'timer_seconds': t_sec,
         'timer_fuse_animation': t_fuse,
