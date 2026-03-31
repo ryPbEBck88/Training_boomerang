@@ -14,6 +14,7 @@
 .ar-splash__card--completes .ar-splash__card-img { background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); }
 /* .ar-splash__card--completes-intersection .ar-splash__card-img { background: linear-gradient(135deg, #6366f1 0%, #a21caf 50%, #7c3aed 100%); } */
 .ar-splash__card--series .ar-splash__card-img { background: linear-gradient(135deg, #b45309 0%, #92400e 100%); }
+.ar-splash__card--track .ar-splash__card-img { background: linear-gradient(135deg, #0f766e 0%, #115e59 45%, #134e4a 100%); }
 .ar-splash__card--bet-reveal .ar-splash__card-img { background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); }
 .ar-splash__card--series-stake .ar-splash__card-img { background: linear-gradient(135deg, #7c2d12 0%, #9a3412 100%); }
 </style>
@@ -23,6 +24,9 @@
 <div class="ar-splash">
 	<h1 class="ar-splash__title">AR</h1>
 	<p class="ar-splash__tagline">Тренажёры по AR</p>
+	{% if user.is_authenticated %}
+	<p><a href="{% url 'ar_stats' %}">Моя статистика</a></p>
+	{% endif %}
 	<div class="ar-splash__grid">
 		<a href="{% url 'ar_bets' %}" class="ar-splash__card ar-splash__card--bets">
 			<span class="ar-splash__card-img"></span>
@@ -64,6 +68,10 @@
 			<span class="ar-splash__card-img"></span>
 			<span class="ar-splash__card-label">Серии</span>
 		</a>
+		<a href="{% url 'ar_track' %}" class="ar-splash__card ar-splash__card--track">
+			<span class="ar-splash__card-img"></span>
+			<span class="ar-splash__card-label">Трек</span>
+		</a>
 		<a href="{% url 'ar_mix' %}" class="ar-splash__card ar-splash__card--mix">
 			<span class="ar-splash__card-img"></span>
 			<span class="ar-splash__card-label">3 в 1</span>
@@ -85,6 +93,7 @@
 	{% comment %}<p><strong>Пересечение комплитов</strong> — тренажёр в разработке.</p>{% endcomment %}
 	<p><strong>Ставка на серию</strong> — интерфейс и настройки; логика задания добавляется отдельно.</p>
 	<p><strong>Серии</strong> — поле сверху, подсветка номеров на колесе; в режиме серии нужно расставить фишки по заданию и нажать «Проверить» (5/8, orphelins, 0/2/3, 0-spiel).</p>
+	<p><strong>Трек</strong> — 3D-сцена; задания и проверка — позже.</p>
 	<p><strong>3 в 1</strong> — заставка (считайте фишки) → «Цвет в cash» (число × множитель) → «Выплата через cash» (цвет = число от заставки, цвет по = множитель) → заставка → по кругу.</p>
 </div>
 {% endblock %}

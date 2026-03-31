@@ -34,49 +34,86 @@ body {
 }
 
 /* --- Шапка --- */
-header {
-  background: var(--bg-header);
+.site-header {
+  background: linear-gradient(180deg, #1e3a5f 0%, #1a3658 100%);
   color: #fff;
-  padding: 14px 24px;
+  padding: 12px 20px;
   box-shadow: var(--shadow-strong);
 }
 
-nav {
-  max-width: 900px;
+.site-nav {
+  max-width: 980px;
   margin: 0 auto;
   display: flex;
-  gap: 20px;
+  align-items: center;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
-nav a {
-  color: rgba(255, 255, 255, 0.9);
-  text-decoration: none;
-  font-weight: 500;
-  padding: 4px 0;
-  border-bottom: 2px solid transparent;
-  transition: color 0.2s, border-color 0.2s;
-  cursor: pointer;
-}
-
-nav a:hover {
-  color: #fff;
-  border-bottom-color: rgba(255, 255, 255, 0.5);
-}
-
-nav a.nav-home {
+.site-nav__home {
   display: flex;
   align-items: center;
-  padding: 2px 0;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
 }
 
-nav a.nav-home img {
+.site-nav__home img {
   display: block;
 }
 
-nav a.nav-home:hover {
-  border-bottom-color: transparent;
-  opacity: 0.95;
+.site-nav__home:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: translateY(-1px);
+}
+
+.site-nav__link {
+  color: #e2e8f0;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.92rem;
+  line-height: 1;
+  padding: 9px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+  transition: color 0.2s, background 0.2s, border-color 0.2s, transform 0.15s;
+}
+
+.site-nav__link:hover {
+  color: #fff;
+  background: rgba(59, 130, 246, 0.45);
+  border-color: rgba(147, 197, 253, 0.9);
+  transform: translateY(-1px);
+}
+
+.site-nav__logout-form {
+  margin-left: auto;
+}
+
+.site-nav__logout-btn {
+  appearance: none;
+  border: 1px solid rgba(248, 113, 113, 0.85);
+  background: rgba(220, 38, 38, 0.18);
+  color: #fee2e2;
+  font-weight: 600;
+  font-size: 0.9rem;
+  line-height: 1;
+  padding: 9px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+}
+
+.site-nav__logout-btn:hover {
+  background: rgba(220, 38, 38, 0.35);
+  border-color: #f87171;
+  transform: translateY(-1px);
 }
 
 /* --- Кнопка «В начало страницы» --- */

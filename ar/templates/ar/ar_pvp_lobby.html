@@ -4,28 +4,30 @@
 {% block extra_head %}
 <style>
 .pvp-lobby {
-	max-width: 760px;
+	max-width: 820px;
 	margin: 0 auto;
 	display: grid;
-	gap: 16px;
+	gap: 18px;
 }
-.pvp-lobby-head {
-	text-align: center;
-	display: grid;
-	gap: 6px;
-}
-.pvp-lobby-head h1 {
-	margin: 0;
-	font-size: 1.5rem;
-}
-.pvp-lobby-head p {
-	margin: 0;
-	color: #64748b;
-}
-.pvp-lobby-grid {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
+.pvp-lobby-toolbar {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
 	gap: 12px;
+	flex-wrap: wrap;
+}
+.pvp-lobby-toolbar-text h1 {
+	margin: 0;
+	font-size: 1.45rem;
+}
+.pvp-lobby-toolbar-text p {
+	margin: 6px 0 0;
+	color: #64748b;
+	font-size: 0.92rem;
+	max-width: 36rem;
+}
+.pvp-lobby-create-btn {
+	flex-shrink: 0;
 }
 .pvp-box {
 	display: grid;
@@ -64,77 +66,343 @@
 	grid-template-columns: 1fr 1fr;
 	gap: 8px;
 }
+.pvp-chips-pair {
+	display: flex;
+	gap: 6px;
+}
 .pvp-error {
 	margin: 0;
 	color: #b91c1c;
 	font-weight: 600;
 }
+.pvp-rooms-table-wrap {
+	overflow-x: auto;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	background: #fff;
+}
+.pvp-rooms-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.92rem;
+}
+.pvp-rooms-table th,
+.pvp-rooms-table td {
+	padding: 10px 12px;
+	text-align: left;
+	border-bottom: 1px solid #e2e8f0;
+}
+.pvp-rooms-table th {
+	background: #f1f5f9;
+	font-weight: 600;
+	color: #334155;
+}
+.pvp-rooms-table tr:last-child td {
+	border-bottom: 0;
+}
+.pvp-room-code {
+	font-family: ui-monospace, monospace;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+}
+.pvp-rooms-empty {
+	margin: 0;
+	padding: 20px 14px;
+	color: #64748b;
+	text-align: center;
+}
+.pvp-rooms-hint {
+	margin: 0;
+	font-size: 0.85rem;
+	color: #64748b;
+}
+.pvp-join-name-row {
+	max-width: 280px;
+}
+.pvp-modal::backdrop {
+	background: rgba(15, 23, 42, 0.5);
+	backdrop-filter: blur(4px);
+}
+.pvp-modal {
+	border: none;
+	border-radius: 16px;
+	padding: 0;
+	max-width: min(560px, calc(100vw - 24px));
+	width: 100%;
+	box-shadow:
+		0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+		0 25px 50px -12px rgba(0, 0, 0, 0.35);
+	overflow: hidden;
+}
+.pvp-modal-inner {
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	max-height: min(90vh, 720px);
+}
+.pvp-create-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 18px 20px 16px;
+	background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 48%, #1d4ed8 100%);
+	color: #f8fafc;
+}
+.pvp-create-header-text h2 {
+	margin: 0;
+	font-size: 1.2rem;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+}
+.pvp-create-header-text p {
+	margin: 6px 0 0;
+	font-size: 0.82rem;
+	color: rgba(248, 250, 252, 0.78);
+	line-height: 1.4;
+	max-width: 28rem;
+}
+.pvp-modal-close {
+	border: 0;
+	background: rgba(255, 255, 255, 0.12);
+	color: #f8fafc;
+	width: 40px;
+	height: 40px;
+	border-radius: 12px;
+	cursor: pointer;
+	font-size: 1.35rem;
+	line-height: 1;
+	flex-shrink: 0;
+	transition: background 0.15s ease;
+}
+.pvp-modal-close:hover {
+	background: rgba(255, 255, 255, 0.22);
+}
+.pvp-create-form {
+	padding: 16px 18px 18px;
+	display: grid;
+	gap: 12px;
+	overflow-y: auto;
+	flex: 1 1 auto;
+	min-height: 0;
+}
+.pvp-create-section {
+	display: grid;
+	gap: 10px;
+	padding: 14px 14px 12px;
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+}
+.pvp-create-section-title {
+	margin: 0;
+	font-size: 0.72rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: #64748b;
+}
+.pvp-create-grid-2 {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 10px;
+}
+.pvp-create-form label {
+	display: grid;
+	gap: 5px;
+	margin: 0;
+}
+.pvp-create-form label > span:first-child {
+	font-size: 0.82rem;
+	font-weight: 600;
+	color: #334155;
+}
+.pvp-create-form input[type="text"],
+.pvp-create-form input[type="number"] {
+	padding: 10px 11px;
+	border: 1px solid #cbd5e1;
+	border-radius: 10px;
+	font-size: 0.95rem;
+	background: #fff;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.pvp-create-form input[type="text"]:focus,
+.pvp-create-form input[type="number"]:focus {
+	outline: none;
+	border-color: #3b82f6;
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+.pvp-create-switch-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 8px 0;
+}
+.pvp-create-switch-row span {
+	font-size: 0.88rem;
+	font-weight: 600;
+	color: #334155;
+}
+.pvp-create-switch {
+	position: relative;
+	width: 48px;
+	height: 28px;
+	flex-shrink: 0;
+	cursor: pointer;
+}
+.pvp-create-switch input {
+	position: absolute;
+	opacity: 0;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	cursor: pointer;
+	z-index: 1;
+}
+.pvp-create-switch-track {
+	position: absolute;
+	inset: 0;
+	border-radius: 999px;
+	background: #cbd5e1;
+	transition: background 0.2s ease;
+}
+.pvp-create-switch-knob {
+	position: absolute;
+	top: 3px;
+	left: 3px;
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	background: #fff;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+	transition: transform 0.2s ease;
+}
+.pvp-create-switch input:checked + .pvp-create-switch-track {
+	background: linear-gradient(90deg, #2563eb, #3b82f6);
+}
+.pvp-create-switch input:checked + .pvp-create-switch-track .pvp-create-switch-knob {
+	transform: translateX(20px);
+}
+.pvp-create-form:has([name="timer_enabled"]:not(:checked)) .pvp-create-timer-seconds {
+	opacity: 0.45;
+	pointer-events: none;
+}
+.pvp-create-form:has([name="use_stacks"]:not(:checked)) .pvp-create-stacks-fields {
+	opacity: 0.45;
+	pointer-events: none;
+}
+.pvp-create-chips-pair {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px;
+}
+.pvp-create-chips-pair input {
+	width: 100%;
+	min-width: 0;
+}
+.pvp-create-footer {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding-top: 4px;
+}
+.pvp-create-footer .btn {
+	width: 100%;
+	justify-content: center;
+	padding-top: 11px;
+	padding-bottom: 11px;
+	font-weight: 600;
+}
+.pvp-create-footer-cancel {
+	background: transparent;
+	border: 1px solid #cbd5e1;
+	color: #475569;
+}
+.pvp-create-footer-cancel:hover {
+	background: #f1f5f9;
+	border-color: #94a3b8;
+	color: #0f172a;
+}
+.pvp-create-hint {
+	margin: 0;
+	font-size: 0.78rem;
+	color: #64748b;
+	line-height: 1.35;
+}
 @media (max-width: 760px) {
-	.pvp-lobby-grid { grid-template-columns: 1fr; }
+	.pvp-lobby-toolbar { flex-direction: column; align-items: stretch; }
+	.pvp-lobby-create-btn { width: 100%; }
+	.pvp-mini-grid { grid-template-columns: 1fr; }
+	.pvp-create-grid-2 { grid-template-columns: 1fr; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="pvp-lobby">
-	<div class="pvp-lobby-head">
-		<h1>AR PvP — Заставки (MVP)</h1>
-		<p>Сейчас: комната на 2 игрока. Архитектура уже поддерживает масштабирование до 5/10.</p>
+	<div class="pvp-lobby-toolbar">
+		<div class="pvp-lobby-toolbar-text">
+			<h1>AR PvP — Заставки</h1>
+			<p>Выберите комнату из списка или введите код. Создать свою — кнопка справа.</p>
+		</div>
+		<button type="button" class="btn btn-primary pvp-lobby-create-btn" id="pvpOpenCreateModal">Создать комнату</button>
 	</div>
 
-	<div class="pvp-lobby-grid">
+	{% if join_error %}
+	<p class="pvp-error">{{ join_error }}</p>
+	{% endif %}
+
 	<div class="pvp-box">
-		<h2>Создать комнату</h2>
-		<form method="post" action="{% url 'ar_pvp_create_room' %}" class="pvp-form">
-			{% csrf_token %}
-			<label>
-				<span>Имя</span>
-				<input type="text" name="name" maxlength="64" placeholder="Игрок 1">
-			</label>
-			<label>
-				<span>Макс. игроков</span>
-				<input type="number" name="max_players" min="2" max="10" value="{{ default_max_players }}">
-			</label>
-			<label>
-				<span>До скольки очков</span>
-				<input type="number" name="target_score" min="1" max="20" value="{{ default_target_score }}">
-			</label>
-			<div class="pvp-switch-row">
-				<span>Таймер</span>
-				<input type="checkbox" name="timer_enabled" {% if default_timer_enabled %}checked{% endif %}>
-			</div>
-			<label>
-				<span>Секунд на раунд</span>
-				<input type="number" name="timer_seconds" min="1" max="120" value="{{ default_timer_seconds }}">
-			</label>
-			<div class="pvp-switch-row">
-				<span>Режим стеков (как в ar_bets)</span>
-				<input type="checkbox" name="use_stacks" {% if default_use_stacks %}checked{% endif %}>
-			</div>
-			<div class="pvp-mini-grid">
-				<label>
-					<span>Стеков</span>
-					<input type="number" name="stacks_count" min="1" max="8" value="{{ default_stacks_count }}">
-				</label>
-				<label>
-					<span>min / max</span>
-					<div style="display:flex;gap:6px;">
-						<input type="number" name="min_chips" min="0" max="20" value="{{ default_min_chips }}">
-						<input type="number" name="max_chips" min="0" max="20" value="{{ default_max_chips }}">
-					</div>
-				</label>
-			</div>
-			<button type="submit" class="btn btn-primary">Создать</button>
-		</form>
+		<h2>Комнаты</h2>
+		<p class="pvp-rooms-hint">Комнаты без активности на сервере более {{ pvp_room_stale_hours }}&nbsp;ч удаляются автоматически.</p>
+		<label class="pvp-join-name-row">
+			<span>Ваше имя при входе из списка</span>
+			<input type="text" id="pvpListJoinName" maxlength="64" placeholder="Игрок" autocomplete="nickname">
+		</label>
+		{% if pvp_rooms %}
+		<div class="pvp-rooms-table-wrap">
+			<table class="pvp-rooms-table">
+				<thead>
+					<tr>
+						<th>Код</th>
+						<th>Игроки</th>
+						<th>Статус</th>
+						<th>До очков</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for r in pvp_rooms %}
+					<tr>
+						<td class="pvp-room-code">{{ r.code }}</td>
+						<td>{{ r.player_count }} / {{ r.max_players }}</td>
+						<td>{{ r.status_label }}</td>
+						<td>{{ r.target_score }}</td>
+						<td>
+							{% if r.is_full %}
+							<button type="button" class="btn btn-secondary pvp-join-from-list" data-room-code="{{ r.code }}">В комнату</button>
+							{% else %}
+							<button type="button" class="btn btn-secondary pvp-join-from-list" data-room-code="{{ r.code }}">Войти</button>
+							{% endif %}
+						</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+		{% else %}
+		<p class="pvp-rooms-empty">Пока нет открытых комнат. Создайте свою или введите код ниже.</p>
+		{% endif %}
 	</div>
 
 	<div class="pvp-box">
-		<h2>Войти в комнату</h2>
+		<h2>Войти по коду</h2>
 		<form method="post" action="{% url 'ar_pvp_join_room' %}">
 			{% csrf_token %}
 			<label>
 				<span>Код комнаты</span>
-				<input type="text" name="room_code" maxlength="8" style="text-transform:uppercase;" placeholder="Например AB12CD" required>
+				<input type="text" name="room_code" maxlength="8" placeholder="Например AB12CD" required style="text-transform:uppercase;">
 			</label>
 			<label>
 				<span>Имя</span>
@@ -142,12 +410,135 @@
 			</label>
 			<button type="submit" class="btn btn-secondary">Войти</button>
 		</form>
-		{% if join_error %}
-		<p class="pvp-error">{{ join_error }}</p>
-		{% endif %}
 	</div>
-	</div>
+
+	<form id="pvpJoinFromListForm" method="post" action="{% url 'ar_pvp_join_room' %}" hidden>
+		{% csrf_token %}
+		<input type="hidden" name="room_code" id="pvpJoinFromListCode" value="">
+		<input type="hidden" name="name" id="pvpJoinFromListName" value="">
+	</form>
 
 	<p class="payout-back"><a href="{% url 'ar_index' %}">← К разделу AR</a></p>
 </div>
+
+<dialog class="pvp-modal" id="pvpCreateModal" aria-labelledby="pvpCreateModalTitle">
+	<div class="pvp-modal-inner">
+		<header class="pvp-create-header">
+			<div class="pvp-create-header-text">
+				<h2 id="pvpCreateModalTitle">Новая комната</h2>
+				<p>Настройте матч и зайдите как хост. Остальные подключатся по коду из списка или вручную.</p>
+			</div>
+			<button type="button" class="pvp-modal-close" id="pvpCloseCreateModal" aria-label="Закрыть">×</button>
+		</header>
+		<form method="post" action="{% url 'ar_pvp_create_room' %}" class="pvp-create-form">
+			{% csrf_token %}
+			<input type="hidden" name="timer_enabled" value="off">
+			<input type="hidden" name="use_stacks" value="off">
+			<section class="pvp-create-section" aria-labelledby="pvp-create-player">
+				<h3 class="pvp-create-section-title" id="pvp-create-player">Игрок</h3>
+				<label>
+					<span>Отображаемое имя</span>
+					<input type="text" name="name" maxlength="64" placeholder="Например, Игрок 1" autocomplete="nickname">
+				</label>
+			</section>
+			<section class="pvp-create-section" aria-labelledby="pvp-create-match">
+				<h3 class="pvp-create-section-title" id="pvp-create-match">Матч</h3>
+				<div class="pvp-create-grid-2">
+					<label>
+						<span>Игроков в комнате</span>
+						<input type="number" name="max_players" min="2" max="10" value="{{ default_max_players }}" inputmode="numeric">
+					</label>
+					<label>
+						<span>Очков до победы</span>
+						<input type="number" name="target_score" min="1" max="20" value="{{ default_target_score }}" inputmode="numeric">
+					</label>
+				</div>
+			</section>
+			<section class="pvp-create-section" aria-labelledby="pvp-create-timer">
+				<h3 class="pvp-create-section-title" id="pvp-create-timer">Таймер раунда</h3>
+				<div class="pvp-create-switch-row">
+					<span id="pvp-timer-label">Ограничение по времени</span>
+					<label class="pvp-create-switch" aria-labelledby="pvp-timer-label">
+						<input type="checkbox" name="timer_enabled" {% if default_timer_enabled %}checked{% endif %}>
+						<span class="pvp-create-switch-track"><span class="pvp-create-switch-knob"></span></span>
+					</label>
+				</div>
+				<label class="pvp-create-timer-seconds">
+					<span>Секунд на ответ</span>
+					<input type="number" name="timer_seconds" min="1" max="120" value="{{ default_timer_seconds }}" inputmode="numeric">
+				</label>
+			</section>
+			<section class="pvp-create-section" aria-labelledby="pvp-create-chips">
+				<h3 class="pvp-create-section-title" id="pvp-create-chips">Фишки на столе</h3>
+				<div class="pvp-create-switch-row">
+					<span id="pvp-stacks-label">Режим стеков (как в «Заставки»)</span>
+					<label class="pvp-create-switch" aria-labelledby="pvp-stacks-label">
+						<input type="checkbox" name="use_stacks" {% if default_use_stacks %}checked{% endif %}>
+						<span class="pvp-create-switch-track"><span class="pvp-create-switch-knob"></span></span>
+					</label>
+				</div>
+				<div class="pvp-create-stacks-fields">
+					<div class="pvp-create-grid-2">
+						<label>
+							<span>Число стеков</span>
+							<input type="number" name="stacks_count" min="1" max="8" value="{{ default_stacks_count }}" inputmode="numeric">
+						</label>
+						<label>
+							<span>Диапазон без стеков</span>
+							<div class="pvp-create-chips-pair">
+								<input type="number" name="min_chips" min="0" max="20" value="{{ default_min_chips }}" aria-label="Минимум фишек на позицию" inputmode="numeric" placeholder="min">
+								<input type="number" name="max_chips" min="0" max="20" value="{{ default_max_chips }}" aria-label="Максимум фишек на позицию" inputmode="numeric" placeholder="max">
+							</div>
+						</label>
+					</div>
+					<p class="pvp-create-hint">При включённых стеках используются «Стеков» и лимит 20 фишек на позицию. Без стеков — случайно от min до max на каждую из 7 позиций (номер 0).</p>
+				</div>
+			</section>
+			<footer class="pvp-create-footer">
+				<button type="submit" class="btn btn-primary">Создать комнату и зайти</button>
+				<button type="button" class="btn pvp-create-footer-cancel" id="pvpCancelCreateModal">Отмена</button>
+			</footer>
+		</form>
+	</div>
+</dialog>
+
+<script>
+(function() {
+	var modal = document.getElementById('pvpCreateModal');
+	var openBtn = document.getElementById('pvpOpenCreateModal');
+	var closeBtn = document.getElementById('pvpCloseCreateModal');
+	var cancelBtn = document.getElementById('pvpCancelCreateModal');
+	var joinNameInput = document.getElementById('pvpListJoinName');
+	var joinForm = document.getElementById('pvpJoinFromListForm');
+	var joinCode = document.getElementById('pvpJoinFromListCode');
+	var joinNameHidden = document.getElementById('pvpJoinFromListName');
+
+	if (openBtn && modal && typeof modal.showModal === 'function') {
+		openBtn.addEventListener('click', function() { modal.showModal(); });
+	}
+	if (closeBtn && modal) {
+		closeBtn.addEventListener('click', function() { modal.close(); });
+	}
+	if (cancelBtn && modal) {
+		cancelBtn.addEventListener('click', function() { modal.close(); });
+	}
+	if (modal) {
+		modal.addEventListener('click', function(e) {
+			if (e.target === modal) modal.close();
+		});
+	}
+
+	document.querySelectorAll('.pvp-join-from-list').forEach(function(btn) {
+		btn.addEventListener('click', function() {
+			var code = (btn.getAttribute('data-room-code') || '').trim().toUpperCase();
+			if (!code || !joinForm || !joinCode || !joinNameHidden) return;
+			var name = (joinNameInput && joinNameInput.value) ? joinNameInput.value.trim() : '';
+			if (!name) name = 'Игрок';
+			joinCode.value = code;
+			joinNameHidden.value = name.slice(0, 64);
+			joinForm.submit();
+		});
+	});
+})();
+</script>
 {% endblock %}

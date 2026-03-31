@@ -1,21 +1,72 @@
 import json
 import math
 import random
-import time
 import string
+import time
+import calendar
+from datetime import datetime, timedelta
+from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.db import transaction
+from django.db.models import Avg, Count, Min, Q
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
-from .models import ArPvpPlayer, ArPvpRoom
+from .models import ArPvpPlayer, ArPvpRoom, ArTrainingAttempt
 
 
 MULTIPLIER_OPTIONS = [1, 2, 5, 10, 25, 50, 125]
 DEFAULT_MULTIPLIERS = [2, 5, 10, 25, 50]
+User = get_user_model()
+ATTEMPT_SOLVE_SECONDS_MAX = 120.0
+TRAINER_TITLES = {
+    "ar_bets": "Заставки",
+    "ar_roulette": "Цвет в cash",
+    "ar_payout_through_cash": "Выплата через cash",
+    "ar_neighbors": "Соседи",
+    "ar_completes": "Комплиты",
+    "ar_series_stake": "Ставка на серию",
+    "ar_track": "Трек",
+}
+TRAINER_ORDER = [
+    "ar_bets",
+    "ar_roulette",
+    "ar_payout_through_cash",
+    "ar_neighbors",
+    "ar_completes",
+    "ar_series_stake",
+    "ar_track",
+]
+
+
+def _save_training_attempt(request, trainer_slug, outcome, solve_seconds=None, payload=None):
+    if not request.user.is_authenticated:
+        return
+    payload_data = dict(payload or {})
+    normalized_solve_seconds = None
+    if solve_seconds is not None:
+        try:
+            solve_val = float(solve_seconds)
+        except (TypeError, ValueError):
+            solve_val = None
+        if solve_val is not None and solve_val >= 0:
+            if solve_val > ATTEMPT_SOLVE_SECONDS_MAX:
+                # Для статистики считаем такие попытки отдельной пометкой, без численного времени.
+                payload_data["solve_over_limit"] = True
+                normalized_solve_seconds = None
+            else:
+                normalized_solve_seconds = round(solve_val, 1)
+    ArTrainingAttempt.objects.create(
+        user=request.user,
+        trainer_slug=trainer_slug,
+        outcome=outcome,
+        solve_seconds=normalized_solve_seconds,
+        payload=payload_data,
+    )
 
 
 def _ar_roulette_color_per_ui(request, multipliers):
@@ -74,6 +125,170 @@ def index(request):
     return render(request, 'ar/index.html')
 
 
+@login_required
+def ar_stats(request, user_id=None):
+    target_user = request.user
+    if user_id is not None:
+        target_user = User.objects.filter(pk=user_id).first()
+        if target_user is None:
+            return redirect("ar_stats")
+    is_developer = request.user.is_superuser or request.user.is_staff
+    if request.user.pk != target_user.pk and not is_developer:
+        return redirect("ar_stats")
+
+    attempts = ArTrainingAttempt.objects.filter(user=target_user)
+    trainer_filter = (request.GET.get("trainer") or "").strip()
+    if trainer_filter and trainer_filter in TRAINER_TITLES:
+        attempts = attempts.filter(trainer_slug=trainer_filter)
+    by_trainer = (
+        attempts.values("trainer_slug")
+        .annotate(
+            total=Count("id"),
+            correct=Count("id", filter=Q(outcome=ArTrainingAttempt.OUTCOME_CORRECT)),
+            wrong=Count("id", filter=Q(outcome=ArTrainingAttempt.OUTCOME_WRONG)),
+            skipped=Count("id", filter=Q(outcome=ArTrainingAttempt.OUTCOME_SKIPPED)),
+            avg_solve_seconds=Avg(
+                "solve_seconds",
+                filter=Q(outcome__in=[ArTrainingAttempt.OUTCOME_CORRECT, ArTrainingAttempt.OUTCOME_ALMOST]),
+            ),
+            best_solve_seconds=Min(
+                "solve_seconds",
+                filter=Q(outcome__in=[ArTrainingAttempt.OUTCOME_CORRECT, ArTrainingAttempt.OUTCOME_ALMOST]),
+            ),
+        )
+        .order_by("trainer_slug")
+    )
+    rows = []
+    for row in by_trainer:
+        total = row["total"] or 0
+        solved = row["correct"] or 0
+        accuracy = round((solved / total) * 100, 1) if total else 0.0
+        rows.append({
+            **row,
+            "accuracy": accuracy,
+            "trainer_title": TRAINER_TITLES.get(row["trainer_slug"], row["trainer_slug"]),
+        })
+
+    today = timezone.localdate()
+    selected_year = today.year
+    selected_month = today.month
+    try:
+        selected_year = int(request.GET.get("year", selected_year))
+    except (TypeError, ValueError):
+        selected_year = today.year
+    try:
+        selected_month = int(request.GET.get("month", selected_month))
+    except (TypeError, ValueError):
+        selected_month = today.month
+    selected_month = max(1, min(12, selected_month))
+    selected_year = max(2000, min(2100, selected_year))
+
+    days_in_month = calendar.monthrange(selected_year, selected_month)[1]
+    month_start = datetime(selected_year, selected_month, 1, tzinfo=timezone.get_current_timezone())
+    month_end = datetime(
+        selected_year + (1 if selected_month == 12 else 0),
+        1 if selected_month == 12 else selected_month + 1,
+        1,
+        tzinfo=timezone.get_current_timezone(),
+    )
+    month_attempts = attempts.filter(created_at__gte=month_start, created_at__lt=month_end)
+
+    trainer_map = {}
+    for a in month_attempts:
+        trainer_slug = a.trainer_slug
+        day_no = timezone.localtime(a.created_at).day
+        trainer_bucket = trainer_map.setdefault(trainer_slug, {})
+        stat = trainer_bucket.setdefault(day_no, {
+            "attempts": 0,
+            "correct": 0,
+            "almost": 0,
+            "wrong": 0,
+            "skipped": 0,
+        })
+        stat["attempts"] += 1
+        if a.outcome == ArTrainingAttempt.OUTCOME_CORRECT:
+            stat["correct"] += 1
+        elif a.outcome == ArTrainingAttempt.OUTCOME_ALMOST:
+            stat["almost"] += 1
+        elif a.outcome == ArTrainingAttempt.OUTCOME_WRONG:
+            stat["wrong"] += 1
+        elif a.outcome == ArTrainingAttempt.OUTCOME_SKIPPED:
+            stat["skipped"] += 1
+
+    trainer_slugs = [r["trainer_slug"] for r in rows]
+    chart_by_trainer = []
+    for trainer_slug in trainer_slugs:
+        per_day = trainer_map.get(trainer_slug, {})
+        max_attempts = max((s["attempts"] for s in per_day.values()), default=0)
+        if max_attempts <= 10:
+            attempts_axis_max = 10
+            attempts_axis_step = 1
+        else:
+            rounded_to_tens = int(math.ceil(max_attempts / 10.0) * 10)
+            attempts_axis_max = max(100, rounded_to_tens)
+            attempts_axis_step = 10
+        attempts_ticks = list(range(attempts_axis_step, attempts_axis_max + 1, attempts_axis_step))
+        day_entries = []
+        for day_no in range(1, days_in_month + 1):
+            s = per_day.get(day_no, {"attempts": 0, "correct": 0, "almost": 0, "wrong": 0, "skipped": 0})
+            attempts_count = s["attempts"]
+            strict_accuracy = (s["correct"] / attempts_count) * 100 if attempts_count else 0.0
+            attempts_percent = min(
+                100.0,
+                (attempts_count / attempts_axis_max) * 100.0,
+            )
+            correct_share = (s["correct"] / attempts_count) if attempts_count else 0.0
+            accuracy_scaled_percent = attempts_percent * correct_share
+            day_entries.append({
+                "day": day_no,
+                "has_data": attempts_count > 0,
+                "attempts": attempts_count,
+                "attempts_height": max(2, int(attempts_percent)) if attempts_count > 0 else 0,
+                "accuracy_height": max(2, int(accuracy_scaled_percent)) if attempts_count > 0 else 0,
+                "strict_accuracy_percent": round(strict_accuracy, 1),
+            })
+        chart_by_trainer.append({
+            "trainer_slug": trainer_slug,
+            "trainer_title": TRAINER_TITLES.get(trainer_slug, trainer_slug),
+            "max_attempts": max_attempts,
+            "attempts_axis_max": attempts_axis_max,
+            "attempts_axis_step": attempts_axis_step,
+            "attempts_ticks": [
+                {
+                    "value": t,
+                    "bottom_percent": round((t / attempts_axis_max) * 100.0, 2),
+                }
+                for t in attempts_ticks
+            ],
+            "days": day_entries,
+        })
+
+    return render(request, "ar/ar_stats.html", {
+        "target_user": target_user,
+        "stats_rows": rows,
+        "chart_by_trainer": chart_by_trainer,
+        "selected_year": selected_year,
+        "selected_month": selected_month,
+        "selected_trainer": trainer_filter,
+        "trainer_choices": [
+            {"slug": slug, "title": TRAINER_TITLES[slug]}
+            for slug in TRAINER_ORDER
+        ],
+        "recent_attempts": [
+            {
+                "created_at": a.created_at,
+                "trainer_slug": a.trainer_slug,
+                "trainer_title": TRAINER_TITLES.get(a.trainer_slug, a.trainer_slug),
+                "outcome_display": a.get_outcome_display(),
+                "solve_seconds": a.solve_seconds,
+                "payload": a.payload,
+            }
+            for a in attempts[:100]
+        ],
+        "is_developer": is_developer,
+    })
+
+
 PVP_GAME_BETS = "ar_bets"
 PVP_DEFAULT_MAX_PLAYERS = 2
 PVP_DEFAULT_TARGET_SCORE = 5
@@ -83,6 +298,88 @@ PVP_DEFAULT_USE_STACKS = True
 PVP_DEFAULT_STACKS_COUNT = 1
 PVP_DEFAULT_MIN_CHIPS = 0
 PVP_DEFAULT_MAX_CHIPS = 5
+# Комнаты без обновлений на сервере дольше этого времени удаляются (листинг лобби + «мёртвые» матчи).
+PVP_ROOM_STALE_DELETE_HOURS = 6
+# Не чаще раз в N секунд обновляем updated_at при опросе API (живая сессия не считается «заброшенной»).
+PVP_ROOM_ACTIVITY_TOUCH_SECONDS = 300
+
+
+def _pvp_cleanup_stale_rooms():
+    cutoff = timezone.now() - timedelta(hours=PVP_ROOM_STALE_DELETE_HOURS)
+    ArPvpRoom.objects.filter(updated_at__lt=cutoff).delete()
+
+
+def _pvp_touch_room_activity(room):
+    now = timezone.now()
+    if (now - room.updated_at).total_seconds() < PVP_ROOM_ACTIVITY_TOUCH_SECONDS:
+        return
+    ArPvpRoom.objects.filter(pk=room.pk).update(updated_at=now)
+    room.updated_at = now
+
+
+def _pvp_status_label(status):
+    return {
+        ArPvpRoom.STATUS_LOBBY: "Лобби",
+        ArPvpRoom.STATUS_IN_ROUND: "Раунд",
+        ArPvpRoom.STATUS_ROUND_RESULT: "Итог раунда",
+        ArPvpRoom.STATUS_FINISHED: "Финиш",
+    }.get(status, status)
+
+
+def _pvp_lobby_context(request, join_error=None):
+    _pvp_cleanup_stale_rooms()
+    session_key = _ensure_session_key(request)
+    active_statuses = (
+        ArPvpRoom.STATUS_LOBBY,
+        ArPvpRoom.STATUS_IN_ROUND,
+        ArPvpRoom.STATUS_ROUND_RESULT,
+    )
+    # Не смешиваем Count(players) с filter(players__session_key=…) — в SQL это даёт неверные
+    # счётчики и «полные» комнаты могут показываться чужим как свободные. Считаем отдельно.
+    candidates = list(
+        ArPvpRoom.objects.filter(status__in=active_statuses)
+        .annotate(player_count=Count("players", distinct=True))
+        .order_by("-updated_at")[:80]
+    )
+    room_ids = [r.pk for r in candidates]
+    member_room_ids = set()
+    if room_ids:
+        member_room_ids = set(
+            ArPvpPlayer.objects.filter(session_key=session_key, room_id__in=room_ids).values_list(
+                "room_id", flat=True
+            )
+        )
+    pvp_rooms = []
+    for r in candidates:
+        viewer_is_member = r.pk in member_room_ids
+        if r.player_count >= r.max_players and not viewer_is_member:
+            continue
+        pvp_rooms.append({
+            "code": r.code,
+            "player_count": r.player_count,
+            "max_players": r.max_players,
+            "status": r.status,
+            "status_label": _pvp_status_label(r.status),
+            "target_score": r.target_score,
+            "viewer_is_member": viewer_is_member,
+            "is_full": r.player_count >= r.max_players,
+        })
+        if len(pvp_rooms) >= 40:
+            break
+    return {
+        "default_max_players": PVP_DEFAULT_MAX_PLAYERS,
+        "default_target_score": PVP_DEFAULT_TARGET_SCORE,
+        "default_timer_enabled": PVP_DEFAULT_TIMER_ENABLED,
+        "default_timer_seconds": PVP_DEFAULT_TIMER_SECONDS,
+        "default_use_stacks": PVP_DEFAULT_USE_STACKS,
+        "default_stacks_count": PVP_DEFAULT_STACKS_COUNT,
+        "default_min_chips": PVP_DEFAULT_MIN_CHIPS,
+        "default_max_chips": PVP_DEFAULT_MAX_CHIPS,
+        "game_slug": PVP_GAME_BETS,
+        "join_error": join_error,
+        "pvp_rooms": pvp_rooms,
+        "pvp_room_stale_hours": PVP_ROOM_STALE_DELETE_HOURS,
+    }
 
 
 def _ensure_session_key(request):
@@ -266,17 +563,7 @@ def _maybe_auto_finalize_round(room):
 
 
 def ar_pvp_lobby(request):
-    return render(request, "ar/ar_pvp_lobby.html", {
-        "default_max_players": PVP_DEFAULT_MAX_PLAYERS,
-        "default_target_score": PVP_DEFAULT_TARGET_SCORE,
-        "default_timer_enabled": PVP_DEFAULT_TIMER_ENABLED,
-        "default_timer_seconds": PVP_DEFAULT_TIMER_SECONDS,
-        "default_use_stacks": PVP_DEFAULT_USE_STACKS,
-        "default_stacks_count": PVP_DEFAULT_STACKS_COUNT,
-        "default_min_chips": PVP_DEFAULT_MIN_CHIPS,
-        "default_max_chips": PVP_DEFAULT_MAX_CHIPS,
-        "game_slug": PVP_GAME_BETS,
-    })
+    return render(request, "ar/ar_pvp_lobby.html", _pvp_lobby_context(request))
 
 
 @require_POST
@@ -287,7 +574,7 @@ def ar_pvp_create_room(request):
     target_score = _parse_int(request.POST.get("target_score"), PVP_DEFAULT_TARGET_SCORE, 1, 20)
     timer_enabled = request.POST.get("timer_enabled") == "on"
     timer_seconds = _parse_int(request.POST.get("timer_seconds"), PVP_DEFAULT_TIMER_SECONDS, 1, 120)
-    use_stacks = request.POST.get("use_stacks", "on") == "on"
+    use_stacks = request.POST.get("use_stacks") == "on"
     stacks_count = _parse_int(request.POST.get("stacks_count"), PVP_DEFAULT_STACKS_COUNT, 1, 8)
     min_chips = _parse_int(request.POST.get("min_chips"), PVP_DEFAULT_MIN_CHIPS, 0, 20)
     max_chips = _parse_int(request.POST.get("max_chips"), PVP_DEFAULT_MAX_CHIPS, 0, 20)
@@ -314,35 +601,17 @@ def ar_pvp_join_room(request):
     code = (request.POST.get("room_code") or "").strip().upper()
     if not code:
         return redirect("ar_pvp_lobby")
-    room = ArPvpRoom.objects.filter(code=code).first()
-    if not room:
-        return render(request, "ar/ar_pvp_lobby.html", {
-            "join_error": "Комната не найдена",
-            "default_max_players": PVP_DEFAULT_MAX_PLAYERS,
-            "default_target_score": PVP_DEFAULT_TARGET_SCORE,
-            "default_timer_enabled": PVP_DEFAULT_TIMER_ENABLED,
-            "default_timer_seconds": PVP_DEFAULT_TIMER_SECONDS,
-            "default_use_stacks": PVP_DEFAULT_USE_STACKS,
-            "default_stacks_count": PVP_DEFAULT_STACKS_COUNT,
-            "default_min_chips": PVP_DEFAULT_MIN_CHIPS,
-            "default_max_chips": PVP_DEFAULT_MAX_CHIPS,
-            "game_slug": PVP_GAME_BETS,
-        })
-    if room.players.count() >= room.max_players and not room.players.filter(session_key=session_key).exists():
-        return render(request, "ar/ar_pvp_lobby.html", {
-            "join_error": "Комната уже заполнена",
-            "default_max_players": PVP_DEFAULT_MAX_PLAYERS,
-            "default_target_score": PVP_DEFAULT_TARGET_SCORE,
-            "default_timer_enabled": PVP_DEFAULT_TIMER_ENABLED,
-            "default_timer_seconds": PVP_DEFAULT_TIMER_SECONDS,
-            "default_use_stacks": PVP_DEFAULT_USE_STACKS,
-            "default_stacks_count": PVP_DEFAULT_STACKS_COUNT,
-            "default_min_chips": PVP_DEFAULT_MIN_CHIPS,
-            "default_max_chips": PVP_DEFAULT_MAX_CHIPS,
-            "game_slug": PVP_GAME_BETS,
-        })
-    display_name = (request.POST.get("name") or "Игрок").strip()[:64] or "Игрок"
-    _get_or_create_player(room, session_key, display_name=display_name)
+    with transaction.atomic():
+        room = ArPvpRoom.objects.select_for_update().filter(code=code).first()
+        if not room:
+            ctx = _pvp_lobby_context(request, join_error="Комната не найдена")
+            return render(request, "ar/ar_pvp_lobby.html", ctx)
+        already = room.players.filter(session_key=session_key).exists()
+        if room.players.count() >= room.max_players and not already:
+            ctx = _pvp_lobby_context(request, join_error="Комната уже заполнена")
+            return render(request, "ar/ar_pvp_lobby.html", ctx)
+        display_name = (request.POST.get("name") or "Игрок").strip()[:64] or "Игрок"
+        _get_or_create_player(room, session_key, display_name=display_name)
     return redirect("ar_pvp_room", code=room.code)
 
 
@@ -374,6 +643,7 @@ def ar_pvp_state(request, code):
         return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
     _maybe_auto_finalize_round(room)
     room.refresh_from_db()
+    _pvp_touch_room_activity(room)
     return JsonResponse({"ok": True, "state": _serialize_room(room, session_key)})
 
 
@@ -387,6 +657,7 @@ def ar_pvp_round(request, code):
         return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
     _maybe_auto_finalize_round(room)
     room.refresh_from_db()
+    _pvp_touch_room_activity(room)
     payload = room.round_payload or {}
     return JsonResponse({
         "ok": True,
@@ -498,6 +769,44 @@ def ar_completes_intersection(request):
 def ar_series(request):
     """Серии на колесе: поле сверху, подсветка tiers / orphelins / voisins / jeu zéro."""
     return render(request, 'ar/ar_series.html')
+
+
+def ar_track(request):
+    """Тренажёр «Трек»: 3D-сцена (заготовка)."""
+    preset = _get_series_stake_ar_preset(request)
+    return render(request, 'ar/ar_track.html', {
+        'ar_presets': SERIES_STAKE_AR_PRESETS,
+        'ar_custom_value': SERIES_STAKE_AR_CUSTOM,
+        'ar_random_value': SERIES_STAKE_AR_RANDOM,
+        'selected_ar_preset': preset,
+    })
+
+
+@require_POST
+def ar_track_save_attempt(request):
+    outcome = (request.POST.get("outcome") or "").strip()
+    allowed_outcomes = {
+        ArTrainingAttempt.OUTCOME_CORRECT,
+        ArTrainingAttempt.OUTCOME_WRONG,
+        ArTrainingAttempt.OUTCOME_SKIPPED,
+    }
+    if outcome not in allowed_outcomes:
+        return JsonResponse({"ok": False, "error": "invalid_outcome"}, status=400)
+
+    solve_seconds = request.POST.get("solve_seconds")
+    payload = {}
+    for key in ("answer", "user_answer", "neighbors_count", "stake_step"):
+        val = request.POST.get(key)
+        if val is not None and val != "":
+            payload[key] = val
+    _save_training_attempt(
+        request,
+        "ar_track",
+        outcome,
+        solve_seconds=solve_seconds,
+        payload=payload,
+    )
+    return JsonResponse({"ok": True})
 
 
 AR_BETS_TIMER_DEFAULT_SECONDS = 10
@@ -791,6 +1100,23 @@ def ar_neighbors(request):
             except (TypeError, ValueError):
                 solve_seconds = None
 
+    action = request.POST.get('action')
+    if action in ('check', 'skip'):
+        outcome = ArTrainingAttempt.OUTCOME_WRONG
+        if skipped:
+            outcome = ArTrainingAttempt.OUTCOME_SKIPPED
+        elif success == 'full':
+            outcome = ArTrainingAttempt.OUTCOME_CORRECT
+        elif success == 'almost':
+            outcome = ArTrainingAttempt.OUTCOME_ALMOST
+        _save_training_attempt(
+            request,
+            "ar_neighbors",
+            outcome,
+            solve_seconds=solve_seconds,
+            payload={"center": center},
+        )
+
     t_en, t_sec, t_fuse = _get_ar_neighbors_timer(request)
     return render(request, 'ar/ar_neighbors.html', {
         'center': center,
@@ -1027,6 +1353,21 @@ def ar_completes(request):
                     solve_seconds = None
             except (TypeError, ValueError):
                 solve_seconds = None
+
+    action = request.POST.get('action')
+    if action in ('check', 'skip'):
+        outcome = ArTrainingAttempt.OUTCOME_WRONG
+        if skipped:
+            outcome = ArTrainingAttempt.OUTCOME_SKIPPED
+        elif success is True:
+            outcome = ArTrainingAttempt.OUTCOME_CORRECT
+        _save_training_attempt(
+            request,
+            "ar_completes",
+            outcome,
+            solve_seconds=solve_seconds,
+            payload={"number": number, "denom": denom},
+        )
 
     denoms_ctx = _get_complete_denominations(request)
     c_inp, c_on = _ar_completes_denom_ui(request, denoms_ctx)
@@ -1818,6 +2159,21 @@ def ar_series_stake(request):
                 message = f'Нет. Правильно: {", ".join(errors)}'
                 success = False
 
+    action = request.POST.get('action')
+    if action in ('check', 'skip'):
+        outcome = ArTrainingAttempt.OUTCOME_WRONG
+        if skipped:
+            outcome = ArTrainingAttempt.OUTCOME_SKIPPED
+        elif success is True:
+            outcome = ArTrainingAttempt.OUTCOME_CORRECT
+        _save_training_attempt(
+            request,
+            "ar_series_stake",
+            outcome,
+            solve_seconds=solve_seconds,
+            payload={"series_key": series_key, "task": task_description},
+        )
+
     return render(request, 'ar/ar_series_stake.html', _series_stake_template_ctx(request, {
         'task_description': task_description,
         'message': message,
@@ -2015,6 +2371,20 @@ def ar_roulette(request):
         except ValueError:
             message = f"Введите число. Правильный ответ: {correct}"
             success = False
+
+    if action in ('check', 'skip'):
+        outcome = ArTrainingAttempt.OUTCOME_WRONG
+        if skipped:
+            outcome = ArTrainingAttempt.OUTCOME_SKIPPED
+        elif success is True:
+            outcome = ArTrainingAttempt.OUTCOME_CORRECT
+        _save_training_attempt(
+            request,
+            "ar_roulette",
+            outcome,
+            solve_seconds=solve_seconds,
+            payload={"number": number, "multiplier": multiplier},
+        )
 
     c_inp, c_on = _ar_roulette_color_per_ui(request, multipliers)
     t_en, t_sec, t_fuse = _get_ar_roulette_timer(request)
@@ -2313,6 +2683,20 @@ def ar_payout_through_cash(request):
                     solve_seconds = None
             except (TypeError, ValueError):
                 solve_seconds = None
+
+    if action in ('check', 'skip'):
+        outcome = ArTrainingAttempt.OUTCOME_WRONG
+        if skipped:
+            outcome = ArTrainingAttempt.OUTCOME_SKIPPED
+        elif success is True:
+            outcome = ArTrainingAttempt.OUTCOME_CORRECT
+        _save_training_attempt(
+            request,
+            "ar_payout_through_cash",
+            outcome,
+            solve_seconds=solve_seconds,
+            payload={"color": color, "color_per": color_per, "cash": cash},
+        )
 
     c_inp, c_on = _ar_ptc_color_per_ui(request, color_per_opts)
     t_en, t_sec, t_fuse = _get_ar_ptc_timer(request)

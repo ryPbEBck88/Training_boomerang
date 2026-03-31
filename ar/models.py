@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 
 class ArPvpRoom(models.Model):
@@ -54,3 +55,33 @@ class ArPvpPlayer(models.Model):
 
     def __str__(self):
         return f"{self.display_name} @ {self.room.code}"
+
+
+class ArTrainingAttempt(models.Model):
+    OUTCOME_CORRECT = "correct"
+    OUTCOME_ALMOST = "almost"
+    OUTCOME_WRONG = "wrong"
+    OUTCOME_SKIPPED = "skipped"
+    OUTCOME_CHOICES = (
+        (OUTCOME_CORRECT, "Correct"),
+        (OUTCOME_ALMOST, "Almost"),
+        (OUTCOME_WRONG, "Wrong"),
+        (OUTCOME_SKIPPED, "Skipped"),
+    )
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="ar_training_attempts",
+    )
+    trainer_slug = models.CharField(max_length=64, db_index=True)
+    outcome = models.CharField(max_length=16, choices=OUTCOME_CHOICES, db_index=True)
+    solve_seconds = models.FloatField(null=True, blank=True)
+    payload = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return f"{self.user_id}:{self.trainer_slug}:{self.outcome}"

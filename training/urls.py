@@ -18,7 +18,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.http import HttpResponse, JsonResponse
 from django.urls import path, include
-from django.views.generic import TemplateView
+from django.views.generic import RedirectView, TemplateView
 
 from .sitemaps import sitemap_view
 
@@ -55,4 +55,6 @@ urlpatterns = [
     path('blackjack/', include('blackjack.urls')),
     path('poker/', include('poker.urls')),
     path('ar/', include('ar.urls')),
+    # Короткий URL: PvP живёт в ar.urls как /ar/pvp/
+    path('pvp/', RedirectView.as_view(pattern_name='ar_pvp_lobby', permanent=False, query_string=True)),
 ]

@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+
+{% block title %}Статистика AR{% endblock %}
+
+{% block extra_head %}
+<style>
+.ar-stats-chart {
+    margin: 16px 0 24px;
+    padding: 16px;
+    border: 1px solid #2e2e2e;
+    border-radius: 8px;
+    background: #141414;
+    color: #f5f5f5;
+}
+.ar-stats-chart__title {
+    margin: 0 0 12px;
+    color: #ffffff;
+}
+.ar-stats-chart__filters { margin-bottom: 12px; }
+.ar-stats-chart__filters form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ar-stats-chart__filters label { color: #f1f1f1; }
+.ar-stats-chart__filters input {
+    background: #0f0f0f;
+    color: #ffffff;
+    border: 1px solid #444;
+}
+.ar-stats-chart__filters button {
+    background: #1f2937;
+    color: #fff;
+    border: 1px solid #4b5563;
+}
+.ar-stats-chart__legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 10px; font-size: 13px; }
+.ar-stats-chart__legend-line { display: inline-flex; align-items: center; gap: 6px; }
+.ar-stats-chart__legend-swatch { width: 18px; height: 3px; border-radius: 2px; display: inline-block; }
+.ar-stats-chart__trainer { margin-bottom: 22px; }
+.ar-stats-chart__trainer-name { margin: 10px 0 8px; color: #ffffff; }
+.ar-stats-bars {
+    position: relative;
+    max-width: 1200px;
+    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+    background: #101010;
+    padding: 8px 8px 10px 48px;
+}
+.ar-stats-bars__gridline {
+    position: absolute;
+    left: 48px;
+    right: 8px;
+    border-top: 1px solid #2f2f2f;
+}
+.ar-stats-bars__yticks {
+    position: absolute;
+    left: 8px;
+    top: 10px;
+    bottom: 10px;
+    width: 36px;
+    pointer-events: none;
+}
+.ar-stats-bars__ytick {
+    position: absolute;
+    right: 2px;
+    transform: translateY(50%);
+    font-size: 11px;
+    color: #d9d9d9;
+}
+.ar-stats-bars__days {
+    display: grid;
+    grid-template-columns: repeat(var(--days), minmax(18px, 1fr));
+    gap: 4px;
+    position: relative;
+    z-index: 1;
+}
+.ar-stats-bars__day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.ar-stats-bars__bars {
+    height: 150px;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 2px;
+}
+.ar-stats-bars__bar {
+    width: 4px;
+    border-radius: 2px 2px 0 0;
+}
+.ar-stats-bars__bar--accuracy { background: #22c55e; }
+.ar-stats-bars__bar--attempts { background: #3b82f6; }
+.ar-stats-bars__label {
+    margin-top: 4px;
+    font-size: 11px;
+    color: #ffffff;
+}
+.ar-stats-bars__day--empty .ar-stats-bars__label {
+    color: #b5b5b5;
+}
+.ar-stats-bars__axes {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #e5e5e5;
+}
+.ar-stats-bars__axis-x {
+    margin-left: 48px;
+}
+.ar-stats-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+.ar-stats-head__user {
+    margin: 0;
+}
+.ar-stats-head__trainer-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.ar-stats-head__trainer-form label {
+    color: #f1f1f1;
+}
+.ar-stats-head__trainer-form select {
+    background: #0f0f0f;
+    color: #fff;
+    border: 1px solid #444;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>Статистика AR</h1>
+<div class="ar-stats-head">
+    <p class="ar-stats-head__user">Пользователь: <strong>{{ target_user.username }}</strong></p>
+    <form method="get" class="ar-stats-head__trainer-form">
+        <label for="trainer">Тренажёр:</label>
+        <select id="trainer" name="trainer" onchange="this.form.submit()">
+            <option value="">Все тренажёры</option>
+            {% for item in trainer_choices %}
+            <option value="{{ item.slug }}" {% if selected_trainer == item.slug %}selected{% endif %}>{{ item.title }}</option>
+            {% endfor %}
+        </select>
+        <input type="hidden" name="month" value="{{ selected_month }}">
+        <input type="hidden" name="year" value="{{ selected_year }}">
+    </form>
+</div>
+
+{% if chart_by_trainer %}
+<section class="ar-stats-chart">
+    <h2 class="ar-stats-chart__title">Графики по тренажерам за месяц</h2>
+    <div class="ar-stats-chart__filters">
+        <form method="get">
+            <label for="month">Месяц:</label>
+            <input id="month" name="month" type="number" min="1" max="12" value="{{ selected_month }}">
+            <label for="year">Год:</label>
+            <input id="year" name="year" type="number" min="2000" max="2100" value="{{ selected_year }}">
+            <input type="hidden" name="trainer" value="{{ selected_trainer }}">
+            <button type="submit">Показать</button>
+        </form>
+    </div>
+    <div class="ar-stats-chart__legend">
+        <span class="ar-stats-chart__legend-line"><span class="ar-stats-chart__legend-swatch" style="background:#22c55e;"></span>Правильно, %</span>
+        <span class="ar-stats-chart__legend-line"><span class="ar-stats-chart__legend-swatch" style="background:#3b82f6;"></span>Попытки</span>
+    </div>
+    {% for chart in chart_by_trainer %}
+    <div class="ar-stats-chart__trainer">
+        <h3 class="ar-stats-chart__trainer-name">
+            {{ chart.trainer_title }}
+            {% if chart.max_attempts %}(макс. попыток в день: {{ chart.max_attempts }}){% endif %}
+        </h3>
+        <p style="margin:0 0 8px;color:#cfcfcf;">Количество попыток</p>
+        <div class="ar-stats-bars" style="--days: {{ chart.days|length }};">
+            <div class="ar-stats-bars__yticks">
+                {% for tick in chart.attempts_ticks %}
+                <span class="ar-stats-bars__ytick" style="bottom: {{ tick.bottom_percent }}%;">{{ tick.value }}</span>
+                {% endfor %}
+            </div>
+            {% for tick in chart.attempts_ticks %}
+            <div class="ar-stats-bars__gridline" style="bottom: {{ tick.bottom_percent }}%; {% if forloop.last %}border-top-color:#5a5a5a;{% endif %}"></div>
+            {% endfor %}
+            <div class="ar-stats-bars__days">
+                {% for day in chart.days %}
+                <div class="ar-stats-bars__day {% if not day.has_data %}ar-stats-bars__day--empty{% endif %}">
+                    <div class="ar-stats-bars__bars">
+                        {% if day.has_data %}
+                        <span class="ar-stats-bars__bar ar-stats-bars__bar--accuracy" style="height: {{ day.accuracy_height }}%;"></span>
+                        <span class="ar-stats-bars__bar ar-stats-bars__bar--attempts" style="height: {{ day.attempts_height }}%;"></span>
+                        {% endif %}
+                    </div>
+                    <div class="ar-stats-bars__label">{{ day.day }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="ar-stats-bars__axes">
+            <span class="ar-stats-bars__axis-x">Дни месяца</span>
+        </div>
+    </div>
+    {% endfor %}
+</section>
+{% endif %}
+
+{% if stats_rows %}
+<table>
+    <thead>
+        <tr>
+            <th>Тренажер</th>
+            <th>Попытки</th>
+            <th>Верно</th>
+            <th>Неверно</th>
+            <th>Пропущено</th>
+            <th>Точность</th>
+            <th>Среднее время</th>
+            <th>Лучшее время</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in stats_rows %}
+        <tr>
+            <td>{{ row.trainer_title }}</td>
+            <td>{{ row.total }}</td>
+            <td>{{ row.correct }}</td>
+            <td>{{ row.wrong }}</td>
+            <td>{{ row.skipped }}</td>
+            <td>{{ row.accuracy }}%</td>
+            <td>{% if row.avg_solve_seconds %}{{ row.avg_solve_seconds|floatformat:1 }} c{% else %}-{% endif %}</td>
+            <td>{% if row.best_solve_seconds %}{{ row.best_solve_seconds|floatformat:1 }} c{% else %}-{% endif %}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>Пока нет сохраненных попыток.</p>
+{% endif %}
+
+<h2>Последние попытки</h2>
+{% if recent_attempts %}
+<table>
+    <thead>
+        <tr>
+            <th>Когда</th>
+            <th>Тренажер</th>
+            <th>Результат</th>
+            <th>Время</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for attempt in recent_attempts %}
+        <tr>
+            <td>{{ attempt.created_at }}</td>
+            <td>{{ attempt.trainer_title }}</td>
+            <td>{{ attempt.outcome_display }}</td>
+            <td>
+                {% if attempt.payload.solve_over_limit %}
+                    &gt; 2 минут
+                {% elif attempt.solve_seconds %}
+                    {{ attempt.solve_seconds|floatformat:1 }} c
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>История попыток пуста.</p>
+{% endif %}
+{% endblock %}

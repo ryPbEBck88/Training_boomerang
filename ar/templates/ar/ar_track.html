@@ -1,0 +1,1972 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}AR — Трек{% endblock %}
+
+{% block extra_head %}
+<style>
+.ar-track-canvas-wrap {
+	margin: 0;
+	border: 2px solid var(--border);
+	border-radius: var(--radius-sm);
+	background: #101e35;
+	overflow: hidden;
+	width: 100%;
+	height: min(72vh, 620px);
+	min-height: 280px;
+	position: relative;
+	touch-action: none;
+}
+.ar-track-canvas-wrap canvas { display: block; width: 100%; height: 100%; cursor: grab; }
+.ar-track-canvas-wrap canvas:active { cursor: grabbing; }
+.ar-track-header {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+	min-height: 2.5rem;
+	margin-bottom: 8px;
+}
+.ar-track-header h1 {
+	margin: 0;
+	font-size: clamp(1.35rem, 2.1vw, 1.65rem);
+	letter-spacing: 0.01em;
+}
+.ar-track-help-btn {
+	position: absolute;
+	left: 0;
+	width: 32px;
+	height: 32px;
+	padding: 0;
+	border: none;
+	border-radius: 50%;
+	background: var(--accent, #2563eb);
+	color: #fff;
+	font-size: 1.1rem;
+	font-weight: 700;
+	line-height: 1;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	-webkit-tap-highlight-color: transparent;
+	box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+}
+.ar-track-help-btn:hover {
+	background: var(--accent-hover, #1d4ed8);
+}
+.series-stake-settings-btn {
+	position: absolute;
+	right: 0;
+	width: 40px;
+	height: 40px;
+	padding: 0;
+	box-sizing: border-box;
+	border: none;
+	background: transparent;
+	color: var(--accent, #2563eb);
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	-webkit-tap-highlight-color: transparent;
+}
+.series-stake-settings-btn:hover {
+	color: var(--accent-hover, #1d4ed8);
+	background: rgba(37, 99, 235, 0.08);
+	border-radius: var(--radius-sm, 8px);
+}
+.series-stake-settings-btn .payout-settings-icon {
+	width: 24px;
+	height: 24px;
+	display: block;
+}
+.payout-settings-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(12, 14, 18, 0.64);
+	z-index: 80;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	padding: 16px;
+}
+.payout-settings-overlay.is-open {
+	display: flex;
+}
+.payout-settings-modal.series-stake-settings-modal {
+	max-width: 380px;
+}
+.series-stake-ar-label {
+	font-weight: 600;
+	flex-shrink: 0;
+}
+.series-stake-ar-select {
+	flex: 1;
+	min-width: 0;
+	max-width: 14rem;
+	min-height: 2.5rem;
+	padding: 8px 10px;
+	font-size: 0.875rem;
+	border: 1px solid var(--border, #cbd5e1);
+	border-radius: var(--radius-sm, 8px);
+	background: var(--surface, #fff);
+	color: var(--text);
+}
+.series-stake-ar-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-top: 4px;
+}
+.series-stake-ar-row .series-stake-ar-label {
+	min-width: 0;
+}
+.payout-settings-actions {
+	display: flex;
+	gap: 8px;
+	justify-content: flex-end;
+	margin-top: 14px;
+}
+.track-settings-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-top: 10px;
+}
+.track-settings-row-label {
+	font-weight: 600;
+	flex-shrink: 0;
+}
+.track-settings-row select,
+.track-settings-row input[type="number"] {
+	min-height: 2.5rem;
+	border: 1px solid var(--border, #cbd5e1);
+	border-radius: var(--radius-sm, 8px);
+	padding: 8px 10px;
+	font-size: 0.875rem;
+	background: var(--surface, #fff);
+	color: var(--text);
+}
+.track-settings-row select { min-width: 0; max-width: 14rem; }
+.track-settings-row #trackNeighborsCount,
+.track-settings-row #trackStakeStep {
+	min-height: 2rem;
+	width: 4.5rem;
+	min-width: 4.5rem;
+	max-width: 4.5rem;
+	flex: 0 0 4.5rem;
+	padding: 4px 8px;
+	font-size: 0.82rem;
+}
+.track-settings-row input[type="number"] { width: 5.5rem; text-align: right; }
+.track-timer-switch {
+	width: 44px;
+	height: 26px;
+	border: 0;
+	border-radius: 999px;
+	position: relative;
+	background: #94a3b8;
+	cursor: pointer;
+	padding: 0;
+}
+.track-timer-switch::after {
+	content: '';
+	position: absolute;
+	width: 20px;
+	height: 20px;
+	left: 3px;
+	top: 3px;
+	border-radius: 50%;
+	background: #fff;
+	transition: transform .18s ease;
+}
+.track-timer-switch.is-on {
+	background: #2563eb;
+}
+.track-timer-switch.is-on::after {
+	transform: translateX(18px);
+}
+.track-timer-right {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.ar-track-trainer {
+	margin-top: 12px;
+	border: 1px solid var(--border, #d8e0ea);
+	border-radius: 14px;
+	padding: 12px;
+	background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+	box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+.ar-track-trainer__task {
+	margin: 0 0 10px;
+	font-size: 0.95rem;
+	color: var(--text, #0f172a);
+	font-weight: 600;
+	min-height: 0;
+}
+.ar-track-trainer__task:empty {
+	margin: 0;
+}
+.ar-track-trainer__row {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+.ar-answer-row {
+	margin-top: 12px;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+.ar-answer-left {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+.ar-track-trainer__input {
+	width: 96px;
+	min-height: 2.25rem;
+	padding: 6px 10px;
+	font-size: 0.9rem;
+	line-height: 1.2;
+}
+.ar-track-trainer__msg {
+	margin: 10px 0 0;
+	font-weight: 600;
+	min-height: 1.1em;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ar-track-header">
+	<button type="button" class="ar-track-help-btn" id="trackHelpBtn" title="Справка" aria-label="Справка">?</button>
+	<h1>Трек</h1>
+	<button type="button" class="payout-settings-btn series-stake-settings-btn" id="trackSettingsBtn" title="Настройки" aria-label="Настройки">
+		<svg class="payout-settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+			<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+			<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
+		</svg>
+	</button>
+</div>
+<div class="payout-settings-overlay" id="trackHelpOverlay" aria-hidden="true">
+	<div class="payout-settings-modal series-stake-settings-modal">
+		<h3 class="payout-settings-title">Трек</h3>
+		<p class="payout-settings-fields" style="margin:0;font-size:0.9rem;line-height:1.5;color:var(--text);">Введите сдачу с пересечения (перелив по max на номере).</p>
+		<div class="payout-settings-actions">
+			<button id="trackHelpClose" type="button" class="btn btn-secondary">Закрыть</button>
+		</div>
+	</div>
+</div>
+<div class="payout-settings-overlay" id="trackSettingsOverlay" aria-hidden="true">
+	<div class="payout-settings-modal series-stake-settings-modal">
+		<h3 class="payout-settings-title">Настройки</h3>
+		<div class="payout-settings-fields">
+			<div class="series-stake-ar-row">
+				<span class="series-stake-ar-label" id="trackArLabel">AR</span>
+				<select id="trackArPreset" class="series-stake-ar-select" aria-labelledby="trackArLabel">
+					<option value="{{ ar_custom_value }}" {% if selected_ar_preset == ar_custom_value %}selected{% endif %}>Пользовательские настройки</option>
+					<option value="{{ ar_random_value }}" {% if selected_ar_preset == ar_random_value %}selected{% endif %}>Рандом</option>
+					{% for p in ar_presets %}
+					<option value="{{ p }}" {% if p == selected_ar_preset %}selected{% endif %}>{{ p }}</option>
+					{% endfor %}
+				</select>
+			</div>
+			<div class="track-settings-row">
+				<span class="track-settings-row-label" id="trackNeighborsLabel">Ставок соседей</span>
+				<select id="trackNeighborsCount" class="series-stake-ar-select" aria-labelledby="trackNeighborsLabel" title="Сколько отдельных ставок «соседи» в задании. У каждой ставки 5 номеров на колесе.">
+					<option value="2" selected>2</option>
+					<option value="3">3</option>
+					<option value="4">4</option>
+					<option value="5">5</option>
+				</select>
+			</div>
+			<div class="track-settings-row">
+				<span class="track-settings-row-label" id="trackStakeStepLabel">Шаг ставки</span>
+				<select id="trackStakeStep" class="series-stake-ar-select" aria-labelledby="trackStakeStepLabel" title="Сумма ставки «соседи» и расчёт по номеру — кратны этому шагу.">
+					<option value="5">5</option>
+					<option value="25" selected>25</option>
+					<option value="50">50</option>
+					<option value="100">100</option>
+					<option value="500">500</option>
+					<option value="1000">1000</option>
+				</select>
+			</div>
+			<div class="track-settings-row">
+				<span class="track-settings-row-label" id="trackTimerLabel">Таймер</span>
+				<div class="track-timer-right">
+					<button type="button" class="track-timer-switch" id="trackTimerSwitch" role="switch" aria-checked="false" aria-labelledby="trackTimerLabel"></button>
+					<label>
+						<input id="trackTimerSeconds" type="number" min="1" max="120" value="15" inputmode="numeric" aria-label="Секунд таймера">
+					</label>
+				</div>
+			</div>
+			<div class="track-settings-row">
+				<span class="track-settings-row-label" id="trackTimerFuseLabel">Фитиль</span>
+				<div class="track-timer-right">
+					<button type="button" class="track-timer-switch is-on" id="trackTimerFuseAnimSwitch" role="switch" aria-checked="true" aria-labelledby="trackTimerFuseLabel" title="Анимация фитиля"></button>
+				</div>
+			</div>
+			<input type="hidden" name="timer_enabled" id="trackTimerEnabledHidden" value="0">
+		</div>
+		<div class="payout-settings-actions">
+			<button id="trackSettingsClose" type="button" class="btn btn-secondary">Закрыть</button>
+		</div>
+	</div>
+</div>
+<div class="ar-track-canvas-wrap">
+	<canvas id="ar-track-canvas" aria-label="Трёхмерная сцена"></canvas>
+</div>
+<div class="ar-track-trainer" aria-live="polite">
+	<p class="ar-track-trainer__task" id="track-task-text"></p>
+	<div id="track-fuse-wrap" style="display: none;">
+		{% include "partials/fuse_timer.html" with prefix="track" %}
+	</div>
+	<div class="ar-answer-row">
+		<div class="ar-answer-left">
+			<input id="track-answer-input" class="payout-input ar-track-trainer__input" inputmode="numeric" pattern="[0-9]*" placeholder="сдача">
+			<button id="track-check-btn" type="button" class="btn btn-secondary" title="Проверить">↵</button>
+		</div>
+		<button id="track-next-btn" type="button" class="btn btn-secondary" style="margin-left:auto;">Pass</button>
+	</div>
+	<p class="ar-track-trainer__msg" id="track-result-text"></p>
+</div>
+
+<div id="track-success-overlay" class="payout-success-overlay" style="display: none;" aria-hidden="true">
+	<button type="button" class="payout-success-tap" id="track-success-close" style="position:absolute;inset:0;border:none;background:transparent;cursor:pointer;" aria-label="Продолжить"></button>
+	<div class="payout-fireworks" aria-hidden="true">
+		<span></span><span></span><span></span><span></span><span></span><span></span>
+		<span></span><span></span><span></span><span></span><span></span><span></span>
+	</div>
+	<div class="payout-success-text">{% include "partials/payout_check_text.html" %}</div>
+</div>
+<div id="track-error-overlay" class="payout-success-overlay self-draw-error-overlay" style="display: none;" aria-hidden="true">
+	<button type="button" class="payout-success-tap" id="track-error-close" style="position:absolute;inset:0;border:none;background:transparent;cursor:pointer;" aria-label="Закрыть"></button>
+	<div class="payout-fireworks payout-fireworks--stop" aria-hidden="true">
+		<span></span><span></span><span></span><span></span><span></span><span></span>
+		<span></span><span></span><span></span><span></span><span></span><span></span>
+	</div>
+	<div class="self-draw-error-content">
+		<span class="self-draw-error-hand" aria-hidden="true">✋</span>
+		<div class="payout-success-text self-draw-error-text" id="track-error-text">Стоп!</div>
+		<small class="self-draw-error-hint">Нажмите, чтобы попробовать снова</small>
+	</div>
+</div>
+
+<div id="track-timeup-overlay" class="payout-success-overlay self-draw-error-overlay" style="display: none;" aria-hidden="true">
+	<button type="button" class="payout-success-tap" id="track-timeup-close" style="position:absolute;inset:0;border:none;background:transparent;cursor:pointer;" aria-label="Продолжить"></button>
+	<div class="self-draw-error-content">
+		<div class="payout-success-text self-draw-error-text">Время вышло!</div>
+		<small class="self-draw-error-hint">Нажмите, чтобы продолжить</small>
+	</div>
+</div>
+
+<script type="importmap">
+{"imports":{
+	"three":"https://unpkg.com/three@0.160.0/build/three.module.js",
+	"three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/",
+	"ar-chip-amount":"{% static 'js/ar_chip_amount.mjs' %}"
+}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { amountToChipStacks } from 'ar-chip-amount';
+
+/* Как в ar_bets.html: поле и белые линии */
+const blueMat = new THREE.MeshStandardMaterial({
+	color: 0x2563eb,
+	polygonOffset: true,
+	polygonOffsetFactor: 3,
+	polygonOffsetUnits: 2
+});
+const whiteStripMat = new THREE.MeshBasicMaterial({
+	color: 0xffffff,
+	side: THREE.DoubleSide,
+	depthWrite: true,
+	depthTest: true
+});
+const GAP = 0.06;
+const LINE_DEPTH = 0.024;
+const INNER = 1.5;
+const N_SQUARES = 16;
+const totalW = N_SQUARES * INNER + (N_SQUARES + 1) * GAP;
+const leftX = -totalW / 2;
+const OUTER = INNER + 2 * GAP;
+
+/** SERIE / ORPHELINS / 0-SPIEL: один размер шрифта и плашки (широкий канвас без tight). */
+const SERIES_LABEL_FONT_PX = 162;
+const SERIES_LABEL_PLANE_H = 1.32;
+const SERIES_NAME_TEX_W = 1024;
+const SERIES_NAME_TEX_H = 340;
+
+/** Европейская рулетка: красные номера (как на поле) */
+const EURO_RED = new Set([1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36]);
+function rouletteTextColor(n) {
+	return EURO_RED.has(n) ? '#cc0000' : '#000000';
+}
+
+/** Слева направо: 5, затем фрагмент порядка по колесу */
+const TRACK_NUMBERS = [5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35];
+const ROULETTE_WHEEL = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
+
+const canvas = document.getElementById('ar-track-canvas');
+const wrap = canvas.closest('.ar-track-canvas-wrap');
+const taskText = document.getElementById('track-task-text');
+const resultText = document.getElementById('track-result-text');
+const answerInput = document.getElementById('track-answer-input');
+const checkBtn = document.getElementById('track-check-btn');
+const nextBtn = document.getElementById('track-next-btn');
+const settingsBtn = document.getElementById('trackSettingsBtn');
+const settingsOverlay = document.getElementById('trackSettingsOverlay');
+const settingsClose = document.getElementById('trackSettingsClose');
+const arPresetSelect = document.getElementById('trackArPreset');
+const neighborsCountSelect = document.getElementById('trackNeighborsCount');
+const stakeStepSelect = document.getElementById('trackStakeStep');
+const timerSwitch = document.getElementById('trackTimerSwitch');
+const timerSecondsInput = document.getElementById('trackTimerSeconds');
+const trackTimerFuseAnimSwitch = document.getElementById('trackTimerFuseAnimSwitch');
+const trackTimerEnabledHidden = document.getElementById('trackTimerEnabledHidden');
+const trackFuseWrap = document.getElementById('track-fuse-wrap');
+const trackSuccessOverlay = document.getElementById('track-success-overlay');
+const trackSuccessClose = document.getElementById('track-success-close');
+const trackErrorOverlay = document.getElementById('track-error-overlay');
+const trackErrorClose = document.getElementById('track-error-close');
+const trackTimeupOverlay = document.getElementById('track-timeup-overlay');
+const trackTimeupClose = document.getElementById('track-timeup-close');
+const trackErrorTextEl = document.getElementById('track-error-text');
+const trackErrorHandEl = trackErrorOverlay ? trackErrorOverlay.querySelector('.self-draw-error-hand') : null;
+const trackErrorHintEl = trackErrorOverlay ? trackErrorOverlay.querySelector('.self-draw-error-hint') : null;
+const trackHelpBtn = document.getElementById('trackHelpBtn');
+const trackHelpOverlay = document.getElementById('trackHelpOverlay');
+const trackHelpClose = document.getElementById('trackHelpClose');
+const TRACK_SAVE_ATTEMPT_URL = '{% url "ar_track_save_attempt" %}';
+let trackErrorWasPass = false;
+let currentTask = null;
+let currentTaskStartedAtMs = 0;
+let currentTaskAttemptSaved = false;
+let applyTaskToTrackChips = null;
+let focusTrackChipsCamera = null;
+let taskTimerId = null;
+let taskTimerTickId = null;
+/** Селект «Соседей» = сколько одновременных ставок «соседи» в задаче (2..5). Одна ставка — классика: 5 номеров (2+центр+2). */
+const NEIGHBOR_NUMBERS_PER_BET = 5;
+const NEIGHBOR_WHEEL_PARAM = 4;
+
+const STAKE_STEP_OPTIONS = [5, 25, 50, 100, 500, 1000];
+
+const trackSettings = {
+	neighborsCount: 2, // число ставок «соседи» в задании (2..5)
+	stakeStep: 25, // шаг суммы ставки и расчёта по номеру
+	timerEnabled: false,
+	timerFuseAnimation: true,
+	timerSeconds: 15,
+	ar: {
+		numMin: 1,
+		numMax: 100,
+		seriesMinPo: 1,
+		seriesStep: 1
+	}
+};
+
+function parseArPresetValue(preset) {
+	const parts = String(preset || '').split('-');
+	if (parts.length !== 3) return null;
+	const a = parseInt(parts[0], 10);
+	const b = parseInt(parts[1], 10);
+	const c = parseInt(parts[2], 10);
+	if ([a, b, c].some((v) => Number.isNaN(v))) return null;
+	return {
+		numMin: Math.max(1, a),
+		numMax: Math.max(1, b),
+		seriesMinPo: Math.max(1, c),
+		seriesStep: Math.max(1, c)
+	};
+}
+
+function isAr1100() {
+	const ar = trackSettings.ar;
+	return ar.numMin === 1 && ar.numMax === 100;
+}
+
+function applyArPreset(preset) {
+	const parsed = parseArPresetValue(preset);
+	if (!parsed) return;
+	trackSettings.ar = parsed;
+}
+
+function getStakeStep() {
+	const s = trackSettings.stakeStep;
+	return STAKE_STEP_OPTIONS.includes(s) ? s : 5;
+}
+
+function syncStakeStepFromUi() {
+	const el = document.getElementById('trackStakeStep');
+	if (!el) return;
+	const raw = String(el.value || '').trim();
+	let v = parseInt(raw, 10);
+	if (Number.isNaN(v)) v = trackSettings.stakeStep || 5;
+	if (!STAKE_STEP_OPTIONS.includes(v)) v = 5;
+	trackSettings.stakeStep = v;
+	if (el.value !== String(v)) el.value = String(v);
+}
+
+function syncTimerUi() {
+	if (!timerSwitch || !timerSecondsInput) return;
+	timerSwitch.classList.toggle('is-on', !!trackSettings.timerEnabled);
+	timerSwitch.setAttribute('aria-checked', trackSettings.timerEnabled ? 'true' : 'false');
+	timerSecondsInput.disabled = !trackSettings.timerEnabled;
+	if (trackTimerEnabledHidden) {
+		trackTimerEnabledHidden.value = trackSettings.timerEnabled ? '1' : '0';
+	}
+	syncFuseAnimationUi();
+}
+
+function syncFuseAnimationUi() {
+	const fuseRow = trackTimerFuseAnimSwitch?.closest('.track-settings-row');
+	if (trackTimerFuseAnimSwitch) {
+		trackTimerFuseAnimSwitch.classList.toggle('is-on', !!trackSettings.timerFuseAnimation);
+		trackTimerFuseAnimSwitch.setAttribute('aria-checked', trackSettings.timerFuseAnimation ? 'true' : 'false');
+		trackTimerFuseAnimSwitch.disabled = !trackSettings.timerEnabled;
+		trackTimerFuseAnimSwitch.style.opacity = trackSettings.timerEnabled ? '1' : '0.55';
+		trackTimerFuseAnimSwitch.style.cursor = trackSettings.timerEnabled ? 'pointer' : 'not-allowed';
+		trackTimerFuseAnimSwitch.tabIndex = trackSettings.timerEnabled ? 0 : -1;
+	}
+	if (fuseRow) fuseRow.style.opacity = trackSettings.timerEnabled ? '1' : '0.65';
+	if (trackFuseWrap) {
+		trackFuseWrap.style.display = trackSettings.timerEnabled && trackSettings.timerFuseAnimation ? '' : 'none';
+	}
+}
+
+function stopTaskTimer() {
+	// Останавливаем фитиль (и его callback onTimeout).
+	window._fuseTimerGen = window._fuseTimerGen || {};
+	window._fuseTimerGen['track'] = (window._fuseTimerGen['track'] || 0) + 1;
+	taskTimerId = null;
+	taskTimerTickId = null;
+	if (taskText) taskText.textContent = '';
+}
+
+function startTaskTimer() {
+	stopTaskTimer();
+	if (!trackSettings.timerEnabled || !currentTask) return;
+	const sec = Math.max(1, Math.min(120, parseInt(String(trackSettings.timerSeconds || 15), 10) || 15));
+	if (typeof initFuseTimer === 'function') {
+		syncFuseAnimationUi();
+		initFuseTimer({
+			prefix: 'track',
+			seconds: sec,
+			timeoutButton: '#track-next-btn',
+			settingsOverlay: '#trackSettingsOverlay',
+			clickOnTimeout: false,
+			onTimeout: showTrackTimeupOverlay
+		});
+	} else {
+		// Fallback без фитиля (если общий скрипт недоступен).
+		taskTimerId = setTimeout(() => {
+			taskTimerId = null;
+			showTrackTimeupOverlay();
+		}, sec * 1000);
+	}
+}
+
+function openTrackSettings() {
+	settingsOverlay.classList.add('is-open');
+	settingsOverlay.setAttribute('aria-hidden', 'false');
+}
+function closeTrackSettings() {
+	settingsOverlay.classList.remove('is-open');
+	settingsOverlay.setAttribute('aria-hidden', 'true');
+}
+function hideTrackResultOverlays() {
+	if (trackSuccessOverlay) {
+		trackSuccessOverlay.style.display = 'none';
+		trackSuccessOverlay.setAttribute('aria-hidden', 'true');
+	}
+	if (trackErrorOverlay) {
+		trackErrorOverlay.style.display = 'none';
+		trackErrorOverlay.setAttribute('aria-hidden', 'true');
+	}
+	if (trackTimeupOverlay) {
+		trackTimeupOverlay.style.display = 'none';
+		trackTimeupOverlay.setAttribute('aria-hidden', 'true');
+	}
+}
+function showTrackSuccessOverlay() {
+	hideTrackResultOverlays();
+	if (resultText) resultText.textContent = '';
+	if (trackSuccessOverlay) {
+		trackSuccessOverlay.style.display = 'flex';
+		trackSuccessOverlay.setAttribute('aria-hidden', 'false');
+	}
+}
+function showTrackErrorOverlay(isPass) {
+	hideTrackResultOverlays();
+	if (resultText) resultText.textContent = '';
+	if (isPass && currentTask) {
+		if (trackErrorHandEl) trackErrorHandEl.style.display = 'none';
+		if (trackErrorHintEl) trackErrorHintEl.textContent = 'Нажмите, чтобы продолжить';
+		if (trackErrorTextEl) trackErrorTextEl.innerHTML = `Пропущено.<br>Правильный ответ: ${currentTask.answer}`;
+	} else {
+		if (trackErrorHandEl) trackErrorHandEl.style.display = '';
+		if (trackErrorHintEl) trackErrorHintEl.textContent = 'Нажмите, чтобы попробовать снова';
+		if (trackErrorTextEl) trackErrorTextEl.textContent = 'Стоп!';
+	}
+	if (trackErrorOverlay) {
+		trackErrorOverlay.style.display = 'flex';
+		trackErrorOverlay.setAttribute('aria-hidden', 'false');
+	}
+}
+
+function showTrackTimeupOverlay() {
+	hideTrackResultOverlays();
+	saveTrackAttempt('wrong', null);
+	if (trackTimeupOverlay) {
+		trackTimeupOverlay.style.display = 'flex';
+		trackTimeupOverlay.setAttribute('aria-hidden', 'false');
+	}
+}
+
+function getCsrfToken() {
+	const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+	return match ? decodeURIComponent(match[1]) : '';
+}
+
+function saveTrackAttempt(outcome, userAnswerRaw) {
+	if (!currentTask || currentTaskAttemptSaved) return;
+	currentTaskAttemptSaved = true;
+	const elapsedSec = currentTaskStartedAtMs > 0
+		? Math.max(0, (performance.now() - currentTaskStartedAtMs) / 1000)
+		: null;
+	const body = new URLSearchParams();
+	body.set('outcome', outcome);
+	if (elapsedSec != null) body.set('solve_seconds', elapsedSec.toFixed(1));
+	body.set('answer', String(currentTask.answer));
+	if (userAnswerRaw != null && String(userAnswerRaw).trim() !== '') {
+		body.set('user_answer', String(userAnswerRaw).trim());
+	}
+	body.set('neighbors_count', String(trackSettings.neighborsCount));
+	body.set('stake_step', String(getStakeStep()));
+	fetch(TRACK_SAVE_ATTEMPT_URL, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+			'X-CSRFToken': getCsrfToken()
+		},
+		credentials: 'same-origin',
+		body: body.toString()
+	}).catch(() => {
+		// Без блокировки UX: статистика не должна ломать сам тренажёр.
+	});
+}
+function openTrackHelp() {
+	if (!trackHelpOverlay) return;
+	trackHelpOverlay.classList.add('is-open');
+	trackHelpOverlay.setAttribute('aria-hidden', 'false');
+}
+function closeTrackHelp() {
+	if (!trackHelpOverlay) return;
+	trackHelpOverlay.classList.remove('is-open');
+	trackHelpOverlay.setAttribute('aria-hidden', 'true');
+}
+trackHelpBtn?.addEventListener('click', openTrackHelp);
+trackHelpClose?.addEventListener('click', closeTrackHelp);
+trackHelpOverlay?.addEventListener('click', (e) => {
+	if (e.target === trackHelpOverlay) closeTrackHelp();
+});
+trackSuccessClose?.addEventListener('click', () => {
+	hideTrackResultOverlays();
+	nextTask();
+});
+trackErrorClose?.addEventListener('click', () => {
+	hideTrackResultOverlays();
+	if (trackErrorWasPass) {
+		trackErrorWasPass = false;
+		nextTask();
+	}
+});
+trackTimeupClose?.addEventListener('click', () => {
+	hideTrackResultOverlays();
+	nextTask();
+});
+function isTrackContinueOverlayOpen() {
+	const successOpen = !!trackSuccessOverlay && trackSuccessOverlay.style.display === 'flex';
+	const timeupOpen = !!trackTimeupOverlay && trackTimeupOverlay.style.display === 'flex';
+	const passOpen = !!trackErrorOverlay && trackErrorOverlay.style.display === 'flex' && !!trackErrorWasPass;
+	return successOpen || timeupOpen || passOpen;
+}
+function continueFromTrackOverlay() {
+	if (!isTrackContinueOverlayOpen()) return false;
+	const passOpen = !!trackErrorOverlay && trackErrorOverlay.style.display === 'flex' && !!trackErrorWasPass;
+	hideTrackResultOverlays();
+	if (passOpen) trackErrorWasPass = false;
+	nextTask();
+	return true;
+}
+document.addEventListener('keydown', (e) => {
+	if (e.key !== 'Enter') return;
+	if (!isTrackContinueOverlayOpen()) return;
+	e.preventDefault();
+	continueFromTrackOverlay();
+});
+settingsBtn?.addEventListener('click', openTrackSettings);
+settingsClose?.addEventListener('click', closeTrackSettings);
+settingsOverlay?.addEventListener('click', (e) => {
+	if (e.target === settingsOverlay) closeTrackSettings();
+});
+arPresetSelect?.addEventListener('change', () => {
+	let v = arPresetSelect.value;
+	if (v === '{{ ar_random_value }}') {
+		const options = Array.from(arPresetSelect.options).map((o) => o.value);
+		const pool = options.filter((x) => parseArPresetValue(x));
+		if (pool.length > 0) v = pool[Math.floor(Math.random() * pool.length)];
+	}
+	if (v === '{{ ar_custom_value }}') {
+		// Пока без отдельной формы custom — используем базовый профиль.
+		v = '1-100-1';
+	}
+	applyArPreset(v);
+	if (currentTask) nextTask();
+});
+function syncNeighborsCountFromUi() {
+	if (!neighborsCountSelect) return;
+	const v = parseInt(neighborsCountSelect.value, 10);
+	trackSettings.neighborsCount = Math.max(2, Math.min(5, Number.isNaN(v) ? 4 : v));
+	if (currentTask) nextTask();
+}
+neighborsCountSelect?.addEventListener('change', syncNeighborsCountFromUi);
+syncNeighborsCountFromUi();
+stakeStepSelect?.addEventListener('change', () => {
+	syncStakeStepFromUi();
+	if (currentTask) nextTask();
+});
+syncStakeStepFromUi();
+timerSwitch?.addEventListener('click', () => {
+	trackSettings.timerEnabled = !trackSettings.timerEnabled;
+	syncTimerUi();
+	if (currentTask) startTaskTimer();
+});
+timerSecondsInput?.addEventListener('change', () => {
+	const v = parseInt(timerSecondsInput.value, 10);
+	trackSettings.timerSeconds = Math.max(1, Math.min(120, Number.isNaN(v) ? 15 : v));
+	timerSecondsInput.value = String(trackSettings.timerSeconds);
+	if (currentTask && trackSettings.timerEnabled) startTaskTimer();
+});
+trackTimerFuseAnimSwitch?.addEventListener('click', () => {
+	trackSettings.timerFuseAnimation = !trackSettings.timerFuseAnimation;
+	syncFuseAnimationUi();
+	if (currentTask && trackSettings.timerEnabled) startTaskTimer();
+});
+syncTimerUi();
+applyArPreset('{{ selected_ar_preset }}');
+
+function wheelNeighbors(center, neighborsCount) {
+	const idx = ROULETTE_WHEEL.indexOf(center);
+	if (idx < 0) return [];
+	const n = ROULETTE_WHEEL.length;
+	const cnt = Math.max(2, Math.min(5, neighborsCount | 0));
+	const left = Math.floor(cnt / 2);
+	const right = cnt - left;
+	const out = [];
+	for (let i = left; i >= 1; i--) out.push(ROULETTE_WHEEL[(idx - i + n) % n]);
+	out.push(center);
+	for (let i = 1; i <= right; i++) out.push(ROULETTE_WHEEL[(idx + i) % n]);
+	return out;
+}
+function intersects(a, b) {
+	const sb = new Set(b);
+	return a.filter((x) => sb.has(x));
+}
+function randInt(min, max) {
+	return min + Math.floor(Math.random() * (max - min + 1));
+}
+function randPick(arr) {
+	return arr[Math.floor(Math.random() * arr.length)];
+}
+function randomNeighborStakeAmount(splitCount) {
+	const { numMax, seriesMinPo } = trackSettings.ar;
+	const step = getStakeStep();
+	const minSeries = seriesMinPo * splitCount;
+	const minBet = Math.max(step, Math.ceil(minSeries / step) * step);
+	const maxBet = Math.max(minBet, numMax * splitCount);
+	const steps = Math.max(0, Math.floor((maxBet - minBet) / step));
+	return minBet + randInt(0, steps) * step;
+}
+function buildIntersectionTask() {
+	syncStakeStepFromUi();
+	const stakeCount = Math.max(2, Math.min(5, trackSettings.neighborsCount | 0));
+	const splitCount = NEIGHBOR_NUMBERS_PER_BET;
+	const capMax = Math.max(1, trackSettings.ar.numMax);
+	let stakes = [];
+	let overflowTotal = 0;
+	let neighborsSdacha = 0;
+	let tries = 0;
+	do {
+		tries++;
+		const centers = [];
+		const centerSets = new Map();
+		const first = randInt(0, 36);
+		centers.push(first);
+		centerSets.set(first, wheelNeighbors(first, NEIGHBOR_WHEEL_PARAM));
+		while (centers.length < stakeCount) {
+			const candidates = [];
+			const fallback = [];
+			for (let n = 0; n <= 36; n++) {
+				if (centers.includes(n)) continue;
+				fallback.push(n);
+				const setN = wheelNeighbors(n, NEIGHBOR_WHEEL_PARAM);
+				let hasOverlap = false;
+				for (let i = 0; i < centers.length; i++) {
+					if (intersects(centerSets.get(centers[i]), setN).length > 0) {
+						hasOverlap = true;
+						break;
+					}
+				}
+				if (hasOverlap) candidates.push(n);
+			}
+			if (candidates.length === 0 && fallback.length === 0) break;
+			const next = candidates.length > 0 ? randPick(candidates) : randPick(fallback);
+			centers.push(next);
+			centerSets.set(next, wheelNeighbors(next, NEIGHBOR_WHEEL_PARAM));
+		}
+		if (centers.length < stakeCount) continue;
+		stakes = centers.map((center) => {
+			const rawBet = randomNeighborStakeAmount(splitCount);
+			const acceptedPer = rawBet / splitCount;
+			const acceptedBet = rawBet;
+			const sdacha = 0;
+			return { center, bet: rawBet, acceptedPer, acceptedBet, sdacha };
+		});
+		const totals = new Map();
+		for (const s of stakes) {
+			const nums = centerSets.get(s.center) || [];
+			for (const num of nums) totals.set(num, (totals.get(num) || 0) + s.acceptedPer);
+		}
+		overflowTotal = 0;
+		for (const v of totals.values()) overflowTotal += Math.max(0, v - capMax);
+		neighborsSdacha = stakes.reduce((acc, s) => acc + s.sdacha, 0);
+	} while (overflowTotal <= 0 && tries < 120);
+	return { stakes, answer: overflowTotal, splitCount, capMax, neighborsSdacha };
+}
+function renderTask() {
+	hideTrackResultOverlays();
+	if (taskText) taskText.textContent = '';
+	resultText.textContent = '';
+	answerInput.value = '';
+	answerInput.focus();
+}
+function nextTask() {
+	syncStakeStepFromUi();
+	currentTask = buildIntersectionTask();
+	currentTaskStartedAtMs = performance.now();
+	currentTaskAttemptSaved = false;
+	renderTask();
+	if (typeof applyTaskToTrackChips === 'function') applyTaskToTrackChips(currentTask);
+	startTaskTimer();
+}
+function checkAnswer() {
+	if (!currentTask) return;
+	stopTaskTimer();
+	taskText.textContent = taskText.textContent.replace(/\s*\(таймер:\s*\d+с\)$/, '');
+	const v = parseInt((answerInput.value || '').trim(), 10);
+	if (Number.isNaN(v)) {
+		resultText.textContent = 'Введите число.';
+		resultText.style.color = '#b91c1c';
+		return;
+	}
+	if (v === currentTask.answer) {
+		saveTrackAttempt('correct', v);
+		showTrackSuccessOverlay();
+	} else {
+		saveTrackAttempt('wrong', v);
+		showTrackErrorOverlay(false);
+	}
+}
+checkBtn?.addEventListener('click', checkAnswer);
+nextBtn?.addEventListener('click', () => {
+	stopTaskTimer();
+	saveTrackAttempt('skipped', null);
+	trackErrorWasPass = true;
+	showTrackErrorOverlay(true);
+});
+answerInput?.addEventListener('keydown', (e) => {
+	if (e.key === 'Enter') {
+		if (continueFromTrackOverlay()) {
+			e.preventDefault();
+			return;
+		}
+		e.preventDefault();
+		e.stopPropagation();
+		checkAnswer();
+	}
+});
+
+function size() {
+	let w = wrap.clientWidth || 800;
+	let h = wrap.clientHeight || 480;
+	if (w < 80) w = 800;
+	if (h < 80) h = 480;
+	return { w, h };
+}
+
+let { w, h } = size();
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x101e35);
+scene.fog = new THREE.Fog(0x101e35, 18, 65);
+
+const amb = new THREE.AmbientLight(0xffffff, 0.55);
+scene.add(amb);
+const frontLights = [
+	{ color: 0xffffff, intensity: 0.7, pos: [-18, -14, 10] },
+	{ color: 0xffffff, intensity: 0.8, pos: [0, -16, 12] },
+	{ color: 0xffffff, intensity: 0.7, pos: [18, -14, 10] }
+];
+const backLights = [
+	{ color: 0x9cc3ff, intensity: 0.55, pos: [-18, 14, 10] },
+	{ color: 0x9cc3ff, intensity: 0.65, pos: [0, 16, 12] },
+	{ color: 0x9cc3ff, intensity: 0.55, pos: [18, 14, 10] }
+];
+for (const cfg of [...frontLights, ...backLights]) {
+	const l = new THREE.DirectionalLight(cfg.color, cfg.intensity);
+	l.position.set(cfg.pos[0], cfg.pos[1], cfg.pos[2]);
+	scene.add(l);
+}
+
+const chipField = new THREE.Group();
+chipField.name = 'ar-track-chip-field';
+
+/** Базовая плоскость ряда. Синие назад, белые вперёд — больший зазор + polygonOffset у синего + log depth у рендера против мерцания. */
+const ROW_Z = 0;
+const BLUE_Z = ROW_Z - 0.03;
+const WHITE_Z = ROW_Z + 0.034;
+const LABEL_Z = WHITE_Z + 0.02;
+function addWhiteStrip(w, h, cx, cy) {
+	const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, LINE_DEPTH), whiteStripMat);
+	m.position.set(cx, cy, WHITE_Z);
+	m.renderOrder = 1;
+	chipField.add(m);
+}
+
+/** Один синий квадрат 1.5 с белой рамкой (как отдельная ячейка). */
+function addFramedBlueCell(cx, cy, opts) {
+	opts = opts || {};
+	const cell = new THREE.Mesh(new THREE.PlaneGeometry(INNER, INNER), blueMat);
+	cell.position.set(cx, cy, BLUE_Z);
+	chipField.add(cell);
+	if (!opts.skipLeft) addWhiteStrip(GAP, INNER, cx - INNER / 2 - GAP / 2, cy);
+	if (!opts.skipRight) addWhiteStrip(GAP, INNER, cx + INNER / 2 + GAP / 2, cy);
+	addWhiteStrip(OUTER, GAP, cx, cy + INNER / 2 + GAP / 2);
+	addWhiteStrip(OUTER, GAP, cx, cy - INNER / 2 - GAP / 2);
+}
+
+/** Синий прямоугольник с той же белой оправой (ширина/высота — синяя зона). */
+function addFramedBlueRect(cx, cy, blueW, blueH, opts) {
+	opts = opts || {};
+	const ow = blueW + 2 * GAP;
+	const cell = new THREE.Mesh(new THREE.PlaneGeometry(blueW, blueH), blueMat);
+	cell.position.set(cx, cy, BLUE_Z);
+	chipField.add(cell);
+	if (!opts.skipLeft) addWhiteStrip(GAP, blueH, cx - blueW / 2 - GAP / 2, cy);
+	if (!opts.skipRight) addWhiteStrip(GAP, blueH, cx + blueW / 2 + GAP / 2, cy);
+	addWhiteStrip(ow, GAP, cx, cy + blueH / 2 + GAP / 2);
+	addWhiteStrip(ow, GAP, cx, cy - blueH / 2 - GAP / 2);
+}
+
+function makeCenteredDigitTexture(value, color, opts) {
+	opts = opts || {};
+	const size = 512;
+	const str = String(value);
+	const cnv = document.createElement('canvas');
+	cnv.width = size;
+	cnv.height = size;
+	const ctx = cnv.getContext('2d');
+	ctx.clearRect(0, 0, size, size);
+	/* Один размер для всех номеров; sans-serif жирнее monospace — чёрные лучше читаются на синем. */
+	const fontSize = Math.round(330 * (opts.fontScale || 1));
+	ctx.font = `bold ${fontSize}px system-ui, -apple-system, "Segoe UI", sans-serif`;
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+	const cx = size / 2;
+	const cy = size / 2 + 8;
+	const isBlack = color === '#000000';
+	const strokeForContrast = isBlack || opts.strokeLight;
+	if (strokeForContrast) {
+		ctx.strokeStyle = isBlack ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.42)';
+		ctx.lineWidth = Math.max(10, fontSize * 0.028);
+		ctx.lineJoin = 'round';
+		ctx.miterLimit = 2;
+		ctx.strokeText(str, cx, cy);
+	}
+	ctx.fillStyle = color;
+	ctx.fillText(str, cx, cy);
+	const tex = new THREE.CanvasTexture(cnv);
+	tex.needsUpdate = true;
+	return tex;
+}
+
+/** Подписи серий трека: одна строка по центру. `tight` — канвас по ширине текста. */
+function makeSeriesNameTexture(ru, opts) {
+	opts = opts || {};
+	const ruPx = opts.ruFontPx ?? 118;
+	const font = `bold ${ruPx}px system-ui, -apple-system, "Segoe UI", sans-serif`;
+	const cnv = document.createElement('canvas');
+	let w;
+	let h;
+	if (opts.tight) {
+		const pad = opts.padPx ?? 16;
+		const m = document.createElement('canvas').getContext('2d');
+		m.font = font;
+		const tw = m.measureText(ru).width;
+		w = Math.max(32, Math.ceil(tw + 2 * pad));
+		h = Math.ceil(ruPx * 1.3 + 2 * pad);
+	} else {
+		w = SERIES_NAME_TEX_W;
+		h = SERIES_NAME_TEX_H;
+	}
+	cnv.width = w;
+	cnv.height = h;
+	const ctx = cnv.getContext('2d');
+	ctx.clearRect(0, 0, w, h);
+	ctx.font = font;
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+	const x = w / 2;
+	const y = h / 2;
+	ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+	ctx.lineWidth = Math.max(4, ruPx * 0.055);
+	ctx.lineJoin = 'round';
+	ctx.strokeText(ru, x, y);
+	ctx.fillStyle = '#f1f5f9';
+	ctx.fillText(ru, x, y);
+	const tex = new THREE.CanvasTexture(cnv);
+	tex.colorSpace = THREE.SRGBColorSpace;
+	tex.needsUpdate = true;
+	return tex;
+}
+
+function addTrackLabel(cx, cy, num, col) {
+	const label = new THREE.Mesh(
+		new THREE.PlaneGeometry(INNER * 0.72, INNER * 0.72),
+		new THREE.MeshBasicMaterial({
+			map: makeCenteredDigitTexture(num, col),
+			transparent: true,
+			side: THREE.DoubleSide
+		})
+	);
+	label.position.set(cx, cy, LABEL_Z);
+	chipField.add(label);
+}
+
+for (let i = 0; i < N_SQUARES; i++) {
+	const cx = leftX + GAP + INNER / 2 + i * (INNER + GAP);
+	const bluePlane = new THREE.Mesh(new THREE.PlaneGeometry(INNER, INNER), blueMat);
+	bluePlane.position.set(cx, 0, BLUE_Z);
+	chipField.add(bluePlane);
+	const num = TRACK_NUMBERS[i];
+	addTrackLabel(cx, 0, num, rouletteTextColor(num));
+}
+
+for (let j = 0; j <= N_SQUARES; j++) {
+	const cx = leftX + j * (INNER + GAP) + GAP / 2;
+	addWhiteStrip(GAP, INNER, cx, 0);
+}
+
+addWhiteStrip(totalW, GAP, 0, INNER / 2 + GAP / 2);
+addWhiteStrip(totalW, GAP, 0, -(INNER / 2 + GAP / 2));
+
+/** Нижний ряд: слева 4 с номерами; между 27 и 25 — 3 прямоугольника на всю ширину промежутка (3·B + 4·GAP = W); справа 7 с номерами. */
+const rowStep = INNER + GAP;
+const row3Y = -2 * rowStep;
+const UNDER_LEFT_INDICES = [0, 1, 2, 3];
+const UNDER_RIGHT_INDICES = [9, 10, 11, 12, 13, 14, 15];
+const UNDER_LEFT_NUMBERS = [11, 36, 13, 27];
+const UNDER_RIGHT_NUMBERS = [25, 2, 21, 4, 19, 15, 32];
+const MIDDLE_STRETCH_NUMBERS = [6, 34, 17];
+function addFramedRowAtIndices(indices, cy, numbers) {
+	for (let k = 0; k < indices.length; k++) {
+		const i = indices[k];
+		const cx = leftX + GAP + INNER / 2 + i * (INNER + GAP);
+		const opts = {};
+		if (i === 3) opts.skipRight = true;
+		if (i === 9) opts.skipLeft = true;
+		addFramedBlueCell(cx, cy, opts);
+		const num = numbers[k];
+		addTrackLabel(cx, cy, num, rouletteTextColor(num));
+	}
+}
+/**
+ * Промежуток между рамками столбцов 3 и 9: три синие зоны, W = 3·B + 4·GAP.
+ * Линия 27|6 — длинная вертикаль от 33|1; линия 17|25 — длинная вертикаль от 9|22 (не дублировать короткими полосами).
+ */
+function addMiddleThreeStretchedRects(cy) {
+	const cxCol = (idx) => leftX + GAP + INNER / 2 + idx * (INNER + GAP);
+	const L = cxCol(3) + INNER / 2 + GAP;
+	const R = cxCol(9) - INNER / 2 - GAP;
+	const W = R - L;
+	const B = (W - 4 * GAP) / 3;
+	const bh = INNER;
+	for (let k = 0; k < 3; k++) {
+		const cx = L + GAP + B / 2 + k * (B + GAP);
+		const ropts = k === 0 ? { skipLeft: true } : k === 2 ? { skipRight: true } : {};
+		addFramedBlueRect(cx, cy, B, bh, ropts);
+		const num = MIDDLE_STRETCH_NUMBERS[k];
+		addTrackLabel(cx, cy, num, rouletteTextColor(num));
+	}
+}
+addFramedRowAtIndices(UNDER_LEFT_INDICES, row3Y, UNDER_LEFT_NUMBERS);
+addMiddleThreeStretchedRects(row3Y);
+/** Вертикальные зазоры GAP у первой/третьей средней ячейки (6 слева, 17 справа, skipLeft/skipRight) — синий как у клеток. */
+(function fillBlueGapsMiddle6and17() {
+	const cy = row3Y;
+	const cxCol = (idx) => leftX + GAP + INNER / 2 + idx * (INNER + GAP);
+	const L = cxCol(3) + INNER / 2 + GAP;
+	const R = cxCol(9) - INNER / 2 - GAP;
+	const W = R - L;
+	const B = (W - 4 * GAP) / 3;
+	const fillL = new THREE.Mesh(new THREE.PlaneGeometry(GAP, INNER), blueMat);
+	fillL.position.set(L + GAP / 2, cy, BLUE_Z);
+	chipField.add(fillL);
+	const xRightGapMid = L + 3 * B + 3 * GAP + GAP / 2;
+	const fillR = new THREE.Mesh(new THREE.PlaneGeometry(GAP, INNER), blueMat);
+	fillR.position.set(xRightGapMid, cy, BLUE_Z);
+	chipField.add(fillR);
+})();
+addFramedRowAtIndices(UNDER_RIGHT_INDICES, row3Y, UNDER_RIGHT_NUMBERS);
+
+/**
+ * Полукруг по левому краю столбца 14: диаметр чуть короче углов — верх опущен, низ поднят (внутрь зазора).
+ * Дуга — левая половина окружности (углы π/2…3π/2). Толщина: радиус трубы GAP/2.
+ */
+(function addArc12leftTo15left() {
+	const col = 14;
+	const cx = leftX + GAP + INNER / 2 + col * (INNER + GAP);
+	const xEdge = cx - INNER / 2;
+	const eps = INNER * 0.022;
+	const y0 = -INNER / 2 - eps;
+	const y1 = row3Y + INNER / 2 + eps;
+	const yMid = (y0 + y1) / 2;
+	const r = Math.abs(y0 - y1) / 2;
+	const z = WHITE_Z + 0.002;
+	const ell = new THREE.EllipseCurve(xEdge, yMid, r, r, Math.PI / 2, (3 * Math.PI) / 2, false, 0);
+	const pts = ell.getPoints(56).map((p) => new THREE.Vector3(p.x, p.y, z));
+	const curve3 = new THREE.CatmullRomCurve3(pts);
+	const tube = new THREE.Mesh(new THREE.TubeGeometry(curve3, 56, GAP / 2, 8, false), whiteStripMat);
+	tube.renderOrder = 1;
+	chipField.add(tube);
+	/** Центр вертикали между клетками «12» и «35» (индексы 14 и 15): ось как у j = 15 в сетке. */
+	const xLine12to35 = leftX + 15 * (INNER + GAP) + GAP / 2;
+	const tex = makeSeriesNameTexture('0-SPIEL', { ruFontPx: SERIES_LABEL_FONT_PX });
+	const aspect = tex.image.width / tex.image.height;
+	const planeH = SERIES_LABEL_PLANE_H;
+	const planeW = planeH * aspect;
+	const lab = new THREE.Mesh(
+		new THREE.PlaneGeometry(planeW, planeH),
+		new THREE.MeshBasicMaterial({
+			map: tex,
+			transparent: true,
+			side: THREE.DoubleSide,
+			depthWrite: false
+		})
+	);
+	lab.position.set(xLine12to35, yMid, LABEL_Z + 0.006);
+	chipField.add(lab);
+})();
+
+/** Сплошная заливка blueMat между верхним и нижним рядом под столбцами 1…9 (индексы 0…8); ORPHELINS — левый край с середины квадрата «20» (индекс 5), в зазоре под ним. */
+(function addBlueBetweenRowsCols1to9Orphelins() {
+	const i0 = 0;
+	const i8 = 8;
+	const cxL = leftX + GAP + INNER / 2 + i0 * (INNER + GAP);
+	const cxR = leftX + GAP + INNER / 2 + i8 * (INNER + GAP);
+	const x0 = cxL - INNER / 2;
+	const x1 = cxR + INNER / 2;
+	const w = x1 - x0;
+	const yTop = -INNER / 2;
+	const yBot = row3Y + INNER / 2;
+	const h = yTop - yBot;
+	const cy = (yTop + yBot) / 2;
+	const cxMid = (x0 + x1) / 2;
+	const fill = new THREE.Mesh(new THREE.PlaneGeometry(w, h), blueMat);
+	fill.position.set(cxMid, cy, BLUE_Z - 0.003);
+	chipField.add(fill);
+	const i20 = 5;
+	const cx20 = leftX + GAP + INNER / 2 + i20 * (INNER + GAP);
+	const tex = makeSeriesNameTexture('ORPHELINS', { ruFontPx: SERIES_LABEL_FONT_PX });
+	const aspect = tex.image.width / tex.image.height;
+	const planeH = SERIES_LABEL_PLANE_H;
+	const planeW = planeH * aspect;
+	const lab = new THREE.Mesh(
+		new THREE.PlaneGeometry(planeW, planeH),
+		new THREE.MeshBasicMaterial({
+			map: tex,
+			transparent: true,
+			side: THREE.DoubleSide,
+			depthWrite: false
+		})
+	);
+	lab.position.set(cx20 + planeW / 2, cy, LABEL_Z + 0.005);
+	chipField.add(lab);
+})();
+
+/** Сплошная заливка blueMat между рядами под столбцами 22…35 (индексы 9…15), как слева под 1–9. */
+(function addBlueBetweenRowsCols22to35() {
+	const i9 = 9;
+	const i15 = 15;
+	const cxL = leftX + GAP + INNER / 2 + i9 * (INNER + GAP);
+	const cxR = leftX + GAP + INNER / 2 + i15 * (INNER + GAP);
+	const x0 = cxL - INNER / 2;
+	const x1 = cxR + INNER / 2;
+	const w = x1 - x0;
+	const yTop = -INNER / 2;
+	const yBot = row3Y + INNER / 2;
+	const h = yTop - yBot;
+	const cy = (yTop + yBot) / 2;
+	const cxMid = (x0 + x1) / 2;
+	const fill = new THREE.Mesh(new THREE.PlaneGeometry(w, h), blueMat);
+	fill.position.set(cxMid, cy, BLUE_Z - 0.003);
+	chipField.add(fill);
+})();
+
+/**
+ * Кольца на краях трека: синие сектора, белые радиали и дуги (GAP/2), номера по короткой дуге колеса.
+ * Слева кол.0 (5↔11): полуокружность в −X, 4 части — 10, 23, 8, 30 (крупный шрифт).
+ * Справа кол.15 (35↔32): полуокружность в +X, 3 части — 0, 26, 3 (крупнее; 0 — зелёный).
+ */
+(function addArcRingsLeftRight() {
+	const yTopRowBottomWhite = -(INNER / 2 + GAP / 2);
+	const yCellTopWhite = row3Y + INNER / 2 + GAP / 2;
+	const yOuterTopWhite = INNER / 2 + GAP / 2;
+	const yOuterBottomWhite = row3Y - INNER / 2 - GAP / 2;
+	const cyMid = row3Y / 2;
+	const rIn = Math.abs(yTopRowBottomWhite - yCellTopWhite) / 2;
+	const rOut = Math.abs(yOuterTopWhite - yOuterBottomWhite) / 2;
+	const rLab = (rIn + rOut) / 2;
+	const sweepLen = Math.PI;
+
+	function addAnnulusSector(xc, a0, a1, rInner, rOuter, cyy) {
+		const shape = new THREE.Shape();
+		const x0 = xc + rInner * Math.cos(a0);
+		const y0 = cyy + rInner * Math.sin(a0);
+		shape.moveTo(x0, y0);
+		shape.absarc(xc, cyy, rInner, a0, a1, false);
+		shape.lineTo(xc + rOuter * Math.cos(a1), cyy + rOuter * Math.sin(a1));
+		shape.absarc(xc, cyy, rOuter, a1, a0, true);
+		const mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape), blueMat);
+		mesh.position.z = BLUE_Z - 0.0005;
+		chipField.add(mesh);
+	}
+	function addRadialDivider(xc, angle, rInner, rOuter, cyy) {
+		const rC = (rInner + rOuter) / 2;
+		const len = rOuter - rInner;
+		const m = new THREE.Mesh(new THREE.BoxGeometry(GAP, len, LINE_DEPTH), whiteStripMat);
+		m.position.set(xc + rC * Math.cos(angle), cyy + rC * Math.sin(angle), WHITE_Z + 0.001);
+		m.renderOrder = 1;
+		m.rotation.z = angle - Math.PI / 2;
+		chipField.add(m);
+	}
+	function addArcRingLabel(px, py, num, labelOpts) {
+		labelOpts = labelOpts || {};
+		const planeScale = labelOpts.planeScale || 1;
+		const s = INNER * 0.52 * planeScale;
+		let col = rouletteTextColor(num);
+		if (num === 0) col = '#15803d';
+		const texOpts = { strokeLight: num === 0, ...(labelOpts.texOpts || {}) };
+		const label = new THREE.Mesh(
+			new THREE.PlaneGeometry(s, s),
+			new THREE.MeshBasicMaterial({
+				map: makeCenteredDigitTexture(num, col, texOpts),
+				transparent: true,
+				side: THREE.DoubleSide
+			})
+		);
+		label.position.set(px, py, LABEL_Z + 0.003);
+		chipField.add(label);
+	}
+	/** Заливка внутреннего полукруга (r ≤ rInner) слева и справа — иначе виден чёрный фон сцены. */
+	function addInnerSemicircleFill(xc, cyy, r, sweepStart) {
+		const a0 = sweepStart;
+		const a1 = sweepStart + sweepLen;
+		const shape = new THREE.Shape();
+		shape.moveTo(xc, cyy);
+		shape.lineTo(xc + r * Math.cos(a0), cyy + r * Math.sin(a0));
+		shape.absarc(xc, cyy, r, a0, a1, false);
+		shape.lineTo(xc, cyy);
+		const mesh = new THREE.Mesh(new THREE.ShapeGeometry(shape), blueMat);
+		mesh.position.z = BLUE_Z - 0.002;
+		chipField.add(mesh);
+	}
+	const cxCol0 = leftX + GAP + INNER / 2;
+	const xcLeftRing = cxCol0 - INNER / 2;
+	addInnerSemicircleFill(xcLeftRing, cyMid, rIn, Math.PI / 2);
+	const cxCol15 = leftX + GAP + INNER / 2 + 15 * (INNER + GAP);
+	const xcRightRing = cxCol15 + INNER / 2;
+	addInnerSemicircleFill(xcRightRing, cyMid, rIn, -Math.PI / 2);
+
+	function addTubeArcParts(xc, yA, yB, z, sweepStart, nParts) {
+		const cyy = (yA + yB) / 2;
+		const rArc = Math.abs(yA - yB) / 2;
+		for (let s = 0; s < nParts; s++) {
+			const startAng = sweepStart + (sweepLen * s) / nParts;
+			const endAng = sweepStart + (sweepLen * (s + 1)) / nParts;
+			const arc2 = new THREE.EllipseCurve(xc, cyy, rArc, rArc, startAng, endAng, false, 0);
+			const arcPts = arc2.getPoints(14).map((p) => new THREE.Vector3(p.x, p.y, z));
+			const arcCurve3 = new THREE.CatmullRomCurve3(arcPts);
+			const tube = new THREE.Mesh(new THREE.TubeGeometry(arcCurve3, 32, GAP / 2, 8, false), whiteStripMat);
+			tube.renderOrder = 1;
+			chipField.add(tube);
+		}
+	}
+	function buildRing(colIndex, sideRight, nParts, ringNumbers, labelOpts) {
+		const cx = leftX + GAP + INNER / 2 + colIndex * (INNER + GAP);
+		const xc = sideRight ? cx + INNER / 2 : cx - INNER / 2;
+		const sweep0 = sideRight ? -Math.PI / 2 : Math.PI / 2;
+		for (let k = 0; k < nParts; k++) {
+			const a0 = sweep0 + (sweepLen * k) / nParts;
+			const a1 = sweep0 + (sweepLen * (k + 1)) / nParts;
+			addAnnulusSector(xc, a0, a1, rIn, rOut, cyMid);
+		}
+		for (let k = 1; k < nParts; k++) {
+			addRadialDivider(xc, sweep0 + (sweepLen * k) / nParts, rIn, rOut, cyMid);
+		}
+		addTubeArcParts(xc, yTopRowBottomWhite, yCellTopWhite, WHITE_Z + 0.002, sweep0, nParts);
+		addTubeArcParts(xc, yOuterTopWhite, yOuterBottomWhite, WHITE_Z + 0.003, sweep0, nParts);
+		for (let k = 0; k < nParts; k++) {
+			const aMid = sweep0 + (sweepLen * (k + 0.5)) / nParts;
+			addArcRingLabel(xc + rLab * Math.cos(aMid), cyMid + rLab * Math.sin(aMid), ringNumbers[k], labelOpts);
+		}
+	}
+	buildRing(0, false, 4, [10, 23, 8, 30], { planeScale: 1.22, texOpts: { fontScale: 1.22 } });
+	buildRing(15, true, 3, [0, 26, 3], { planeScale: 1.22, texOpts: { fontScale: 1.22 } });
+})();
+
+const yTopVert = INNER / 2 + GAP / 2;
+const yBotVert = row3Y - INNER / 2 - GAP / 2;
+const hVertSpan = yTopVert - yBotVert;
+const yMidVert = (yTopVert + yBotVert) / 2;
+
+/** 33|1 → 27|6 (j = 4). */
+const xVert33to27 = leftX + 4 * (INNER + GAP) + GAP / 2;
+addWhiteStrip(GAP, hVertSpan, xVert33to27, yMidVert);
+
+/** 9|22 → 17|25: j = 9, та же ось, что вертикаль сетки между столбцами 8 и 9. */
+const xVert9to25 = leftX + 9 * (INNER + GAP) + GAP / 2;
+addWhiteStrip(GAP, hVertSpan, xVert9to25, yMidVert);
+
+/** Две плашки: SERIE 5/8 — левый край от столбца «5» (индекс 0); SERIE 0/2/3 — от «22» (индекс 9). */
+(function addTrackSeriesLabels() {
+	const cx0 = leftX + GAP + INNER / 2;
+	const cx15 = leftX + GAP + INNER / 2 + 15 * (INNER + GAP);
+	const xL = cx0 + INNER / 2;
+	const xR = cx15 - INNER / 2;
+	const wBand = xR - xL;
+	const yS = row3Y / 2;
+	const planeHLabel = SERIES_LABEL_PLANE_H;
+	const aspectLabel = SERIES_NAME_TEX_W / SERIES_NAME_TEX_H;
+	const planeWLabel = planeHLabel * aspectLabel;
+	const cx5 = leftX + GAP + INNER / 2 + 0 * (INNER + GAP);
+	const xLeftUnder5 = cx5 - INNER / 2;
+	const cxSerie58 = xLeftUnder5 + planeWLabel / 2;
+	const cxL22 = leftX + GAP + INNER / 2 + 9 * (INNER + GAP);
+	const xLeftUnder22 = cxL22 - INNER / 2;
+	const cxSerie023 = xLeftUnder22 + planeWLabel / 2;
+	const rows = [
+		{
+			ru: 'SERIE 5/8',
+			cx: cxSerie58,
+			planeH: SERIES_LABEL_PLANE_H,
+			texOpts: { ruFontPx: SERIES_LABEL_FONT_PX }
+		},
+		{ ru: 'SERIE 0/2/3', cx: cxSerie023, planeH: SERIES_LABEL_PLANE_H, texOpts: { ruFontPx: SERIES_LABEL_FONT_PX } }
+	];
+	for (const row of rows) {
+		const cx = row.cx != null ? row.cx : xL + wBand * row.t;
+		const tex = makeSeriesNameTexture(row.ru, row.texOpts);
+		const aspect = tex.image.width / tex.image.height;
+		const planeH = row.planeH ?? 0.88;
+		const planeW = planeH * aspect;
+		const mesh = new THREE.Mesh(
+			new THREE.PlaneGeometry(planeW, planeH),
+			new THREE.MeshBasicMaterial({
+				map: tex,
+				transparent: true,
+				side: THREE.DoubleSide,
+				depthWrite: false
+			})
+		);
+		mesh.position.set(cx, yS, LABEL_Z + 0.004);
+		chipField.add(mesh);
+	}
+})();
+
+/** Цвета по номиналу (номиналы — из ar_chip_amount.mjs). Без текстур; позже — factory.setDenomTexture. От 500 — чуть крупнее цилиндр. */
+const CHIP_COLORS = {
+	1: 0x9ca3af,
+	5: 0xc41e3a,
+	25: 0x15803d,
+	100: 0x1c1c1c,
+	500: 0xe879a0,
+	1000: 0xf0f0f0,
+	5000: 0xa855f7
+};
+const CHIP_LARGE_FROM = 500;
+const CHIP_LARGE_SCALE = 1.12;
+
+function chipDenomIsLarge(denomination) {
+	return denomination >= CHIP_LARGE_FROM;
+}
+
+function chipColorIntToCss(colorInt) {
+	return `#${(colorInt >>> 0).toString(16).padStart(6, '0')}`;
+}
+
+function makeChipSideStripeTexture(baseColorCss, stripeColorCss) {
+	// Делаем выше разрешение, чтобы при взгляде сверху текстура на цилиндре не "плыла".
+	const w = 2048;
+	const h = 256;
+	const cnv = document.createElement('canvas');
+	cnv.width = w;
+	cnv.height = h;
+	const ctx = cnv.getContext('2d');
+	ctx.fillStyle = baseColorCss;
+	ctx.fillRect(0, 0, w, h);
+	const stripeRatio = 0.03; // Общая толщина белой метки (доля окружности).
+	const stripeW = Math.max(10, Math.round(w * stripeRatio));
+	const cardinals = [0, 0.25, 0.5, 0.75];
+	ctx.fillStyle = stripeColorCss;
+	for (const t of cardinals) {
+		const x = Math.round(t * w);
+		ctx.fillRect((x - stripeW / 2 + w) % w, 0, stripeW, h);
+		if (x - stripeW / 2 < 0) {
+			// Полоса на шве текстуры: дублируем справа.
+			ctx.fillRect(w + (x - stripeW / 2), 0, stripeW, h);
+		}
+	}
+	const tex = new THREE.CanvasTexture(cnv);
+	tex.colorSpace = THREE.SRGBColorSpace;
+	tex.wrapS = THREE.RepeatWrapping;
+	tex.wrapT = THREE.ClampToEdgeWrapping;
+	// Чётче при наклоне/масштабе: без мипмапов, лучше контроль фильтра.
+	tex.generateMipmaps = false;
+	tex.minFilter = THREE.LinearFilter;
+	tex.magFilter = THREE.NearestFilter;
+	tex.anisotropy = 8;
+	tex.needsUpdate = true;
+	return tex;
+}
+
+function makeChipCapStripeTexture(baseColorCss, stripeColorCss) {
+	const size = 1024;
+	const cnv = document.createElement('canvas');
+	cnv.width = size;
+	cnv.height = size;
+	const ctx = cnv.getContext('2d');
+	const cx = size / 2;
+	const cy = size / 2;
+	ctx.fillStyle = baseColorCss;
+	ctx.fillRect(0, 0, size, size);
+	ctx.fillStyle = stripeColorCss;
+	const stripeRatio = 0.03; // Должен совпадать с makeChipSideStripeTexture.
+	const lineLen = Math.round(size * 0.2);
+	const r = Math.round(size * 0.41);
+	// Приводим толщину верхней/нижней метки к той же угловой толщине, что на боковине.
+	// side: theta = 2π * stripeRatio, top: arc = r * theta
+	const lineW = Math.max(10, Math.round(r * 2 * Math.PI * stripeRatio));
+	// N / S
+	ctx.fillRect(cx - lineW / 2, cy - r - lineLen, lineW, lineLen);
+	ctx.fillRect(cx - lineW / 2, cy + r, lineW, lineLen);
+	// W / E
+	ctx.fillRect(cx - r - lineLen, cy - lineW / 2, lineLen, lineW);
+	ctx.fillRect(cx + r, cy - lineW / 2, lineLen, lineW);
+	// Продолжение боковых полос по ободу (как у 100).
+	const rimLen = Math.round(size * 0.11);
+	const rOuter = Math.round(size * 0.48);
+	// N / S
+	ctx.fillRect(cx - lineW / 2, cy - rOuter, lineW, rimLen);
+	ctx.fillRect(cx - lineW / 2, cy + rOuter - rimLen, lineW, rimLen);
+	// W / E
+	ctx.fillRect(cx - rOuter, cy - lineW / 2, rimLen, lineW);
+	ctx.fillRect(cx + rOuter - rimLen, cy - lineW / 2, rimLen, lineW);
+	const tex = new THREE.CanvasTexture(cnv);
+	tex.colorSpace = THREE.SRGBColorSpace;
+	tex.generateMipmaps = false;
+	tex.minFilter = THREE.LinearFilter;
+	tex.magFilter = THREE.NearestFilter;
+	tex.anisotropy = 8;
+	tex.needsUpdate = true;
+	return tex;
+}
+
+function makeChipTopFaceBadgeTexture(label, baseColorCss) {
+	const size = 1024;
+	const cnv = document.createElement('canvas');
+	cnv.width = size;
+	cnv.height = size;
+	const ctx = cnv.getContext('2d');
+	const cx = size / 2;
+	const cy = size / 2;
+	ctx.fillStyle = baseColorCss;
+	ctx.fillRect(0, 0, size, size);
+	// Белые полоски сверху по сторонам света.
+	const stripeRatio = 0.03;
+	const lineW = Math.max(10, Math.round(Math.round(size * 0.41) * 2 * Math.PI * stripeRatio));
+	const lineLen = Math.round(size * 0.18);
+	const r = Math.round(size * 0.41);
+	ctx.fillStyle = String(label) === '1000' ? '#000000' : '#ffffff';
+	// N / S
+	ctx.fillRect(cx - lineW / 2, cy - r - lineLen, lineW, lineLen);
+	ctx.fillRect(cx - lineW / 2, cy + r, lineW, lineLen);
+	// W / E
+	ctx.fillRect(cx - r - lineLen, cy - lineW / 2, lineLen, lineW);
+	ctx.fillRect(cx + r, cy - lineW / 2, lineLen, lineW);
+	// Белый круг сверху на черной фишке.
+	const rBadge = Math.round(size * 0.34);
+	ctx.beginPath();
+	ctx.arc(cx, cy, rBadge, 0, Math.PI * 2);
+	ctx.closePath();
+	ctx.fillStyle = String(label) === '1000' ? '#000000' : '#ffffff';
+	ctx.fill();
+	ctx.lineWidth = Math.max(2, Math.round(size * 0.008));
+	ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+	ctx.stroke();
+	// Без "чужих" цветов: текст в оттенке фишки (кроме 100, где нужен чёрный).
+	ctx.fillStyle = String(label) === '100'
+		? '#000000'
+		: String(label) === '25'
+			? '#000000'
+			: String(label) === '5'
+				? '#000000'
+				: String(label) === '1000'
+					? '#ffffff'
+				: '#000000';
+	const isThreeDigits = String(label).length >= 3;
+	const fs = isThreeDigits ? Math.round(size * 0.28) : Math.round(size * 0.34);
+	ctx.font = `800 ${fs}px system-ui, -apple-system, "Segoe UI", sans-serif`;
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+	ctx.save();
+	ctx.translate(cx, cy);
+	ctx.rotate(Math.PI / 2); // 90° по часовой
+	ctx.fillText(String(label), 0, 0);
+	ctx.restore();
+	const tex = new THREE.CanvasTexture(cnv);
+	tex.colorSpace = THREE.SRGBColorSpace;
+	tex.generateMipmaps = false;
+	tex.minFilter = THREE.LinearFilter;
+	tex.magFilter = THREE.NearestFilter;
+	tex.anisotropy = 8;
+	tex.needsUpdate = true;
+	return tex;
+}
+
+class TrackChipFactory {
+	constructor(chipScaleK) {
+		const r0 = 1.5 * chipScaleK;
+		const h0 = 0.35 * chipScaleK;
+		this.hSmall = h0;
+		this.hLarge = h0 * CHIP_LARGE_SCALE;
+		this.geomSmall = new THREE.CylinderGeometry(r0, r0, h0, 32);
+		this.geomLarge = new THREE.CylinderGeometry(
+			r0 * CHIP_LARGE_SCALE,
+			r0 * CHIP_LARGE_SCALE,
+			h0 * CHIP_LARGE_SCALE,
+			32
+		);
+		this._materials = new Map();
+		this._materialTriples = new Map();
+		this._baseMat = {
+			metalness: 0.12,
+			roughness: 0.48,
+			polygonOffset: true,
+			polygonOffsetFactor: -1,
+			polygonOffsetUnits: -1
+		};
+	}
+
+	getMaterial(denomination) {
+		if (!Object.prototype.hasOwnProperty.call(CHIP_COLORS, denomination)) {
+			throw new Error(`Unknown chip denomination: ${denomination}`);
+		}
+		if (!this._materials.has(denomination)) {
+			const rough = denomination === 1000 ? 0.55 : this._baseMat.roughness;
+			const mat = new THREE.MeshStandardMaterial({
+				...this._baseMat,
+				color: CHIP_COLORS[denomination],
+				roughness: rough
+			});
+			this._materials.set(denomination, mat);
+		}
+		return this._materials.get(denomination);
+	}
+
+	/** Подключение текстуры номинала, когда появятся отдельные файлы. */
+	setDenomTexture(denomination, texture) {
+		if (texture) texture.colorSpace = THREE.SRGBColorSpace;
+		const m = this.getMaterial(denomination);
+		m.map = texture;
+		m.needsUpdate = true;
+	}
+
+	chipHeight(denomination) {
+		return chipDenomIsLarge(denomination) ? this.hLarge : this.hSmall;
+	}
+
+	spawnZ(denomination, labelZ) {
+		return labelZ + this.chipHeight(denomination) / 2 + 0.008;
+	}
+
+	createMesh(denomination) {
+		const geom = chipDenomIsLarge(denomination) ? this.geomLarge : this.geomSmall;
+		let material = this.getMaterial(denomination);
+		// Полоски: у 100/25/5 белые (с подсветкой), у 500/1000/5000 чёрные (без подсветки).
+		if (
+			denomination === 100 ||
+			denomination === 25 ||
+			denomination === 5 ||
+			denomination === 500 ||
+			denomination === 1000 ||
+			denomination === 5000
+		) {
+			if (!this._materialTriples.has(denomination)) {
+				const isWhiteStripe = denomination === 100 || denomination === 25 || denomination === 5;
+				const stripeColorCss = isWhiteStripe ? '#ffffff' : '#0a0a0a';
+				const emissiveColor = isWhiteStripe ? 0xffffff : 0x000000;
+				const capEmissiveIntensity = isWhiteStripe ? 0.45 : 0.0;
+				const sideEmissiveIntensity = isWhiteStripe ? 0.55 : 0.0;
+				const baseCss = chipColorIntToCss(CHIP_COLORS[denomination]);
+				const sideTex = makeChipSideStripeTexture(baseCss, stripeColorCss);
+				const capTex = makeChipCapStripeTexture(baseCss, stripeColorCss);
+				const hasBadge =
+					denomination === 100 ||
+					denomination === 25 ||
+					denomination === 5 ||
+					denomination === 500 ||
+					denomination === 1000 ||
+					denomination === 5000;
+				const topTex = hasBadge ? makeChipTopFaceBadgeTexture(denomination, baseCss) : capTex;
+				const bottomTex = hasBadge ? topTex : capTex;
+				const capEmissiveMap = denomination === 100 ? null : capTex;
+				const capEmissive = denomination === 100 ? 0x000000 : emissiveColor;
+				const capEmissivePower = denomination === 100 ? 0.0 : capEmissiveIntensity;
+				const top = new THREE.MeshStandardMaterial({
+					...this._baseMat,
+					color: hasBadge ? 0xffffff : CHIP_COLORS[denomination],
+					roughness: 0.58,
+					map: topTex,
+					emissive: hasBadge ? 0x000000 : capEmissive,
+					emissiveMap: hasBadge ? null : capEmissiveMap,
+					emissiveIntensity: hasBadge ? 0.0 : capEmissivePower
+				});
+				const bottom = new THREE.MeshStandardMaterial({
+					...this._baseMat,
+					color: hasBadge ? 0xffffff : CHIP_COLORS[denomination],
+					roughness: 0.58,
+					map: bottomTex,
+					emissive: hasBadge ? 0x000000 : capEmissive,
+					emissiveMap: hasBadge ? null : capEmissiveMap,
+					emissiveIntensity: hasBadge ? 0.0 : capEmissivePower
+				});
+				const side = new THREE.MeshStandardMaterial({
+					...this._baseMat,
+					color: CHIP_COLORS[denomination],
+					roughness: 0.52,
+					map: sideTex,
+					emissive: emissiveColor,
+					emissiveMap: sideTex,
+					emissiveIntensity: sideEmissiveIntensity
+				});
+				// CylinderGeometry material order: [side, top, bottom]
+				this._materialTriples.set(denomination, [side, top, bottom]);
+			}
+			material = this._materialTriples.get(denomination);
+		}
+		const mesh = new THREE.Mesh(geom, material);
+		mesh.rotation.x = -Math.PI / 2;
+		mesh.userData.denomination = denomination;
+		mesh.renderOrder = 3;
+		mesh.name = `track-chip-${denomination}`;
+		return mesh;
+	}
+}
+
+(function addTrackChipSpawns() {
+	const AR_BETS_CELL_W = 8;
+	const chipScaleK = (INNER / AR_BETS_CELL_W) * 2;
+	const factory = new TrackChipFactory(chipScaleK);
+	// Смещения стопки: меньше "лесенка" и меньше разрыв при смене номинала.
+	const TRACK_LADDER_WITHIN = 0.1;
+	const TRACK_LADDER_DENOM_EXTRA = 0.06;
+	const TRACK_STACK_Z_GAP = 0.006;
+	const TRACK_CHIP_SPIN_STEP = 0.14;
+	const TRACK_CHIP_SPIN_AXIS = new THREE.Vector3(0, 0, 1);
+
+	const cxCol = (idx) => leftX + GAP + INNER / 2 + idx * (INNER + GAP);
+	const trackChipSpawns = new THREE.Group();
+	trackChipSpawns.name = 'track-chip-spawns';
+	const trackSpawnMarkers = new THREE.Group();
+	trackSpawnMarkers.name = 'track-spawn-markers';
+	const spawnByNumber = new Map();
+
+	function addInvisibleSpawn(cx, cy, meta) {
+		const g = new THREE.Group();
+		g.position.set(cx, cy, LABEL_Z);
+		g.userData.spawn = meta;
+		g.visible = false;
+		trackSpawnMarkers.add(g);
+		if (meta && typeof meta.number === 'number' && !spawnByNumber.has(meta.number)) {
+			spawnByNumber.set(meta.number, { cx, cy });
+		}
+	}
+
+	function addChipStackAt(cx, cy, amount) {
+		const stacks = amountToChipStacks(amount);
+		const sequence = [];
+		for (let s = 0; s < stacks.length; s++) {
+			const { denomination, count } = stacks[s];
+			for (let n = 0; n < count; n++) sequence.push(denomination);
+		}
+		if (sequence.length === 0) return;
+		let zCenter = 0;
+		let yOff = 0;
+		let prevDenom = null;
+		let prevH = 0;
+		for (let i = 0; i < sequence.length; i++) {
+			const denom = sequence[i];
+			const h = factory.chipHeight(denom);
+			if (i === 0) {
+				zCenter = LABEL_Z + h / 2 + 0.008;
+			} else {
+				zCenter = zCenter + prevH / 2 + TRACK_STACK_Z_GAP + h / 2;
+				const isNewDenom = denom !== prevDenom;
+				const openingDir = 1;
+				yOff += TRACK_LADDER_WITHIN * openingDir;
+				if (isNewDenom) yOff += TRACK_LADDER_DENOM_EXTRA * openingDir;
+			}
+			const mesh = factory.createMesh(denom);
+			// Чистый спин по оси Z (без "покачивания"/наклона).
+			const spin = (i % 4) * TRACK_CHIP_SPIN_STEP;
+			mesh.rotateOnWorldAxis(TRACK_CHIP_SPIN_AXIS, spin);
+			mesh.position.set(cx, cy + yOff, zCenter);
+			trackChipSpawns.add(mesh);
+			prevDenom = denom;
+			prevH = h;
+		}
+	}
+
+	function renderTaskStacks(task) {
+		while (trackChipSpawns.children.length) {
+			trackChipSpawns.remove(trackChipSpawns.children[0]);
+		}
+		if (!task) return;
+		for (const s of task.stakes || []) {
+			const p = spawnByNumber.get(s.center);
+			if (p) addChipStackAt(p.cx, p.cy, s.bet);
+		}
+		if (typeof focusTrackChipsCamera === 'function') focusTrackChipsCamera(trackChipSpawns);
+	}
+
+	for (let i = 0; i < N_SQUARES; i++) {
+		addInvisibleSpawn(cxCol(i), 0, { kind: 'top', col: i, number: TRACK_NUMBERS[i] });
+	}
+	for (let k = 0; k < UNDER_LEFT_INDICES.length; k++) {
+		const i = UNDER_LEFT_INDICES[k];
+		addInvisibleSpawn(cxCol(i), row3Y, { kind: 'under_left', col: i, number: UNDER_LEFT_NUMBERS[k] });
+	}
+	const L = cxCol(3) + INNER / 2 + GAP;
+	const R = cxCol(9) - INNER / 2 - GAP;
+	const Wmid = R - L;
+	const B = (Wmid - 4 * GAP) / 3;
+	for (let kk = 0; kk < 3; kk++) {
+		const cx = L + GAP + B / 2 + kk * (B + GAP);
+		addInvisibleSpawn(cx, row3Y, { kind: 'under_middle', index: kk, number: MIDDLE_STRETCH_NUMBERS[kk] });
+	}
+	for (let k = 0; k < UNDER_RIGHT_INDICES.length; k++) {
+		const i = UNDER_RIGHT_INDICES[k];
+		addInvisibleSpawn(cxCol(i), row3Y, { kind: 'under_right', col: i, number: UNDER_RIGHT_NUMBERS[k] });
+	}
+
+	const yTopRowBottomWhite = -(INNER / 2 + GAP / 2);
+	const yCellTopWhite = row3Y + INNER / 2 + GAP / 2;
+	const yOuterTopWhite = INNER / 2 + GAP / 2;
+	const yOuterBottomWhite = row3Y - INNER / 2 - GAP / 2;
+	const cyMidArc = row3Y / 2;
+	const rInArc = Math.abs(yTopRowBottomWhite - yCellTopWhite) / 2;
+	const rOutArc = Math.abs(yOuterTopWhite - yOuterBottomWhite) / 2;
+	const rLabArc = (rInArc + rOutArc) / 2;
+	const cxCol0 = leftX + GAP + INNER / 2;
+	const xcLeftRing = cxCol0 - INNER / 2;
+	const sweep0Left = Math.PI / 2;
+	const nLeftParts = 4;
+	const leftArcSpawnNudgeX = INNER * 0.16;
+	const LEFT_ARC_NUMBERS = [10, 23, 8, 30];
+	for (let k = 0; k < nLeftParts; k++) {
+		const aMid = sweep0Left + (Math.PI * (k + 0.5)) / nLeftParts;
+		let px = xcLeftRing + rLabArc * Math.cos(aMid);
+		if (k === 1 || k === 2) px -= leftArcSpawnNudgeX;
+		const py = cyMidArc + rLabArc * Math.sin(aMid);
+		addInvisibleSpawn(px, py, { kind: 'arc_left', index: k, number: LEFT_ARC_NUMBERS[k] });
+	}
+	const cxCol15 = leftX + GAP + INNER / 2 + 15 * (INNER + GAP);
+	const xcRightRing = cxCol15 + INNER / 2;
+	const sweep0Right = -Math.PI / 2;
+	const nRightParts = 3;
+	const RIGHT_ARC_NUMBERS = [0, 26, 3];
+	for (let k = 0; k < nRightParts; k++) {
+		const aMid = sweep0Right + (Math.PI * (k + 0.5)) / nRightParts;
+		const px = xcRightRing + rLabArc * Math.cos(aMid);
+		const py = cyMidArc + rLabArc * Math.sin(aMid);
+		addInvisibleSpawn(px, py, { kind: 'arc_right', index: k, number: RIGHT_ARC_NUMBERS[k] });
+	}
+
+	chipField.add(trackSpawnMarkers);
+	chipField.add(trackChipSpawns);
+	applyTaskToTrackChips = renderTaskStacks;
+	if (currentTask) renderTaskStacks(currentTask);
+})();
+
+scene.add(chipField);
+
+const groundGeom = new THREE.PlaneGeometry(Math.max(80, totalW + 8), 80);
+const groundMat = new THREE.MeshStandardMaterial({ color: 0x0c1828, metalness: 0.08, roughness: 0.94 });
+const ground = new THREE.Mesh(groundGeom, groundMat);
+ground.position.z = -0.25;
+chipField.add(ground);
+
+const camera = new THREE.PerspectiveCamera(42, w / h, 0.1, 500);
+const viewMidY = row3Y / 2;
+camera.position.set(totalW * 0.52, -totalW * 0.42 + viewMidY * 0.4, totalW * 0.48);
+
+const controls = new OrbitControls(camera, canvas);
+controls.target.set(0, viewMidY, 0);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.minDistance = 8;
+controls.maxDistance = 120;
+controls.enablePan = true;
+
+// Ограничиваем поворот по азимуту асимметрично: влево можно, вправо - нельзя.
+// OrbitControls хранит азимут в диапазоне -PI..PI, поэтому простое min/max часто заезжает через wrap.
+// Клампим вручную, пересчитывая позицию камеры вокруг target по радиусу (x/z).
+const _offset0 = camera.position.clone().sub(controls.target);
+const _initAz = Math.atan2(_offset0.x, _offset0.z); // как в OrbitControls
+const _allowedLeft = Math.PI / 2; // влево
+const _allowedRight = Math.PI / 9; // вправо (жёстче)
+function _normalizeAngle(a) {
+	return Math.atan2(Math.sin(a), Math.cos(a));
+}
+function _clampAzimuth() {
+	const offset = controls.object.position.clone().sub(controls.target);
+	const az = Math.atan2(offset.x, offset.z);
+	const delta = _normalizeAngle(az - _initAz);
+	const clampedDelta = Math.max(-_allowedLeft, Math.min(_allowedRight, delta));
+	if (Math.abs(delta - clampedDelta) < 1e-6) return;
+	const r = Math.hypot(offset.x, offset.z);
+	offset.x = r * Math.sin(_initAz + clampedDelta);
+	offset.z = r * Math.cos(_initAz + clampedDelta);
+	controls.object.position.copy(controls.target).add(offset);
+	controls.update();
+}
+controls.addEventListener('change', _clampAzimuth);
+
+// Клампим перемещение (pan) по X/Y границам поля, чтобы цель не уезжала далеко за разметку.
+// Тогда пользователь может двигаться вправо/влево/вверх/вниз, но не “переезжает” сцену.
+const _xMin = -totalW / 2;
+const _xMax = totalW / 2;
+const _yTop = INNER / 2 + GAP / 2;
+const _yBot = row3Y - INNER / 2 - GAP / 2;
+function _clampTargetXY() {
+	const t = controls.target;
+	const clampedX = Math.max(_xMin, Math.min(_xMax, t.x));
+	const clampedY = Math.max(_yBot, Math.min(_yTop, t.y));
+	if (Math.abs(clampedX - t.x) < 1e-6 && Math.abs(clampedY - t.y) < 1e-6) return;
+	const dx = clampedX - t.x;
+	const dy = clampedY - t.y;
+	// При pan камера и target сдвигаются вместе, поэтому двигаем оба одинаково.
+	controls.target.x = clampedX;
+	controls.target.y = clampedY;
+	controls.object.position.x += dx;
+	controls.object.position.y += dy;
+}
+controls.addEventListener('change', _clampTargetXY);
+
+// Чтобы не переворачивало через верх/низ.
+controls.minPolarAngle = Math.PI * 0.18;
+controls.maxPolarAngle = Math.PI * 0.82;
+
+const cameraFocusState = {
+	active: false,
+	fromPos: new THREE.Vector3(),
+	toPos: new THREE.Vector3(),
+	fromTarget: new THREE.Vector3(),
+	toTarget: new THREE.Vector3(),
+	startMs: 0,
+	durationMs: 700
+};
+const _bbox = new THREE.Box3();
+const _bboxCenter = new THREE.Vector3();
+const _bboxSize = new THREE.Vector3();
+focusTrackChipsCamera = function focusTrackChipsCamera(group) {
+	if (!group || group.children.length === 0) return;
+	_bbox.setFromObject(group);
+	if (_bbox.isEmpty()) return;
+	_bbox.getCenter(_bboxCenter);
+	_bbox.getSize(_bboxSize);
+	const spread = Math.max(_bboxSize.x, _bboxSize.y, 1);
+	const dist = Math.max(8, spread * 1.7);
+	cameraFocusState.fromPos.copy(camera.position);
+	cameraFocusState.fromTarget.copy(controls.target);
+	cameraFocusState.toTarget.set(_bboxCenter.x, _bboxCenter.y, 0);
+	cameraFocusState.toPos.set(
+		_bboxCenter.x + dist * 0.9,
+		_bboxCenter.y - dist * 0.75,
+		Math.max(8, dist * 0.85)
+	);
+	cameraFocusState.startMs = performance.now();
+	cameraFocusState.active = true;
+};
+
+const renderer = new THREE.WebGLRenderer({
+	canvas,
+	antialias: true,
+	alpha: false,
+	logarithmicDepthBuffer: true
+});
+if (!renderer.getContext()) {
+	wrap.insertAdjacentHTML('beforeend', '<p style="color:#e11;padding:16px;margin:0;">WebGL не доступен. Обновите браузер или включите аппаратное ускорение.</p>');
+} else {
+	renderer.setSize(w, h);
+	renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+	renderer.shadowMap.enabled = false;
+
+	function tick() {
+		if (cameraFocusState.active) {
+			const t = Math.min(1, (performance.now() - cameraFocusState.startMs) / cameraFocusState.durationMs);
+			const e = 1 - Math.pow(1 - t, 3);
+			camera.position.lerpVectors(cameraFocusState.fromPos, cameraFocusState.toPos, e);
+			controls.target.lerpVectors(cameraFocusState.fromTarget, cameraFocusState.toTarget, e);
+			if (t >= 1) cameraFocusState.active = false;
+		}
+		controls.update();
+		renderer.render(scene, camera);
+		requestAnimationFrame(tick);
+	}
+	requestAnimationFrame(tick);
+
+	const ro = new ResizeObserver(() => {
+		({ w, h } = size());
+		camera.aspect = w / h;
+		camera.updateProjectionMatrix();
+		renderer.setSize(w, h);
+	});
+	ro.observe(wrap);
+}
+nextTask();
+</script>
+{% endblock %}
