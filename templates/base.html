@@ -29,21 +29,24 @@
 </head>
 <body>
 	<header class="site-header">
-		<nav class="site-nav">
+		<nav class="site-nav" id="site-nav">
 			<a href="{% url 'homepage_index' %}" class="site-nav__home" title="Главная"><img src="{% static 'images/favicon.png' %}" alt="" width="28" height="28"></a>
-			<a href="{% url 'blackjack_index' %}" class="site-nav__link">BJ</a>
-			<a href="{% url 'poker_index' %}" class="site-nav__link">Poker</a>
-			<a href="{% url 'ar_index' %}" class="site-nav__link">AR</a>
-			{% if user.is_authenticated %}
-				<a href="{% url 'ar_stats' %}" class="site-nav__link">Статистика</a>
-				<form method="post" action="{% url 'logout' %}" class="site-nav__logout-form">
-					{% csrf_token %}
-					<button type="submit" class="site-nav__logout-btn">Выйти ({{ user.username }})</button>
-				</form>
-			{% else %}
-				<a href="{% url 'login' %}" class="site-nav__link">Войти</a>
-				<a href="{% url 'register' %}" class="site-nav__link">Регистрация</a>
-			{% endif %}
+			<button type="button" class="site-nav__toggle" id="site-nav-toggle" aria-expanded="false" aria-controls="site-nav-menu" aria-label="Открыть меню">Меню</button>
+			<div class="site-nav__menu" id="site-nav-menu">
+				<a href="{% url 'blackjack_index' %}" class="site-nav__link">BJ</a>
+				<a href="{% url 'poker_index' %}" class="site-nav__link">Poker</a>
+				<a href="{% url 'ar_index' %}" class="site-nav__link">AR</a>
+				{% if user.is_authenticated %}
+					<a href="{% url 'ar_stats' %}" class="site-nav__link">Статистика</a>
+					<form method="post" action="{% url 'logout' %}" class="site-nav__logout-form">
+						{% csrf_token %}
+						<button type="submit" class="site-nav__logout-btn">Выйти ({{ user.username }})</button>
+					</form>
+				{% else %}
+					<a href="{% url 'login' %}" class="site-nav__link">Войти</a>
+					<a href="{% url 'register' %}" class="site-nav__link">Регистрация</a>
+				{% endif %}
+			</div>
 		</nav>
 	</header>
 	<main class="{% block main_class %}{% endblock %}">
@@ -62,6 +65,34 @@
 		window.addEventListener('scroll', toggle, { passive: true });
 		toggle();
 		btn.addEventListener('click', function() { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+	})();
+	(function() {
+		var nav = document.getElementById('site-nav');
+		var toggle = document.getElementById('site-nav-toggle');
+		if (!nav || !toggle) return;
+		var mq = window.matchMedia('(max-width: 760px)');
+		function setOpen(isOpen) {
+			nav.classList.toggle('is-open', !!isOpen);
+			toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+		}
+		toggle.addEventListener('click', function() {
+			setOpen(!nav.classList.contains('is-open'));
+		});
+		document.addEventListener('click', function(e) {
+			if (!mq.matches || !nav.classList.contains('is-open')) return;
+			if (nav.contains(e.target)) return;
+			setOpen(false);
+		});
+		document.addEventListener('keydown', function(e) {
+			if (e.key === 'Escape') setOpen(false);
+		});
+		window.addEventListener('resize', function() {
+			if (!mq.matches) setOpen(false);
+		});
+		nav.addEventListener('click', function(e) {
+			if (!mq.matches) return;
+			if (e.target.closest('.site-nav__link')) setOpen(false);
+		});
 	})();
 	</script>
 	{% block extra_scripts %}{% endblock %}
