@@ -245,6 +245,9 @@
 	font-weight: 600;
 	min-height: 1.1em;
 }
+#track-answer-inputs-series .ar-track-trainer__input {
+	max-width: 5rem;
+}
 </style>
 {% endblock %}
 
@@ -262,7 +265,7 @@
 <div class="payout-settings-overlay" id="trackHelpOverlay" aria-hidden="true">
 	<div class="payout-settings-modal series-stake-settings-modal">
 		<h3 class="payout-settings-title">Трек</h3>
-		<p class="payout-settings-fields" style="margin:0;font-size:0.9rem;line-height:1.5;color:var(--text);">Введите сдачу с пересечения (перелив по max на номере).</p>
+		<p class="payout-settings-fields" style="margin:0;font-size:0.9rem;line-height:1.5;color:var(--text);">Соседи: сдача с пересечения по max на номере. Серии: раунд как в «Ставка на серию» — ставка фишками на треке, вводите «играет по» и «сдача».</p>
 		<div class="payout-settings-actions">
 			<button id="trackHelpClose" type="button" class="btn btn-secondary">Закрыть</button>
 		</div>
@@ -283,6 +286,21 @@
 				</select>
 			</div>
 			<div class="track-settings-row">
+				<span class="track-settings-row-label" id="trackModeLabel">Режим</span>
+				<select id="trackGameMode" class="series-stake-ar-select" aria-labelledby="trackModeLabel" title="Тип задания на треке">
+					<option value="neighbors" selected>Соседи</option>
+					<option value="series">Серии</option>
+				</select>
+			</div>
+			<div class="track-settings-row" id="trackSeriesStakeModeRow" style="display: none;">
+				<span class="track-settings-row-label" id="trackSeriesStakeModeLabel">Серия (как «Ставка на серию»)</span>
+				<select id="trackSeriesStakeMode" class="series-stake-ar-select" aria-labelledby="trackSeriesStakeModeLabel" title="Рандом или фиксированная серия для раунда">
+					{% for value, label in series_stake_series_choices %}
+					<option value="{{ value }}" {% if value == "random" %}selected{% endif %}>{{ label }}</option>
+					{% endfor %}
+				</select>
+			</div>
+			<div class="track-settings-row" id="trackNeighborsCountRow">
 				<span class="track-settings-row-label" id="trackNeighborsLabel">Ставок соседей</span>
 				<select id="trackNeighborsCount" class="series-stake-ar-select" aria-labelledby="trackNeighborsLabel" title="Сколько отдельных ставок «соседи» в задании. У каждой ставки 5 номеров на колесе.">
 					<option value="2" selected>2</option>
@@ -332,11 +350,15 @@
 	<div id="track-fuse-wrap" style="display: none;">
 		{% include "partials/fuse_timer.html" with prefix="track" %}
 	</div>
-	<div class="ar-answer-row">
-		<div class="ar-answer-left">
+	<div class="ar-answer-row" id="track-answer-row-wrap">
+		<div class="ar-answer-left" id="track-answer-inputs-neighbors">
 			<input id="track-answer-input" class="payout-input ar-track-trainer__input" inputmode="numeric" pattern="[0-9]*" placeholder="сдача">
-			<button id="track-check-btn" type="button" class="btn btn-secondary" title="Проверить">↵</button>
 		</div>
+		<div class="ar-answer-left" id="track-answer-inputs-series" style="display: none;">
+			<input id="track-igraet-input" class="payout-input ar-track-trainer__input" inputmode="numeric" pattern="[0-9]*" placeholder="играет по" aria-label="Играет по">
+			<input id="track-series-sdacha-input" class="payout-input ar-track-trainer__input" inputmode="numeric" pattern="[0-9]*" placeholder="сдача" aria-label="Сдача">
+		</div>
+		<button id="track-check-btn" type="button" class="btn btn-secondary" title="Проверить">↵</button>
 		<button id="track-next-btn" type="button" class="btn btn-secondary" style="margin-left:auto;">Pass</button>
 	</div>
 	<p class="ar-track-trainer__msg" id="track-result-text"></p>
@@ -425,12 +447,20 @@ const wrap = canvas.closest('.ar-track-canvas-wrap');
 const taskText = document.getElementById('track-task-text');
 const resultText = document.getElementById('track-result-text');
 const answerInput = document.getElementById('track-answer-input');
+const trackIgraeInput = document.getElementById('track-igraet-input');
+const trackSeriesSdachaInput = document.getElementById('track-series-sdacha-input');
+const trackAnswerInputsNeighbors = document.getElementById('track-answer-inputs-neighbors');
+const trackAnswerInputsSeries = document.getElementById('track-answer-inputs-series');
+const trackSeriesStakeMode = document.getElementById('trackSeriesStakeMode');
+const trackSeriesStakeModeRow = document.getElementById('trackSeriesStakeModeRow');
+const trackNeighborsCountRow = document.getElementById('trackNeighborsCountRow');
 const checkBtn = document.getElementById('track-check-btn');
 const nextBtn = document.getElementById('track-next-btn');
 const settingsBtn = document.getElementById('trackSettingsBtn');
 const settingsOverlay = document.getElementById('trackSettingsOverlay');
 const settingsClose = document.getElementById('trackSettingsClose');
 const arPresetSelect = document.getElementById('trackArPreset');
+const trackGameModeSelect = document.getElementById('trackGameMode');
 const neighborsCountSelect = document.getElementById('trackNeighborsCount');
 const stakeStepSelect = document.getElementById('trackStakeStep');
 const timerSwitch = document.getElementById('trackTimerSwitch');
@@ -451,6 +481,10 @@ const trackHelpBtn = document.getElementById('trackHelpBtn');
 const trackHelpOverlay = document.getElementById('trackHelpOverlay');
 const trackHelpClose = document.getElementById('trackHelpClose');
 const TRACK_SAVE_ATTEMPT_URL = '{% url "ar_track_save_attempt" %}';
+const TRACK_SERIES_ROUND_URL = '{% url "ar_track_series_round" %}';
+const TRACK_AR_RANDOM_VALUE = '{{ ar_random_value }}';
+const TRACK_AR_CUSTOM_VALUE = '{{ ar_custom_value }}';
+let seriesRoundFetchGen = 0;
 let trackErrorWasPass = false;
 let currentTask = null;
 let currentTaskStartedAtMs = 0;
@@ -466,6 +500,7 @@ const NEIGHBOR_WHEEL_PARAM = 4;
 const STAKE_STEP_OPTIONS = [5, 25, 50, 100, 500, 1000];
 
 const trackSettings = {
+	gameMode: 'neighbors', // neighbors | series
 	neighborsCount: 2, // число ставок «соседи» в задании (2..5)
 	stakeStep: 25, // шаг суммы ставки и расчёта по номеру
 	timerEnabled: false,
@@ -503,6 +538,26 @@ function applyArPreset(preset) {
 	const parsed = parseArPresetValue(preset);
 	if (!parsed) return;
 	trackSettings.ar = parsed;
+}
+
+function pickRandomTrackArPresetId() {
+	if (!arPresetSelect) return '1-100-1';
+	const options = Array.from(arPresetSelect.options).map((o) => o.value);
+	const pool = options.filter((x) => parseArPresetValue(x));
+	if (pool.length === 0) return '1-100-1';
+	return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function isTrackArRandomSelected() {
+	return !!arPresetSelect && arPresetSelect.value === TRACK_AR_RANDOM_VALUE;
+}
+
+/** Если в AR выбран «Рандом», бросаем пресет и применяем к расчёту; возвращаем строку вида 1-100-1 для подписи к заданию. */
+function rollTrackArPresetForNeighborsTask() {
+	if (!isTrackArRandomSelected()) return null;
+	const pick = pickRandomTrackArPresetId();
+	applyArPreset(pick);
+	return pick;
 }
 
 function getStakeStep() {
@@ -616,7 +671,13 @@ function showTrackErrorOverlay(isPass) {
 	if (isPass && currentTask) {
 		if (trackErrorHandEl) trackErrorHandEl.style.display = 'none';
 		if (trackErrorHintEl) trackErrorHintEl.textContent = 'Нажмите, чтобы продолжить';
-		if (trackErrorTextEl) trackErrorTextEl.innerHTML = `Пропущено.<br>Правильный ответ: ${currentTask.answer}`;
+		if (trackErrorTextEl) {
+			if (currentTask.mode === 'series_stake') {
+				trackErrorTextEl.innerHTML = `Пропущено.<br>Играет по: ${currentTask.answerPlays}, сдача: ${currentTask.answerSdacha}`;
+			} else {
+				trackErrorTextEl.innerHTML = `Пропущено.<br>Правильный ответ: ${currentTask.answer}`;
+			}
+		}
 	} else {
 		if (trackErrorHandEl) trackErrorHandEl.style.display = '';
 		if (trackErrorHintEl) trackErrorHintEl.textContent = 'Нажмите, чтобы попробовать снова';
@@ -651,12 +712,26 @@ function saveTrackAttempt(outcome, userAnswerRaw) {
 	const body = new URLSearchParams();
 	body.set('outcome', outcome);
 	if (elapsedSec != null) body.set('solve_seconds', elapsedSec.toFixed(1));
-	body.set('answer', String(currentTask.answer));
-	if (userAnswerRaw != null && String(userAnswerRaw).trim() !== '') {
-		body.set('user_answer', String(userAnswerRaw).trim());
-	}
 	body.set('neighbors_count', String(trackSettings.neighborsCount));
 	body.set('stake_step', String(getStakeStep()));
+	body.set('track_mode', trackSettings.gameMode === 'series' ? 'series' : 'neighbors');
+	if (currentTask.mode === 'series_stake') {
+		body.set('answer', `${currentTask.answerPlays}/${currentTask.answerSdacha}`);
+		body.set('series_key', String(currentTask.seriesKey));
+		body.set('bet_amount', String(currentTask.betAmount));
+		body.set('answer_plays', String(currentTask.answerPlays));
+		body.set('answer_sdacha', String(currentTask.answerSdacha));
+		if (userAnswerRaw != null && typeof userAnswerRaw === 'object') {
+			body.set('user_igraet', String(userAnswerRaw.ig));
+			body.set('user_sdacha', String(userAnswerRaw.sd));
+			body.set('user_answer', `${userAnswerRaw.ig}/${userAnswerRaw.sd}`);
+		}
+	} else {
+		body.set('answer', String(currentTask.answer));
+		if (userAnswerRaw != null && String(userAnswerRaw).trim() !== '') {
+			body.set('user_answer', String(userAnswerRaw).trim());
+		}
+	}
 	fetch(TRACK_SAVE_ATTEMPT_URL, {
 		method: 'POST',
 		headers: {
@@ -724,14 +799,125 @@ settingsClose?.addEventListener('click', closeTrackSettings);
 settingsOverlay?.addEventListener('click', (e) => {
 	if (e.target === settingsOverlay) closeTrackSettings();
 });
+function syncGameModeFromUi() {
+	if (!trackGameModeSelect) return;
+	const v = trackGameModeSelect.value;
+	trackSettings.gameMode = v === 'series' ? 'series' : 'neighbors';
+	syncStakeCountLabel();
+	syncTrackSeriesSettingsRows();
+	syncAnswerInputsVisibility();
+}
+
+function syncStakeCountLabel() {
+	const el = document.getElementById('trackNeighborsLabel');
+	if (!el) return;
+	el.textContent = trackSettings.gameMode === 'series' ? 'Ставок серий' : 'Ставок соседей';
+}
+
+function syncTrackSeriesSettingsRows() {
+	if (trackSeriesStakeModeRow) {
+		trackSeriesStakeModeRow.style.display = trackSettings.gameMode === 'series' ? '' : 'none';
+	}
+	if (trackNeighborsCountRow) {
+		trackNeighborsCountRow.style.display = trackSettings.gameMode === 'series' ? 'none' : '';
+	}
+}
+
+function syncAnswerInputsVisibility() {
+	const series = trackSettings.gameMode === 'series';
+	if (trackAnswerInputsNeighbors) trackAnswerInputsNeighbors.style.display = series ? 'none' : '';
+	if (trackAnswerInputsSeries) trackAnswerInputsSeries.style.display = series ? '' : 'none';
+}
+
+function resolveArPresetForSeriesRoundPost() {
+	let v = arPresetSelect ? arPresetSelect.value : '';
+	if (v === TRACK_AR_RANDOM_VALUE) v = pickRandomTrackArPresetId();
+	if (v === TRACK_AR_CUSTOM_VALUE) v = '1-100-1';
+	return v;
+}
+
+function startSeriesStakeRound() {
+	seriesRoundFetchGen += 1;
+	const gen = seriesRoundFetchGen;
+	const showArRandomRoll = isTrackArRandomSelected();
+	stopTaskTimer();
+	currentTask = null;
+	renderTask();
+	if (typeof applyTaskToTrackChips === 'function') applyTaskToTrackChips(null);
+	if (taskText) taskText.textContent = 'Загрузка раунда «Ставка на серию»…';
+	if (checkBtn) checkBtn.disabled = true;
+	if (nextBtn) nextBtn.disabled = true;
+	const body = new URLSearchParams();
+	body.set('ar_preset', resolveArPresetForSeriesRoundPost());
+	body.set('series_mode', trackSeriesStakeMode ? trackSeriesStakeMode.value : 'random');
+	fetch(TRACK_SERIES_ROUND_URL, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+			'X-CSRFToken': getCsrfToken()
+		},
+		credentials: 'same-origin',
+		body: body.toString()
+	})
+		.then((r) => r.json())
+		.then((data) => {
+			if (gen !== seriesRoundFetchGen) return;
+			if (checkBtn) checkBtn.disabled = false;
+			if (nextBtn) nextBtn.disabled = false;
+			if (!data.ok) {
+				if (taskText) taskText.textContent = '';
+				if (resultText) {
+					resultText.textContent =
+						data.error === 'bad_round' ? 'Не удалось собрать раунд (серия/AR).' : 'Ошибка загрузки раунда.';
+					resultText.style.color = '#b91c1c';
+				}
+				return;
+			}
+			currentTask = {
+				mode: 'series_stake',
+				seriesKey: data.series_key,
+				seriesLabel: data.series_label,
+				betAmount: data.bet_amount,
+				answerPlays: data.answer_plays,
+				answerSdacha: data.answer_sdacha
+			};
+			currentTaskStartedAtMs = performance.now();
+			currentTaskAttemptSaved = false;
+			const arSuffix =
+				showArRandomRoll && data.ar_display ? ` · AR ${data.ar_display}` : '';
+			const taskLine = `${data.series_label} · ставка ${data.bet_amount}${arSuffix}`;
+			if (taskText) taskText.textContent = taskLine;
+			if (resultText) resultText.textContent = '';
+			syncAnswerInputsVisibility();
+			if (typeof applyTaskToTrackChips === 'function') applyTaskToTrackChips(currentTask);
+			startTaskTimer();
+			/* stopTaskTimer внутри startTaskTimer очищает taskText — вернуть строку задания. */
+			if (taskText) taskText.textContent = taskLine;
+		})
+		.catch(() => {
+			if (gen !== seriesRoundFetchGen) return;
+			if (checkBtn) checkBtn.disabled = false;
+			if (nextBtn) nextBtn.disabled = false;
+			if (taskText) taskText.textContent = '';
+			if (resultText) {
+				resultText.textContent = 'Сеть или сервер недоступны.';
+				resultText.style.color = '#b91c1c';
+			}
+		});
+}
+
+trackGameModeSelect?.addEventListener('change', () => {
+	syncGameModeFromUi();
+	if (currentTask) nextTask();
+});
+trackSeriesStakeMode?.addEventListener('change', () => {
+	if (trackSettings.gameMode === 'series' && currentTask) nextTask();
+});
+
 arPresetSelect?.addEventListener('change', () => {
 	let v = arPresetSelect.value;
-	if (v === '{{ ar_random_value }}') {
-		const options = Array.from(arPresetSelect.options).map((o) => o.value);
-		const pool = options.filter((x) => parseArPresetValue(x));
-		if (pool.length > 0) v = pool[Math.floor(Math.random() * pool.length)];
-	}
-	if (v === '{{ ar_custom_value }}') {
+	if (v === TRACK_AR_RANDOM_VALUE) v = pickRandomTrackArPresetId();
+	if (v === TRACK_AR_CUSTOM_VALUE) {
 		// Пока без отдельной формы custom — используем базовый профиль.
 		v = '1-100-1';
 	}
@@ -769,6 +955,7 @@ trackTimerFuseAnimSwitch?.addEventListener('click', () => {
 });
 syncTimerUi();
 applyArPreset('{{ selected_ar_preset }}');
+syncGameModeFromUi();
 
 function wheelNeighbors(center, neighborsCount) {
 	const idx = ROULETTE_WHEEL.indexOf(center);
@@ -802,6 +989,7 @@ function randomNeighborStakeAmount(splitCount) {
 	const steps = Math.max(0, Math.floor((maxBet - minBet) / step));
 	return minBet + randInt(0, steps) * step;
 }
+
 function buildIntersectionTask() {
 	syncStakeStepFromUi();
 	const stakeCount = Math.max(2, Math.min(5, trackSettings.neighborsCount | 0));
@@ -856,27 +1044,68 @@ function buildIntersectionTask() {
 		for (const v of totals.values()) overflowTotal += Math.max(0, v - capMax);
 		neighborsSdacha = stakes.reduce((acc, s) => acc + s.sdacha, 0);
 	} while (overflowTotal <= 0 && tries < 120);
-	return { stakes, answer: overflowTotal, splitCount, capMax, neighborsSdacha };
+	return {
+		mode: 'neighbors',
+		stakes,
+		answer: overflowTotal,
+		splitCount,
+		capMax,
+		neighborsSdacha
+	};
 }
+
 function renderTask() {
 	hideTrackResultOverlays();
 	if (taskText) taskText.textContent = '';
 	resultText.textContent = '';
-	answerInput.value = '';
+	if (answerInput) answerInput.value = '';
+	if (trackIgraeInput) trackIgraeInput.value = '';
+	if (trackSeriesSdachaInput) trackSeriesSdachaInput.value = '';
+	syncAnswerInputsVisibility();
 }
 function nextTask() {
 	syncStakeStepFromUi();
+	syncGameModeFromUi();
+	if (trackSettings.gameMode === 'series') {
+		startSeriesStakeRound();
+		return;
+	}
+	const arRandomRollLabel = rollTrackArPresetForNeighborsTask();
 	currentTask = buildIntersectionTask();
 	currentTaskStartedAtMs = performance.now();
 	currentTaskAttemptSaved = false;
 	renderTask();
 	if (typeof applyTaskToTrackChips === 'function') applyTaskToTrackChips(currentTask);
 	startTaskTimer();
+	if (taskText && arRandomRollLabel) taskText.textContent = `AR ${arRandomRollLabel}`;
 }
 function checkAnswer() {
 	if (!currentTask) return;
 	stopTaskTimer();
-	taskText.textContent = taskText.textContent.replace(/\s*\(таймер:\s*\d+с\)$/, '');
+	if (taskText) taskText.textContent = taskText.textContent.replace(/\s*\(таймер:\s*\d+с\)$/, '');
+	if (currentTask.mode === 'series_stake') {
+		const ig = parseInt((trackIgraeInput?.value || '').trim(), 10);
+		const sdRaw = (trackSeriesSdachaInput?.value || '').trim();
+		const sd = sdRaw === '' ? 0 : parseInt(sdRaw, 10);
+		if (Number.isNaN(ig)) {
+			resultText.textContent = 'Введите «играет по».';
+			resultText.style.color = '#b91c1c';
+			return;
+		}
+		if (sdRaw !== '' && Number.isNaN(sd)) {
+			resultText.textContent = 'Некорректная сдача.';
+			resultText.style.color = '#b91c1c';
+			return;
+		}
+		if (ig === currentTask.answerPlays && sd === currentTask.answerSdacha) {
+			saveTrackAttempt('correct', { ig, sd });
+			showTrackSuccessOverlay();
+		} else {
+			saveTrackAttempt('wrong', { ig, sd });
+			showTrackErrorOverlay(false);
+		}
+		return;
+	}
 	const v = parseInt((answerInput.value || '').trim(), 10);
 	if (Number.isNaN(v)) {
 		resultText.textContent = 'Введите число.';
@@ -898,17 +1127,19 @@ nextBtn?.addEventListener('click', () => {
 	trackErrorWasPass = true;
 	showTrackErrorOverlay(true);
 });
-answerInput?.addEventListener('keydown', (e) => {
-	if (e.key === 'Enter') {
-		if (continueFromTrackOverlay()) {
-			e.preventDefault();
-			return;
-		}
+function handleTrackTrainerEnter(e) {
+	if (e.key !== 'Enter') return;
+	if (continueFromTrackOverlay()) {
 		e.preventDefault();
-		e.stopPropagation();
-		checkAnswer();
+		return;
 	}
-});
+	e.preventDefault();
+	e.stopPropagation();
+	checkAnswer();
+}
+answerInput?.addEventListener('keydown', handleTrackTrainerEnter);
+trackIgraeInput?.addEventListener('keydown', handleTrackTrainerEnter);
+trackSeriesSdachaInput?.addEventListener('keydown', handleTrackTrainerEnter);
 
 function size() {
 	let w = wrap.clientWidth || 800;
@@ -1714,6 +1945,11 @@ class TrackChipFactory {
 	trackChipSpawns.name = 'track-chip-spawns';
 	const trackSpawnMarkers = new THREE.Group();
 	trackSpawnMarkers.name = 'track-spawn-markers';
+	/** Видимые спауны серий (кольца), смещены от центра ячейки — не пересекаются со стопками «соседей». */
+	const trackSeriesSpawnGroup = new THREE.Group();
+	trackSeriesSpawnGroup.name = 'track-series-spawn-markers';
+	trackSeriesSpawnGroup.visible = false;
+	trackSeriesSpawnGroup.userData.spawnBySeriesSlot = new Map();
 	const spawnByNumber = new Map();
 
 	function addInvisibleSpawn(cx, cy, meta) {
@@ -1766,7 +2002,21 @@ class TrackChipFactory {
 		while (trackChipSpawns.children.length) {
 			trackChipSpawns.remove(trackChipSpawns.children[0]);
 		}
-		if (!task) return;
+		if (!task) {
+			trackSeriesSpawnGroup.visible = false;
+			return;
+		}
+		if (task.mode === 'series_stake') {
+			/* Кольца спаунов серий не показываем — только фишки по тем же координатам. */
+			trackSeriesSpawnGroup.visible = false;
+			const slotMap = trackSeriesSpawnGroup.userData.spawnBySeriesSlot;
+			const pt = slotMap && slotMap.get(task.seriesKey);
+			const amt = Number(task.betAmount);
+			if (pt && Number.isFinite(amt) && amt > 0) addChipStackAt(pt.cx, pt.cy, amt);
+			if (typeof focusTrackChipsCamera === 'function') focusTrackChipsCamera(trackChipSpawns);
+			return;
+		}
+		trackSeriesSpawnGroup.visible = false;
 		for (const s of task.stakes || []) {
 			const p = spawnByNumber.get(s.center);
 			if (p) addChipStackAt(p.cx, p.cy, s.bet);
@@ -1827,7 +2077,77 @@ class TrackChipFactory {
 		addInvisibleSpawn(px, py, { kind: 'arc_right', index: k, number: RIGHT_ARC_NUMBERS[k] });
 	}
 
+	// Видимые спауны серий: по 1 кольцу; позиция = середина отрезка между центрами двух указанных клеток (XY).
+	const SERIES_RING_Z = WHITE_Z + 0.016;
+	const SERIES_SPAWN_LAYOUT = [
+		{
+			seriesKey: 'tiers',
+			label: 'Série 5/8',
+			color: 0xf59e0b,
+			between: [16, 13]
+		},
+		{
+			seriesKey: 'orphelins',
+			label: 'Orphelins',
+			color: 0xa78bfa,
+			between: [14, 34]
+		},
+		{
+			seriesKey: 'voisins',
+			label: 'Série 0/2/3',
+			color: 0x2dd4bf,
+			between: [21, 29]
+		},
+		{
+			seriesKey: 'zero',
+			label: '0-spiel',
+			color: 0xfb923c,
+			between: [12, 15]
+		}
+	];
+
+	function addSeriesSpawnRing(cx, cy, colorInt) {
+		const rIn = INNER * 0.12;
+		const rOut = INNER * 0.2;
+		const geom = new THREE.RingGeometry(rIn, rOut, 40);
+		const mat = new THREE.MeshBasicMaterial({
+			color: colorInt,
+			side: THREE.DoubleSide,
+			transparent: true,
+			opacity: 0.95,
+			depthTest: true,
+			polygonOffset: true,
+			polygonOffsetFactor: -2,
+			polygonOffsetUnits: -2
+		});
+		const mesh = new THREE.Mesh(geom, mat);
+		mesh.position.set(cx, cy, SERIES_RING_Z);
+		mesh.renderOrder = 2;
+		trackSeriesSpawnGroup.add(mesh);
+		return mesh;
+	}
+
+	const slotMap = trackSeriesSpawnGroup.userData.spawnBySeriesSlot;
+	slotMap.clear();
+	for (const block of SERIES_SPAWN_LAYOUT) {
+		const nums = block.between;
+		if (!nums || nums.length !== 2) continue;
+		const p0 = spawnByNumber.get(nums[0]);
+		const p1 = spawnByNumber.get(nums[1]);
+		if (!p0 || !p1) continue;
+		const sx = (p0.cx + p1.cx) / 2;
+		const sy = (p0.cy + p1.cy) / 2;
+		addSeriesSpawnRing(sx, sy, block.color);
+		slotMap.set(block.seriesKey, {
+			cx: sx,
+			cy: sy,
+			between: nums,
+			seriesKey: block.seriesKey
+		});
+	}
+
 	chipField.add(trackSpawnMarkers);
+	chipField.add(trackSeriesSpawnGroup);
 	chipField.add(trackChipSpawns);
 	applyTaskToTrackChips = renderTaskStacks;
 	if (currentTask) renderTaskStacks(currentTask);

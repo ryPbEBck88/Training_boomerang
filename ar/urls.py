@@ -18,6 +18,7 @@ urlpatterns = [
     path('series/', views.ar_series, name='ar_series'),
     path('track/', views.ar_track, name='ar_track'),
     path('track/attempt/', views.ar_track_save_attempt, name='ar_track_save_attempt'),
+    path('track/series-round/', views.ar_track_series_round, name='ar_track_series_round'),
     path('neighbors/', views.ar_neighbors, name='ar_neighbors'),
     path('completes/', views.ar_completes, name='ar_completes'),
     path('completes-intersection/', views.ar_completes_intersection, name='ar_completes_intersection'),

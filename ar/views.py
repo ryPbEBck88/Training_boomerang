@@ -779,6 +779,71 @@ def ar_track(request):
         'ar_custom_value': SERIES_STAKE_AR_CUSTOM,
         'ar_random_value': SERIES_STAKE_AR_RANDOM,
         'selected_ar_preset': preset,
+        'series_stake_series_choices': SERIES_STAKE_SERIES_CHOICES,
+    })
+
+
+@require_POST
+def ar_track_series_round(request):
+    """
+    Сгенерировать раунд как в «Ставка на серию», вернуть JSON для трека (ставка + правильные играет по / сдача).
+    Синхронизирует сессию ar_series_stake_* из POST (пресет AR, режим серии).
+    """
+    preset = (request.POST.get('ar_preset') or '').strip()
+    if preset == SERIES_STAKE_AR_RANDOM:
+        request.session['ar_series_stake_ar_preset'] = SERIES_STAKE_AR_RANDOM
+        request.session.pop('ar_series_stake_ar_roll_cached', None)
+        request.session.pop('ar_series_stake_ar_roll_preset_id', None)
+    elif preset == SERIES_STAKE_AR_CUSTOM:
+        request.session['ar_series_stake_ar_preset'] = SERIES_STAKE_AR_CUSTOM
+        request.session.pop('ar_series_stake_ar_roll_cached', None)
+        request.session.pop('ar_series_stake_ar_roll_preset_id', None)
+        nm = _clamp_int(request.POST.get('custom_num_min'), 1, 9999, 1)
+        xm = _clamp_int(request.POST.get('custom_num_max'), 1, 9999, 100)
+        if nm > xm:
+            nm, xm = xm, nm
+        request.session['ar_series_stake_num_min'] = nm
+        request.session['ar_series_stake_num_max'] = xm
+        request.session['ar_series_stake_series_min_po'] = _clamp_int(
+            request.POST.get('custom_series_min_po'), 1, 9999, 1
+        )
+        request.session['ar_series_stake_series_step'] = _clamp_int(
+            request.POST.get('custom_series_step'), 1, 9999, 1
+        )
+    elif preset in SERIES_STAKE_AR_PRESETS:
+        request.session['ar_series_stake_ar_preset'] = preset
+        request.session.pop('ar_series_stake_ar_roll_cached', None)
+        request.session.pop('ar_series_stake_ar_roll_preset_id', None)
+
+    series_mode = (request.POST.get('series_mode') or '').strip()
+    if series_mode in SERIES_STAKE_VALID_SERIES_MODES:
+        request.session['ar_series_stake_series_mode'] = series_mode
+
+    _series_stake_generate_round(request)
+    sk = request.session.get('ar_series_stake_series_key')
+    bet = request.session.get('ar_series_stake_bet_amount')
+    plays = request.session.get('ar_series_stake_plays')
+    sdacha = request.session.get('ar_series_stake_sdacha')
+    if sk not in SERIES_STAKE_SERIES_KEYS_POOL or bet is None or plays is None or sdacha is None:
+        return JsonResponse({'ok': False, 'error': 'bad_round'}, status=400)
+    label = SERIES_STAKE_SERIES_LABEL.get(sk, sk)
+    ar_params = _get_series_stake_ar_params(request)
+    ar_display = '%s-%s-%s' % (
+        ar_params.get('num_min'),
+        ar_params.get('num_max'),
+        ar_params.get('series_min_po'),
+    )
+    return JsonResponse({
+        'ok': True,
+        'series_key': sk,
+        'series_label': label,
+        'bet_amount': bet,
+        'answer_plays': plays,
+        'answer_sdacha': sdacha,
+        'ar_preset_effective': request.session.get('ar_series_stake_ar_preset'),
+        'ar_display': ar_display,
+        'num_max': ar_params.get('num_max'),
+        'series_min_po': ar_params.get('series_min_po'),
     })
 
 
@@ -795,7 +860,19 @@ def ar_track_save_attempt(request):
 
     solve_seconds = request.POST.get("solve_seconds")
     payload = {}
-    for key in ("answer", "user_answer", "neighbors_count", "stake_step"):
+    for key in (
+        "answer",
+        "user_answer",
+        "neighbors_count",
+        "stake_step",
+        "track_mode",
+        "user_igraet",
+        "user_sdacha",
+        "series_key",
+        "bet_amount",
+        "answer_plays",
+        "answer_sdacha",
+    ):
         val = request.POST.get(key)
         if val is not None and val != "":
             payload[key] = val
