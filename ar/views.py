@@ -819,6 +819,15 @@ def ar_track_series_round(request):
     if series_mode in SERIES_STAKE_VALID_SERIES_MODES:
         request.session['ar_series_stake_series_mode'] = series_mode
 
+    # Шаг суммы ставки из настроек трека (тот же селект, что для «Соседей»).
+    raw_ss = (request.POST.get('stake_step') or '').strip()
+    if raw_ss:
+        ar_for_defaults = _get_series_stake_ar_params(request)
+        mode = _get_series_stake_series_mode(request)
+        d_stake = _series_stake_stake_defaults_for_mode(mode, ar_for_defaults)
+        ss = _clamp_int(raw_ss, 1, 999999, d_stake['stake_step'])
+        request.session['ar_series_stake_stake_step'] = ss
+
     _series_stake_generate_round(request)
     sk = request.session.get('ar_series_stake_series_key')
     bet = request.session.get('ar_series_stake_bet_amount')

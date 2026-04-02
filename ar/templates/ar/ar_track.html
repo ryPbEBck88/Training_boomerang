@@ -32,6 +32,22 @@
 	font-size: clamp(1.35rem, 2.1vw, 1.65rem);
 	letter-spacing: 0.01em;
 }
+.ar-track-roulette-bar {
+	margin: 0 0 10px;
+	padding: 0 12px;
+	text-align: center;
+	font-size: clamp(0.85rem, 2.8vw, 1rem);
+	font-weight: 600;
+	color: var(--text, #0f172a);
+	letter-spacing: 0.02em;
+	min-height: 1.35em;
+	line-height: 1.35;
+}
+.ar-track-roulette-bar:empty {
+	display: none;
+	margin: 0;
+	min-height: 0;
+}
 .ar-track-help-btn {
 	position: absolute;
 	left: 0;
@@ -151,17 +167,23 @@
 	color: var(--text);
 }
 .track-settings-row select { min-width: 0; max-width: 14rem; }
+/* Одинаковый размер: шаг ставки, секунды таймера, число соседей */
 .track-settings-row #trackNeighborsCount,
-.track-settings-row #trackStakeStep {
-	min-height: 2rem;
-	width: 4.5rem;
-	min-width: 4.5rem;
-	max-width: 4.5rem;
-	flex: 0 0 4.5rem;
-	padding: 4px 8px;
-	font-size: 0.82rem;
+.track-settings-row #trackStakeStep,
+.track-settings-row #trackTimerSeconds {
+	box-sizing: border-box;
+	min-height: 2.5rem;
+	width: 4.75rem;
+	min-width: 4.75rem;
+	max-width: 4.75rem;
+	flex: 0 0 4.75rem;
+	padding: 8px 10px;
+	font-size: 0.875rem;
+	line-height: 1.2;
 }
-.track-settings-row input[type="number"] { width: 5.5rem; text-align: right; }
+.track-settings-row #trackTimerSeconds {
+	text-align: right;
+}
 .track-timer-switch {
 	width: 44px;
 	height: 26px;
@@ -224,11 +246,23 @@
 	align-items: center;
 	gap: 12px;
 	flex-wrap: wrap;
+	justify-content: space-between;
 }
-.ar-answer-left {
+.ar-answer-actions-start {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-shrink: 0;
+}
+.ar-answer-inputs-end {
 	display: flex;
 	align-items: center;
 	gap: 12px;
+	flex-wrap: wrap;
+	margin-left: auto;
+	justify-content: flex-end;
+	flex: 1 1 auto;
+	min-width: 0;
 }
 .ar-track-trainer__input {
 	width: clamp(4.6rem, 24vw, 5.6rem);
@@ -245,8 +279,84 @@
 	font-weight: 600;
 	min-height: 1.1em;
 }
+#track-answer-inputs-series {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
 #track-answer-inputs-series .ar-track-trainer__input {
 	max-width: 5rem;
+}
+
+/* Мобильная строка: Pass + поля + ↵ в один ряд, одинаковая высота, поля делят место поровну */
+@media (max-width: 599px) {
+	.ar-track-trainer {
+		padding: 8px 10px;
+	}
+	.ar-answer-row {
+		flex-wrap: nowrap;
+		gap: 6px;
+		align-items: stretch;
+	}
+	.ar-answer-actions-start {
+		gap: 6px;
+		flex-shrink: 0;
+	}
+	.ar-answer-inputs-end {
+		flex-wrap: nowrap;
+		gap: 6px;
+		margin-left: auto;
+		min-width: 0;
+		flex: 1 1 0;
+	}
+	.ar-track-trainer .ar-answer-row .btn.btn-secondary {
+		box-sizing: border-box;
+		height: 2.25rem;
+		min-height: 2.25rem;
+		max-height: 2.25rem;
+		padding: 0 10px;
+		font-size: 0.8rem;
+		font-weight: 600;
+		line-height: 1;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		border-radius: 8px;
+	}
+	#track-check-btn {
+		min-width: 2.25rem;
+		max-width: 2.25rem;
+		padding: 0;
+	}
+	#track-next-btn {
+		min-width: 3.1rem;
+	}
+	#track-answer-inputs-neighbors {
+		display: flex;
+		flex: 1 1 0;
+		min-width: 0;
+	}
+	#track-answer-inputs-series {
+		flex: 1 1 0;
+		min-width: 0;
+		gap: 6px;
+	}
+	.ar-track-trainer__input {
+		box-sizing: border-box;
+		flex: 1 1 0;
+		min-width: 0 !important;
+		width: auto !important;
+		max-width: none !important;
+		height: 2.25rem;
+		min-height: 2.25rem;
+		max-height: 2.25rem;
+		padding: 4px 6px;
+		font-size: 0.8rem;
+	}
+	#track-answer-inputs-series .ar-track-trainer__input {
+		max-width: none !important;
+	}
 }
 </style>
 {% endblock %}
@@ -265,7 +375,7 @@
 <div class="payout-settings-overlay" id="trackHelpOverlay" aria-hidden="true">
 	<div class="payout-settings-modal series-stake-settings-modal">
 		<h3 class="payout-settings-title">Трек</h3>
-		<p class="payout-settings-fields" style="margin:0;font-size:0.9rem;line-height:1.5;color:var(--text);">Соседи: сдача с пересечения по max на номере. Серии: раунд как в «Ставка на серию» — ставка фишками на треке, вводите «играет по» и «сдача».</p>
+		<p class="payout-settings-fields" style="margin:0;font-size:0.9rem;line-height:1.5;color:var(--text);">Соседи: сдача с пересечения по max на номере. Серии: ставка фишками на треке, вводите «играет по» и «сдача».</p>
 		<div class="payout-settings-actions">
 			<button id="trackHelpClose" type="button" class="btn btn-secondary">Закрыть</button>
 		</div>
@@ -293,7 +403,7 @@
 				</select>
 			</div>
 			<div class="track-settings-row" id="trackSeriesStakeModeRow" style="display: none;">
-				<span class="track-settings-row-label" id="trackSeriesStakeModeLabel">Серия (как «Ставка на серию»)</span>
+				<span class="track-settings-row-label" id="trackSeriesStakeModeLabel">Серия</span>
 				<select id="trackSeriesStakeMode" class="series-stake-ar-select" aria-labelledby="trackSeriesStakeModeLabel" title="Рандом или фиксированная серия для раунда">
 					{% for value, label in series_stake_series_choices %}
 					<option value="{{ value }}" {% if value == "random" %}selected{% endif %}>{{ label }}</option>
@@ -342,6 +452,7 @@
 		</div>
 	</div>
 </div>
+<p class="ar-track-roulette-bar" id="track-ar-roulette-label" aria-live="polite"></p>
 <div class="ar-track-canvas-wrap">
 	<canvas id="ar-track-canvas" aria-label="Трёхмерная сцена"></canvas>
 </div>
@@ -351,15 +462,19 @@
 		{% include "partials/fuse_timer.html" with prefix="track" %}
 	</div>
 	<div class="ar-answer-row" id="track-answer-row-wrap">
-		<div class="ar-answer-left" id="track-answer-inputs-neighbors">
-			<input id="track-answer-input" class="payout-input ar-track-trainer__input" inputmode="numeric" pattern="[0-9]*" placeholder="сдача">
+		<div class="ar-answer-actions-start">
+			<button id="track-next-btn" type="button" class="btn btn-secondary">Pass</button>
 		</div>
-		<div class="ar-answer-left" id="track-answer-inputs-series" style="display: none;">
-			<input id="track-igraet-input" class="payout-input ar-track-trainer__input" inputmode="numeric" pattern="[0-9]*" placeholder="играет по" aria-label="Играет по">
-			<input id="track-series-sdacha-input" class="payout-input ar-track-trainer__input" inputmode="numeric" pattern="[0-9]*" placeholder="сдача" aria-label="Сдача">
+		<div class="ar-answer-inputs-end">
+			<div id="track-answer-inputs-neighbors">
+				<input id="track-answer-input" class="payout-input ar-track-trainer__input" inputmode="numeric" pattern="[0-9]*" placeholder="сдача">
+			</div>
+			<div id="track-answer-inputs-series" style="display: none;">
+				<input id="track-igraet-input" class="payout-input ar-track-trainer__input" inputmode="numeric" pattern="[0-9]*" placeholder="играет по" aria-label="Играет по">
+				<input id="track-series-sdacha-input" class="payout-input ar-track-trainer__input" inputmode="numeric" pattern="[0-9]*" placeholder="сдача" aria-label="Сдача">
+			</div>
+			<button id="track-check-btn" type="button" class="btn btn-secondary" title="Проверить">↵</button>
 		</div>
-		<button id="track-check-btn" type="button" class="btn btn-secondary" title="Проверить">↵</button>
-		<button id="track-next-btn" type="button" class="btn btn-secondary" style="margin-left:auto;">Pass</button>
 	</div>
 	<p class="ar-track-trainer__msg" id="track-result-text"></p>
 </div>
@@ -445,6 +560,7 @@ const ROULETTE_WHEEL = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 
 const canvas = document.getElementById('ar-track-canvas');
 const wrap = canvas.closest('.ar-track-canvas-wrap');
 const taskText = document.getElementById('track-task-text');
+const trackArRouletteLabel = document.getElementById('track-ar-roulette-label');
 const resultText = document.getElementById('track-result-text');
 const answerInput = document.getElementById('track-answer-input');
 const trackIgraeInput = document.getElementById('track-igraet-input');
@@ -506,13 +622,23 @@ const trackSettings = {
 	timerEnabled: false,
 	timerFuseAnimation: true,
 	timerSeconds: 15,
-	ar: {
+		ar: {
 		numMin: 1,
 		numMax: 100,
 		seriesMinPo: 1,
 		seriesStep: 1
 	}
 };
+
+function setTrackArRouletteLabelDisplay(text) {
+	if (!trackArRouletteLabel) return;
+	trackArRouletteLabel.textContent = text ? String(text).trim() : '';
+}
+
+function syncTrackArRouletteLabelFromSettings() {
+	const { numMin, numMax, seriesMinPo } = trackSettings.ar;
+	setTrackArRouletteLabelDisplay(`Рулетка ${numMin}-${numMax}-${seriesMinPo}`);
+}
 
 function parseArPresetValue(preset) {
 	const parts = String(preset || '').split('-');
@@ -538,6 +664,7 @@ function applyArPreset(preset) {
 	const parsed = parseArPresetValue(preset);
 	if (!parsed) return;
 	trackSettings.ar = parsed;
+	syncTrackArRouletteLabelFromSettings();
 }
 
 function pickRandomTrackArPresetId() {
@@ -839,17 +966,17 @@ function resolveArPresetForSeriesRoundPost() {
 function startSeriesStakeRound() {
 	seriesRoundFetchGen += 1;
 	const gen = seriesRoundFetchGen;
-	const showArRandomRoll = isTrackArRandomSelected();
 	stopTaskTimer();
 	currentTask = null;
 	renderTask();
 	if (typeof applyTaskToTrackChips === 'function') applyTaskToTrackChips(null);
-	if (taskText) taskText.textContent = 'Загрузка раунда «Ставка на серию»…';
+	setTrackArRouletteLabelDisplay('Загрузка…');
 	if (checkBtn) checkBtn.disabled = true;
 	if (nextBtn) nextBtn.disabled = true;
 	const body = new URLSearchParams();
 	body.set('ar_preset', resolveArPresetForSeriesRoundPost());
 	body.set('series_mode', trackSeriesStakeMode ? trackSeriesStakeMode.value : 'random');
+	body.set('stake_step', String(getStakeStep()));
 	fetch(TRACK_SERIES_ROUND_URL, {
 		method: 'POST',
 		headers: {
@@ -865,7 +992,7 @@ function startSeriesStakeRound() {
 			if (checkBtn) checkBtn.disabled = false;
 			if (nextBtn) nextBtn.disabled = false;
 			if (!data.ok) {
-				if (taskText) taskText.textContent = '';
+				syncTrackArRouletteLabelFromSettings();
 				if (resultText) {
 					resultText.textContent =
 						data.error === 'bad_round' ? 'Не удалось собрать раунд (серия/AR).' : 'Ошибка загрузки раунда.';
@@ -883,22 +1010,17 @@ function startSeriesStakeRound() {
 			};
 			currentTaskStartedAtMs = performance.now();
 			currentTaskAttemptSaved = false;
-			const arSuffix =
-				showArRandomRoll && data.ar_display ? ` · AR ${data.ar_display}` : '';
-			const taskLine = `${data.series_label} · ставка ${data.bet_amount}${arSuffix}`;
-			if (taskText) taskText.textContent = taskLine;
+			setTrackArRouletteLabelDisplay(data.ar_display ? `Рулетка ${data.ar_display}` : '');
 			if (resultText) resultText.textContent = '';
 			syncAnswerInputsVisibility();
 			if (typeof applyTaskToTrackChips === 'function') applyTaskToTrackChips(currentTask);
 			startTaskTimer();
-			/* stopTaskTimer внутри startTaskTimer очищает taskText — вернуть строку задания. */
-			if (taskText) taskText.textContent = taskLine;
 		})
 		.catch(() => {
 			if (gen !== seriesRoundFetchGen) return;
 			if (checkBtn) checkBtn.disabled = false;
 			if (nextBtn) nextBtn.disabled = false;
-			if (taskText) taskText.textContent = '';
+			syncTrackArRouletteLabelFromSettings();
 			if (resultText) {
 				resultText.textContent = 'Сеть или сервер недоступны.';
 				resultText.style.color = '#b91c1c';
@@ -955,6 +1077,7 @@ trackTimerFuseAnimSwitch?.addEventListener('click', () => {
 });
 syncTimerUi();
 applyArPreset('{{ selected_ar_preset }}');
+syncTrackArRouletteLabelFromSettings();
 syncGameModeFromUi();
 
 function wheelNeighbors(center, neighborsCount) {
@@ -1070,14 +1193,14 @@ function nextTask() {
 		startSeriesStakeRound();
 		return;
 	}
-	const arRandomRollLabel = rollTrackArPresetForNeighborsTask();
+	rollTrackArPresetForNeighborsTask();
 	currentTask = buildIntersectionTask();
 	currentTaskStartedAtMs = performance.now();
 	currentTaskAttemptSaved = false;
 	renderTask();
 	if (typeof applyTaskToTrackChips === 'function') applyTaskToTrackChips(currentTask);
 	startTaskTimer();
-	if (taskText && arRandomRollLabel) taskText.textContent = `AR ${arRandomRollLabel}`;
+	syncTrackArRouletteLabelFromSettings();
 }
 function checkAnswer() {
 	if (!currentTask) return;

@@ -55,6 +55,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'homepage.middleware.SiteVisitLogMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -136,3 +137,11 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Учёт посещений HTML-страниц (homepage.middleware.SiteVisitLogMiddleware).
+SITE_VISIT_LOG_ENABLED = os.environ.get('SITE_VISIT_LOG_ENABLED', '1').strip().lower() in (
+    '1',
+    'true',
+    'yes',
+    'on',
+)
