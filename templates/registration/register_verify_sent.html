@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Проверьте почту{% endblock %}
+
+{% block main_class %}auth-main{% endblock %}
+
+{% block content %}
+<div class="auth-shell">
+	<div class="auth-icon-mail" aria-hidden="true">✉</div>
+	<h1 class="auth-shell__title">Письмо отправлено</h1>
+	<p class="auth-shell__lead">Откройте почту и перейдите по ссылке в письме, чтобы активировать аккаунт. Ссылка одноразовая; если письма нет, загляните в «Спам».</p>
+	<p class="auth-footer" style="border-top: none; margin-top: 0; padding-top: 0;">
+		<a href="{% url 'login' %}">На страницу входа</a>
+		·
+		<a href="{% url 'register' %}">Указать другую почту</a>
+	</p>
+</div>
+{% endblock %}

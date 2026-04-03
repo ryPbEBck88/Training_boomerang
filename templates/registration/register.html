@@ -2,12 +2,33 @@
 
 {% block title %}Регистрация{% endblock %}
 
+{% block main_class %}auth-main{% endblock %}
+
 {% block content %}
-<h1>Регистрация</h1>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Создать аккаунт</button>
-</form>
-<p>Уже есть аккаунт? <a href="{% url 'login' %}">Войти</a></p>
+<div class="auth-shell">
+	<h1 class="auth-shell__title">Регистрация</h1>
+	<p class="auth-shell__lead">Укажите логин, почту и пароль. На почту придёт ссылка — без неё войти не получится.</p>
+	<form method="post" action="{% url 'register' %}" novalidate>
+		{% csrf_token %}
+		{% if form.non_field_errors %}
+			<div class="auth-nonfield">{{ form.non_field_errors|join:' ' }}</div>
+		{% endif %}
+		{% for field in form %}
+			<div class="auth-field">
+				{{ field.label_tag }}
+				{{ field }}
+				{% if field.help_text %}
+					<span class="helptext">{{ field.help_text|safe }}</span>
+				{% endif %}
+				{% if field.errors %}
+					<ul class="auth-errors">
+						{% for err in field.errors %}<li>{{ err }}</li>{% endfor %}
+					</ul>
+				{% endif %}
+			</div>
+		{% endfor %}
+		<button type="submit" class="auth-btn">Создать аккаунт</button>
+	</form>
+	<p class="auth-footer">Уже есть аккаунт? <a href="{% url 'login' %}">Войти</a></p>
+</div>
 {% endblock %}
