@@ -1,25 +1,25 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Соседи — AR | Тренажёры крупье{% endblock %}
-{% block main_class %}payout-main{% endblock %}
+{% block main_class %}auth-main{% endblock %}
 {% block content %}
-<div class="payout-screen">
-<div class="payout-page payout-page--neighbors">
-	<div class="payout-header series-stake-header neighbors-header">
-		<button type="button" class="neighbors-help-btn" id="neighborsHelpBtn" aria-label="Справка" title="Справка">
+<div class="auth-shell neighbors-shell">
+	<div class="neighbors-shell__toolbar">
+		<button type="button" class="neighbors-help-btn neighbors-shell__help" id="neighborsHelpBtn" aria-label="Справка" title="Справка">
 			<svg class="neighbors-help-icon" viewBox="0 0 24 24" aria-hidden="true">
 				<circle cx="12" cy="12" r="10" fill="#2563eb"/>
 				<text x="12" y="17" text-anchor="middle" fill="white" font-size="14" font-weight="bold" font-family="system-ui,sans-serif">?</text>
 			</svg>
 		</button>
-		<div class="payout-bet series-stake-title neighbors-title">Соседи</div>
-		<button type="button" class="payout-settings-btn series-stake-settings-btn" id="neighborsSettingsBtn" title="Настройки" aria-label="Настройки">
+		<h1 class="auth-shell__title">Соседи</h1>
+		<button type="button" class="payout-settings-btn series-stake-settings-btn neighbors-shell__settings" id="neighborsSettingsBtn" title="Настройки" aria-label="Настройки">
 			<svg class="payout-settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 				<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
 				<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
 			</svg>
 		</button>
 	</div>
+
 	<div class="neighbors-help-overlay" id="neighborsHelpOverlay" aria-hidden="true">
 		<div class="neighbors-help-modal">
 			<p class="neighbors-help-text">Введите 4 соседа по колесу рулетки (по часовой стрелке — чек, против — почти чек)</p>
@@ -54,6 +54,7 @@
 		</div>
 	</div>
 
+	<div class="payout-page payout-page--neighbors">
 	{% if timer_enabled and success is None and not skipped %}
 		{% if timer_fuse_animation %}
 		<div class="neighbors-fuse-wrap">
@@ -155,32 +156,30 @@
 		</div>
 	</form>
 	{% endif %}
-</div>
+	</div>
+	<nav class="auth-footer ar-exercise-footer" aria-label="Навигация внизу страницы">
+		<a href="{% url 'homepage_index' %}">На главную</a>
+		<a href="{% url 'ar_index' %}">AR</a>
+	</nav>
 </div>
 
 <style>
-.payout-main .main-card:has(.payout-page--neighbors) {
-	padding-top: 14px;
-}
-.payout-page.payout-page--neighbors {
-	padding-top: 46px;
-}
-.payout-page--neighbors .payout-header.series-stake-header {
+.neighbors-shell__toolbar {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	position: relative;
-	top: auto;
-	left: auto;
-	right: auto;
-	gap: 0.5rem;
 	min-height: 2.5rem;
 	padding: 0 48px;
 	box-sizing: border-box;
 	width: 100%;
-	margin-bottom: 0;
+	margin-bottom: 0.65rem;
 }
-.payout-page--neighbors .payout-header .neighbors-help-btn {
+.neighbors-shell__toolbar .auth-shell__title {
+	margin: 0;
+	text-align: center;
+}
+.neighbors-shell__help {
 	position: absolute;
 	left: 0;
 	background: none;
@@ -190,8 +189,15 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	-webkit-tap-highlight-color: transparent;
 }
-.payout-page--neighbors .payout-header.series-stake-header .series-stake-settings-btn {
+.neighbors-shell__help .neighbors-help-icon {
+	width: 28px;
+	height: 28px;
+	display: block;
+}
+.neighbors-shell__help:hover .neighbors-help-icon circle { fill: #1d4ed8; }
+.neighbors-shell__settings {
 	position: absolute;
 	right: 0;
 	width: 40px;
@@ -207,23 +213,19 @@
 	justify-content: center;
 	-webkit-tap-highlight-color: transparent;
 }
-.payout-page--neighbors .payout-header.series-stake-header .series-stake-settings-btn:hover {
+.neighbors-shell__settings:hover {
 	color: var(--accent-hover, #1d4ed8);
 	background: rgba(37, 99, 235, 0.08);
 	border-radius: var(--radius-sm, 8px);
 }
-.neighbors-help-icon {
-	width: 28px;
-	height: 28px;
-	display: block;
-}
-.payout-page--neighbors .neighbors-help-btn:hover .neighbors-help-icon circle { fill: #1d4ed8; }
-.payout-page--neighbors .payout-header .payout-settings-icon {
+.neighbors-shell__settings .payout-settings-icon {
 	width: 24px;
 	height: 24px;
 	display: block;
 }
-.neighbors-title { margin: 0; text-align: center; }
+.payout-page.payout-page--neighbors {
+	padding-top: 0;
+}
 .neighbors-fuse-wrap {
 	margin: 0.35rem auto 0.5rem;
 	max-width: 340px;
@@ -426,6 +428,9 @@
 	outline: none;
 	box-shadow: inset 0 0 0 2px #3b82f6;
 }
+.neighbors-cell--input .payout-input.payout-keyboard-target:not(:focus) {
+	box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.45);
+}
 .neighbors-form .payout-entry { justify-content: center; margin-top: 1rem; }
 .neighbors-form .payout-key--nextcell { grid-column: 4; grid-row: 4; }
 @media (max-width: 400px) {
@@ -553,5 +558,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endif %}
-<p class="payout-back"><a href="{% url 'ar_index' %}">← К списку игр</a></p>
 {% endblock %}

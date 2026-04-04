@@ -1,99 +1,79 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}AR{% endblock %}
+{% block title %}AR: тренажёры{% endblock %}
 
 {% block extra_head %}
 <style>
-.ar-splash__card--bets .ar-splash__card-img { background-image: url('{% static "images/ar/zastavki.png" %}'); }
-.ar-splash__card--color .ar-splash__card-img { background-image: url('{% static "images/ar/color_in_cash.png" %}'); }
-.ar-splash__card--payout .ar-splash__card-img { background-image: url('{% static "images/ar/payout_through_cash.png" %}'); }
-.ar-splash__card--neighbors .ar-splash__card-img { background-image: url('{% static "images/ar/neighbors.png" %}'); }
-.ar-splash__card--mix .ar-splash__card-img { background-image: url('{% static "images/ar/mix.png" %}'); }
-.ar-splash__card--pvp .ar-splash__card-img { background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); }
-.ar-splash__card--completes .ar-splash__card-img { background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); }
-/* .ar-splash__card--completes-intersection .ar-splash__card-img { background: linear-gradient(135deg, #6366f1 0%, #a21caf 50%, #7c3aed 100%); } */
-.ar-splash__card--series .ar-splash__card-img { background: linear-gradient(135deg, #b45309 0%, #92400e 100%); }
-.ar-splash__card--track .ar-splash__card-img { background: linear-gradient(135deg, #0f766e 0%, #115e59 45%, #134e4a 100%); }
-.ar-splash__card--bet-reveal .ar-splash__card-img { background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); }
-.ar-splash__card--series-stake .ar-splash__card-img { background: linear-gradient(135deg, #7c2d12 0%, #9a3412 100%); }
+.ar-hub__tile-img--bets { background-image: url('{% static "images/ar/zastavki.png" %}'); }
+.ar-hub__tile-img--color { background-image: url('{% static "images/ar/color_in_cash.png" %}'); }
+.ar-hub__tile-img--payout { background-image: url('{% static "images/ar/payout_through_cash.png" %}'); }
+.ar-hub__tile-img--neighbors { background-image: url('{% static "images/ar/neighbors.png" %}'); }
+.ar-hub__tile-img--mix { background-image: url('{% static "images/ar/mix.png" %}'); }
+.ar-hub__tile-img--pvp { background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); }
+.ar-hub__tile-img--completes { background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); }
+.ar-hub__tile-img--series { background: linear-gradient(135deg, #b45309 0%, #92400e 100%); }
+.ar-hub__tile-img--track { background: linear-gradient(135deg, #0f766e 0%, #115e59 45%, #134e4a 100%); }
+.ar-hub__tile-img--bet-reveal { background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); }
+.ar-hub__tile-img--series-stake { background: linear-gradient(135deg, #7c2d12 0%, #9a3412 100%); }
 </style>
 {% endblock %}
 
+{% block main_class %}auth-main auth-main--wide auth-main--ar-hub{% endblock %}
+
 {% block content %}
-<div class="ar-splash">
-	<h1 class="ar-splash__title">AR</h1>
-	<p class="ar-splash__tagline">Тренажёры по AR</p>
-	{% if user.is_authenticated %}
-	<p><a href="{% url 'ar_stats' %}">Моя статистика</a></p>
-	{% endif %}
-	<div class="ar-splash__grid">
-		<a href="{% url 'ar_bets' %}" class="ar-splash__card ar-splash__card--bets">
-			<span class="ar-splash__card-img"></span>
-			<span class="ar-splash__card-label">Заставки</span>
-		</a>
-		<a href="{% url 'ar_color_in_cash' %}" class="ar-splash__card ar-splash__card--color">
-			<span class="ar-splash__card-img"></span>
-			<span class="ar-splash__card-label">Цвет в cash</span>
-		</a>
-		<a href="{% url 'ar_payout_through_cash' %}" class="ar-splash__card ar-splash__card--payout">
-			<span class="ar-splash__card-img"></span>
-			<span class="ar-splash__card-label">Выплата через cash</span>
-		</a>
-		<a href="{% url 'ar_neighbors' %}" class="ar-splash__card ar-splash__card--neighbors">
-			<span class="ar-splash__card-img"></span>
-			<span class="ar-splash__card-label">Соседи</span>
-		</a>
-		<a href="{% url 'ar_completes' %}" class="ar-splash__card ar-splash__card--completes">
-			<span class="ar-splash__card-img"></span>
-			<span class="ar-splash__card-label">Комплиты</span>
-		</a>
-		{% comment %}
-		<a href="{% url 'ar_pvp_lobby' %}" class="ar-splash__card ar-splash__card--pvp">
-			<span class="ar-splash__card-img"></span>
-			<span class="ar-splash__card-label">PvP (MVP)</span>
-		</a>
-		{% endcomment %}
-		{% comment %}
-		<a href="{% url 'ar_completes_intersection' %}" class="ar-splash__card ar-splash__card--completes-intersection">
-			<span class="ar-splash__card-img"></span>
-			<span class="ar-splash__card-label">Пересечение комплитов</span>
-		</a>
-		{% endcomment %}
-		<a href="{% url 'ar_series_stake' %}" class="ar-splash__card ar-splash__card--series-stake">
-			<span class="ar-splash__card-img"></span>
-			<span class="ar-splash__card-label">Ставка на серию</span>
-		</a>
-		<a href="{% url 'ar_series' %}" class="ar-splash__card ar-splash__card--series">
-			<span class="ar-splash__card-img"></span>
-			<span class="ar-splash__card-label">Серии</span>
-		</a>
-		<a href="{% url 'ar_track' %}" class="ar-splash__card ar-splash__card--track">
-			<span class="ar-splash__card-img"></span>
-			<span class="ar-splash__card-label">Трек</span>
-		</a>
-		<a href="{% url 'ar_mix' %}" class="ar-splash__card ar-splash__card--mix">
-			<span class="ar-splash__card-img"></span>
-			<span class="ar-splash__card-label">3 в 1</span>
-		</a>
-	</div>
-</div>
-<div class="ar-description">
-	<p><strong>Заставки</strong> — считайте фишки на рулеточном столе. Чтобы изменить количество фишек и режим, нажмите на настройки (⚙️):</p>
-	<ol class="ar-description__list">
-		<li><strong>Стеки</strong> — поставьте галочку «Заставка из … стек(ов)а» и выберите 1, 2 или 3 стека. Будет 20, 40 или 60 фишек, распределённых случайно по позициям (до 10 на позицию).</li>
-		<li><strong>Минимум–максимум на позицию</strong> — снимите галочку «Стеки», укажите min и max (0–10). Фишки появятся случайным образом в этом диапазоне на каждую позицию.</li>
-		<li><strong>Картинки</strong> — снимите галочку «Стеки», укажите min = 0 и max = 1.</li>
-	</ol>
-	<p><strong>Цвет в cash</strong> — генерируется число (min 100, max 1000, step 1) и случайный множитель из выбранных (1, 2, 5, 10, 25, 50, 125). Введите произведение.</p>
-	<p><strong>Выплата через cash</strong> — даны: цвет (число), цвет по (номинал фишки), cash (выплачено). Сколько цветных фишек осталось? Формула: цвет − (cash ÷ цвет по). Диапазон ответа: 1–200. В настройках можно включить «Стеки» — ответ вводится как «стеков» и «в неполном».</p>
-	<p><strong>Соседи</strong> — дано число 0–36 в центре. Введите четыре соседа по колесу рулетки (2 против часовой стрелки слева, 2 по часовой стрелке справа). Все четыре правильно — чек; только по часовой стрелке — чек; только против часовой стрелки — почти чек.</p>
-	<p><strong>Комплиты</strong> — выпал номер, комплит по номиналу. Введите выплату.</p>
-	{% comment %}<p><strong>PvP (MVP)</strong> — комнаты на 2 игроков (архитектура под 5/10), пока только «Заставки»: общий раунд, кто быстрее и правильнее — получает очко.</p>{% endcomment %}
-	{% comment %}<p><strong>Пересечение комплитов</strong> — тренажёр в разработке.</p>{% endcomment %}
-	<p><strong>Ставка на серию</strong> — интерфейс и настройки; логика задания добавляется отдельно.</p>
-	<p><strong>Серии</strong> — поле сверху, подсветка номеров на колесе; в режиме серии нужно расставить фишки по заданию и нажать «Проверить» (5/8, orphelins, 0/2/3, 0-spiel).</p>
-	<p><strong>Трек</strong> — 3D-сцена; задания и проверка — позже.</p>
-	<p><strong>3 в 1</strong> — заставка (считайте фишки) → «Цвет в cash» (число × множитель) → «Выплата через cash» (цвет = число от заставки, цвет по = множитель) → заставка → по кругу.</p>
+<div class="auth-shell ar-hub">
+	<h1 class="auth-shell__title">AR: тренажёры</h1>
+	<nav class="ar-hub__nav" aria-label="Упражнения AR">
+		<div class="ar-hub__grid">
+			<a href="{% url 'ar_bets' %}" class="ar-hub__tile">
+				<span class="ar-hub__tile-img ar-hub__tile-img--bets" role="img" aria-hidden="true"></span>
+				<span class="ar-hub__tile-label">Заставки</span>
+			</a>
+			<a href="{% url 'ar_color_in_cash' %}" class="ar-hub__tile">
+				<span class="ar-hub__tile-img ar-hub__tile-img--color" role="img" aria-hidden="true"></span>
+				<span class="ar-hub__tile-label">Цвет в cash</span>
+			</a>
+			<a href="{% url 'ar_payout_through_cash' %}" class="ar-hub__tile">
+				<span class="ar-hub__tile-img ar-hub__tile-img--payout" role="img" aria-hidden="true"></span>
+				<span class="ar-hub__tile-label">Выплата через cash</span>
+			</a>
+			<a href="{% url 'ar_neighbors' %}" class="ar-hub__tile">
+				<span class="ar-hub__tile-img ar-hub__tile-img--neighbors" role="img" aria-hidden="true"></span>
+				<span class="ar-hub__tile-label">Соседи</span>
+			</a>
+			<a href="{% url 'ar_completes' %}" class="ar-hub__tile">
+				<span class="ar-hub__tile-img ar-hub__tile-img--completes" role="img" aria-hidden="true"></span>
+				<span class="ar-hub__tile-label">Комплиты</span>
+			</a>
+			{% comment %}
+			<a href="{% url 'ar_pvp_lobby' %}" class="ar-hub__tile">
+				<span class="ar-hub__tile-img ar-hub__tile-img--pvp" role="img" aria-hidden="true"></span>
+				<span class="ar-hub__tile-label">PvP (MVP)</span>
+			</a>
+			<a href="{% url 'ar_completes_intersection' %}" class="ar-hub__tile">
+				<span class="ar-hub__tile-img ar-hub__tile-img--completes-intersection" role="img" aria-hidden="true"></span>
+				<span class="ar-hub__tile-label">Пересечение комплитов</span>
+			</a>
+			{% endcomment %}
+			<a href="{% url 'ar_series_stake' %}" class="ar-hub__tile">
+				<span class="ar-hub__tile-img ar-hub__tile-img--series-stake" role="img" aria-hidden="true"></span>
+				<span class="ar-hub__tile-label">Ставка на серию</span>
+			</a>
+			<a href="{% url 'ar_series' %}" class="ar-hub__tile">
+				<span class="ar-hub__tile-img ar-hub__tile-img--series" role="img" aria-hidden="true"></span>
+				<span class="ar-hub__tile-label">Серии</span>
+			</a>
+			<a href="{% url 'ar_track' %}" class="ar-hub__tile">
+				<span class="ar-hub__tile-img ar-hub__tile-img--track" role="img" aria-hidden="true"></span>
+				<span class="ar-hub__tile-label">Трек</span>
+			</a>
+			<a href="{% url 'ar_mix' %}" class="ar-hub__tile">
+				<span class="ar-hub__tile-img ar-hub__tile-img--mix" role="img" aria-hidden="true"></span>
+				<span class="ar-hub__tile-label">3 в 1</span>
+			</a>
+		</div>
+	</nav>
+	<p class="auth-footer"><a href="{% url 'homepage_index' %}">← На главную</a></p>
 </div>
 {% endblock %}

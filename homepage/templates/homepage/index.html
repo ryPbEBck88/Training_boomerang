@@ -1,243 +1,30 @@
 {% extends "base.html" %}
-{% load static %}
 
-{% block title %}Тренажёр крупье — обучение крупье, BJ, Poker, рулетка{% endblock %}
+{% block title %}Стихи о крупье — Я крупье{% endblock %}
+
+{% block meta_description %}Стихи о крупье и жизни за столом — проект «Я крупье». Тренажёры — в меню сайта.{% endblock %}
+
+{% block meta_keywords %}стихи о крупье, дилер, казино, я крупье{% endblock %}
+
+{% block og_title %}Стихи о крупье — Я крупье{% endblock %}
+
+{% block og_description %}Стихи о крупье и жизни за столом. Тренажёры — в меню сайта.{% endblock %}
+
+{% block twitter_title %}Стихи о крупье — Я крупье{% endblock %}
+
+{% block twitter_description %}Стихи о крупье и жизни за столом. Тренажёры — в меню сайта.{% endblock %}
 
 {% block extra_head %}
 <meta property="og:url" content="{{ request.scheme }}://{{ request.get_host }}/">
-<style>
-/* BJ — выплата с картинкой, набираю себе — только цвет */
-.home-splash__card--bj-self .home-splash__card-img { background-color: #1a472a; }
-.home-splash__card--bj-payout .home-splash__card-img { background-image: url('{% static "images/blackjack/Black Jack_payout.webp" %}'); background-color: #1a472a; }
-.home-splash__card--poker-payout .home-splash__card-img { background-image: url('{% static "images/poker/oasic_payout.png" %}'); background-color: #8b2942; }
-.home-splash__card--poker-combo .home-splash__card-img { background-image: url('{% static "images/poker/oasis_combo.png" %}'); background-color: #8b2942; }
-.home-splash__card--poker-holdem .home-splash__card-img { background-color: #6b2340; }
-/* AR — картинки */
-.home-splash__card--ar-bets .home-splash__card-img { background-image: url('{% static "images/ar/zastavki.png" %}'); background-color: #1e3a5f; }
-.home-splash__card--ar-color .home-splash__card-img { background-image: url('{% static "images/ar/color_in_cash.png" %}'); background-color: #a83255; }
-.home-splash__card--ar-payout .home-splash__card-img { background-image: url('{% static "images/ar/payout_through_cash.png" %}'); background-color: #2d5a3d; }
-.home-splash__card--ar-neighbors .home-splash__card-img { background-image: url('{% static "images/ar/neighbors.png" %}'); background-color: #1e3a5f; }
-.home-splash__card--ar-mix .home-splash__card-img { background-image: url('{% static "images/ar/mix.png" %}'); background-color: #5a3d7a; }
-.home-splash__card--ar-pvp .home-splash__card-img { background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); }
-.home-splash__card--ar-completes .home-splash__card-img { background-image: url('{% static "images/ar/completes.jpg" %}');background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); }
-.home-splash__card--ar-completes-intersection .home-splash__card-img { background: linear-gradient(135deg, #6366f1 0%, #a21caf 50%, #7c3aed 100%); }
-.home-splash__card--ar-series-stake .home-splash__card-img { background: linear-gradient(135deg, #7c2d12 0%, #9a3412 100%); }
-</style>
 {% endblock %}
 
+{% block main_class %}auth-main auth-main--wide{% endblock %}
+
 {% block content %}
-<nav class="home-page-nav">
-	<a href="#games">Игры</a>
-	<a href="#poems">Стихи</a>
-</nav>
-
-<div class="home-splash" id="games">
-	<h1 class="home-splash__title">Тренажёр крупье</h1>
-	<p class="home-splash__tagline">Обучение крупье: BJ, Poker, рулетка, AR. Профессионалами не рождаются — ими становятся.</p>
-
-	<h2 class="home-splash__section">BJ</h2>
-	<div class="home-splash__grid">
-		<div class="home-splash__game-wrap">
-			<a href="{% url 'blackjack_self_draw' %}" class="home-splash__card home-splash__card--bj-self">
-				<span class="home-splash__card-img"></span>
-				<span class="home-splash__card-label">Набираю себе</span>
-			</a>
-			<details class="home-splash__details">
-				<summary class="home-splash__details-summary">Описание</summary>
-				<div class="home-splash__game-desc">
-					<p>Считаем сумму карт. Если 16 и меньше → Взять карту. Если 17 и больше → Стоп.</p>
-					<p class="home-splash__card-values"><strong>Номинал карт:</strong></p>
-					<ul class="home-splash__card-list">
-						<li>A (туз) — 1 или 11</li>
-						<li>K (король) — 10</li>
-						<li>Q (дама) — 10</li>
-						<li>J (валет) — 10</li>
-						<li>10 — 10</li>
-						<li>9 — 9</li>
-						<li>8 — 8</li>
-						<li>7 — 7</li>
-						<li>6 — 6</li>
-						<li>5 — 5</li>
-						<li>4 — 4</li>
-						<li>3 — 3</li>
-						<li>2 — 2</li>
-					</ul>
-				</div>
-			</details>
-		</div>
-		<div class="home-splash__game-wrap">
-			<a href="{% url 'blackjack_payout' %}" class="home-splash__card home-splash__card--bj-payout">
-				<span class="home-splash__card-img"></span>
-				<span class="home-splash__card-label">Выплата</span>
-			</a>
-			<details class="home-splash__details">
-				<summary class="home-splash__details-summary">Описание</summary>
-				<div class="home-splash__game-desc">
-					<p>Считаем выплату по картам дилера и игрока.</p>
-				</div>
-			</details>
-		</div>
-	</div>
-
-	<h2 class="home-splash__section">Poker</h2>
-	<div class="home-splash__grid">
-		<div class="home-splash__game-wrap">
-			<a href="{% url 'poker_payout' %}" class="home-splash__card home-splash__card--poker-payout">
-				<span class="home-splash__card-img"></span>
-				<span class="home-splash__card-label">Oasis: Выплата</span>
-			</a>
-			<details class="home-splash__details">
-				<summary class="home-splash__details-summary">Описание</summary>
-				<div class="home-splash__game-desc">
-					<p>Расчёт выплат по комбинациям Oasis Poker.</p>
-				</div>
-			</details>
-		</div>
-		<div class="home-splash__game-wrap">
-			<a href="{% url 'poker_combo' %}" class="home-splash__card home-splash__card--poker-combo">
-				<span class="home-splash__card-img"></span>
-				<span class="home-splash__card-label">Oasis: Комбинации</span>
-			</a>
-			<details class="home-splash__details">
-				<summary class="home-splash__details-summary">Описание</summary>
-				<div class="home-splash__game-desc">
-					<p>Угадай комбинацию из 5 карт.</p>
-				</div>
-			</details>
-		</div>
-		<div class="home-splash__game-wrap">
-			<a href="{% url 'poker_combo_holdem' %}" class="home-splash__card home-splash__card--poker-holdem">
-				<span class="home-splash__card-img"></span>
-				<span class="home-splash__card-label">Texas комбинации</span>
-			</a>
-			<details class="home-splash__details">
-				<summary class="home-splash__details-summary">Описание</summary>
-				<div class="home-splash__game-desc">
-					<p>Угадай лучшую комбинацию из 7 карт (5 на столе + 2 в руке).</p>
-				</div>
-			</details>
-		</div>
-	</div>
-
-	<h2 class="home-splash__section">AR</h2>
-	<div class="home-splash__grid">
-		<div class="home-splash__game-wrap">
-			<a href="{% url 'ar_bets' %}" class="home-splash__card home-splash__card--ar-bets">
-				<span class="home-splash__card-img"></span>
-				<span class="home-splash__card-label">Заставки</span>
-			</a>
-			<details class="home-splash__details">
-				<summary class="home-splash__details-summary">Описание</summary>
-				<div class="home-splash__game-desc">
-					<p>Числа и цвета для тренировки.</p>
-				</div>
-			</details>
-		</div>
-		<div class="home-splash__game-wrap">
-			<a href="{% url 'ar_color_in_cash' %}" class="home-splash__card home-splash__card--ar-color">
-				<span class="home-splash__card-img"></span>
-				<span class="home-splash__card-label">Цвет в cash</span>
-			</a>
-			<details class="home-splash__details">
-				<summary class="home-splash__details-summary">Описание</summary>
-				<div class="home-splash__game-desc">
-					<p>Число × цвет по = ? Введите ответ.</p>
-				</div>
-			</details>
-		</div>
-		<div class="home-splash__game-wrap">
-			<a href="{% url 'ar_payout_through_cash' %}" class="home-splash__card home-splash__card--ar-payout">
-				<span class="home-splash__card-img"></span>
-				<span class="home-splash__card-label">Выплата через cash</span>
-			</a>
-			<details class="home-splash__details">
-				<summary class="home-splash__details-summary">Описание</summary>
-				<div class="home-splash__game-desc">
-					<p>Сколько цветных фишек осталось? Цвет − (cash ÷ цвет_по) = ответ.</p>
-				</div>
-			</details>
-		</div>
-		<div class="home-splash__game-wrap">
-			<a href="{% url 'ar_neighbors' %}" class="home-splash__card home-splash__card--ar-neighbors">
-				<span class="home-splash__card-img"></span>
-				<span class="home-splash__card-label">Соседи</span>
-			</a>
-			<details class="home-splash__details">
-				<summary class="home-splash__details-summary">Описание</summary>
-				<div class="home-splash__game-desc">
-					<p>Дано число 0–36. Введите четыре соседа по колесу рулетки (по часовой стрелке — чек, против — почти чек).</p>
-				</div>
-			</details>
-		</div>
-		<div class="home-splash__game-wrap">
-			<a href="{% url 'ar_completes' %}" class="home-splash__card home-splash__card--ar-completes">
-				<span class="home-splash__card-img"></span>
-				<span class="home-splash__card-label">Комплиты</span>
-			</a>
-			<details class="home-splash__details">
-				<summary class="home-splash__details-summary">Описание</summary>
-				<div class="home-splash__game-desc">
-					<p>Выпал номер, комплит по номиналу. Введите выплату.</p>
-				</div>
-			</details>
-		</div>
-		{% comment %}
-		<div class="home-splash__game-wrap">
-			<a href="{% url 'ar_completes_intersection' %}" class="home-splash__card home-splash__card--ar-completes-intersection">
-				<span class="home-splash__card-img"></span>
-				<span class="home-splash__card-label">Пересечение комплитов</span>
-			</a>
-			<details class="home-splash__details">
-				<summary class="home-splash__details-summary">Описание</summary>
-				<div class="home-splash__game-desc">
-					<p>Тренажёр в разработке.</p>
-				</div>
-			</details>
-		</div>
-		{% endcomment %}
-		<div class="home-splash__game-wrap">
-			<a href="{% url 'ar_mix' %}" class="home-splash__card home-splash__card--ar-mix">
-				<span class="home-splash__card-img"></span>
-				<span class="home-splash__card-label">3 в 1</span>
-			</a>
-			<details class="home-splash__details">
-				<summary class="home-splash__details-summary">Описание</summary>
-				<div class="home-splash__game-desc">
-					<p>Заставка → цвет в cash → выплата через cash. Комбинированный режим.</p>
-				</div>
-			</details>
-		</div>
-		<div class="home-splash__game-wrap">
-			<a href="{% url 'ar_series_stake' %}" class="home-splash__card home-splash__card--ar-series-stake">
-				<span class="home-splash__card-img"></span>
-				<span class="home-splash__card-label">Ставки на серии</span>
-			</a>
-			<details class="home-splash__details">
-				<summary class="home-splash__details-summary">Описание</summary>
-				<div class="home-splash__game-desc">
-					<p>Ставка на серию: по сумме задания — «играет по» и «сдача» (Tiers, 0-spiel, Orphelins, Voisins).</p>
-				</div>
-			</details>
-		</div>
-		{% comment %}
-		<div class="home-splash__game-wrap">
-			<a href="{% url 'ar_pvp_lobby' %}" class="home-splash__card home-splash__card--ar-pvp">
-				<span class="home-splash__card-img"></span>
-				<span class="home-splash__card-label">AR PvP (MVP)</span>
-			</a>
-			<details class="home-splash__details">
-				<summary class="home-splash__details-summary">Описание</summary>
-				<div class="home-splash__game-desc">
-					<p>Комнаты PvP: сейчас 2 игрока и игра «Заставки», позже масштабируется до 5/10 и выбора любой игры.</p>
-				</div>
-			</details>
-		</div>
-		{% endcomment %}
-	</div>
-</div>
-
-<section class="home-poems" id="poems">
-	<h2 class="home-poems__title">Стихи о крупье</h2>
+<div class="auth-shell">
+	<h1 class="auth-shell__title">Стихи о крупье</h1>
+	<p class="auth-shell__lead home-index__lead">Тренажёры BJ, Poker и AR — в меню в шапке. Здесь — стихи о крупье; нажмите на название, чтобы развернуть текст.</p>
+	<section class="home-poems home-poems--landing home-poems--in-shell" id="poems" aria-label="Стихи о крупье">
 	<div class="home-poems__list">
 		<details class="home-poem-details" id="poem-1">
 			<summary class="home-poem-details__summary">Глотая едкий дым от сигареты</summary>
@@ -283,12 +70,17 @@
 		</article>
 		</details>
 	</div>
-</section>
+	</section>
 
-<div class="home-footer">
-	<p>Также советуем посетить сайты:</p>
-	<p><a href="https://kabunda.github.io/Saite/" target="_blank" rel="noopener noreferrer">Кулагина Владимира</a></p>
-	<p><a href="https://margarinkak.github.io/Insta/" target="_blank" rel="noopener noreferrer">Кутузовой Маргариты</a></p>
-	<p><a href="https://kowaruss.github.io/coach/" target="_blank" rel="noopener noreferrer">Коваль Руслана</a></p>
+	<aside class="home-footer home-footer--landing home-footer--in-shell" aria-label="Рекомендуемые сайты">
+		<div class="home-footer__panel">
+			<p class="home-footer__title">Также советуем посетить сайты</p>
+			<ul class="home-footer__links">
+				<li><a href="https://kabunda.github.io/Saite/" target="_blank" rel="noopener noreferrer">Кулагина Владимира</a></li>
+				<li><a href="https://margarinkak.github.io/Insta/" target="_blank" rel="noopener noreferrer">Кутузовой Маргариты</a></li>
+				<li><a href="https://kowaruss.github.io/coach/" target="_blank" rel="noopener noreferrer">Коваль Руслана</a></li>
+			</ul>
+		</div>
+	</aside>
 </div>
 {% endblock %}

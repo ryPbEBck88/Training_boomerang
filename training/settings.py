@@ -25,12 +25,34 @@ SECRET_KEY = 'django-insecure-7-w20()bd^0@mypm7b%*f=)f9!1juy#yn%b-+l-pzluf*%%75=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,i-croupier.ru,www.i-croupier.ru').split(',')
+ALLOWED_HOSTS = [
+    h.strip()
+    for h in os.environ.get(
+        'ALLOWED_HOSTS',
+        'localhost,127.0.0.1,i-croupier.ru,www.i-croupier.ru',
+    ).split(',')
+    if h.strip()
+]
+# При DEBUG разрешаем любой Host (телефон по Wi‑Fi по IP). Только для разработки.
+if DEBUG and '*' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('*')
 
 CSRF_TRUSTED_ORIGINS = [
     'https://i-croupier.ru',
     'https://www.i-croupier.ru',
 ]
+if DEBUG:
+    _dev_port = os.environ.get('DEV_SERVER_PORT', '8000').strip() or '8000'
+    _csrf_dev = [
+        f'http://localhost:{_dev_port}',
+        f'http://127.0.0.1:{_dev_port}',
+    ]
+    _lan_host = os.environ.get('DEV_LAN_HOST', '192.168.1.128').strip()
+    if _lan_host:
+        _csrf_dev.append(f'http://{_lan_host}:{_dev_port}')
+    for _origin in _csrf_dev:
+        if _origin not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(_origin)
 
 
 # Application definition
@@ -141,6 +163,9 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+
 # Учёт посещений HTML-страниц (homepage.middleware.SiteVisitLogMiddleware).
 SITE_VISIT_LOG_ENABLED = os.environ.get('SITE_VISIT_LOG_ENABLED', '1').strip().lower() in (
     '1',
@@ -148,6 +173,9 @@ SITE_VISIT_LOG_ENABLED = os.environ.get('SITE_VISIT_LOG_ENABLED', '1').strip().l
     'yes',
     'on',
 )
+
+# Ссылка на чаевые (Boosty, Ko-fi, DonationAlerts и т.д.). Пустая — на странице только текст.
+TIP_JAR_URL = os.environ.get('TIP_JAR_URL', '').strip()
 
 # Почта: регистрация с подтверждением (send_mail).
 # В разработке по умолчанию письма в консоль; на сервере задайте SMTP через env.

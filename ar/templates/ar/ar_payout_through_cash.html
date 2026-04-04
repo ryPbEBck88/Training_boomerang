@@ -1,19 +1,18 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Выплата через cash — AR | Тренажёры крупье{% endblock %}
-{% block main_class %}payout-main{% endblock %}
+{% block main_class %}auth-main{% endblock %}
 {% block content %}
-<div class="payout-screen">
-<div class="payout-page payout-page--payout-through-cash">
-	<div class="payout-header series-stake-header">
-		<button type="button" class="neighbors-help-btn" id="ptcHelpBtn" aria-label="Справка: описание задачи" title="Справка">
+<div class="auth-shell ptc-shell">
+	<div class="ptc-shell__toolbar">
+		<button type="button" class="neighbors-help-btn ptc-shell__help" id="ptcHelpBtn" aria-label="Справка: описание задачи" title="Справка">
 			<svg class="neighbors-help-icon color-in-cash-help-icon" viewBox="0 0 24 24" aria-hidden="true">
 				<circle cx="12" cy="12" r="10" fill="#2563eb"/>
 				<text x="12" y="17" text-anchor="middle" fill="white" font-size="14" font-weight="bold" font-family="system-ui,sans-serif">?</text>
 			</svg>
 		</button>
-		<div class="payout-bet series-stake-title">Выплата через cash</div>
-		<button type="button" class="payout-settings-btn series-stake-settings-btn" id="arPtcSettingsBtn" title="Настройки" aria-label="Настройки">
+		<h1 class="auth-shell__title">Выплата через cash</h1>
+		<button type="button" class="payout-settings-btn series-stake-settings-btn ptc-shell__settings" id="arPtcSettingsBtn" title="Настройки" aria-label="Настройки">
 			<svg class="payout-settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 				<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
 				<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
@@ -123,6 +122,7 @@
 		</div>
 	</div>
 
+	<div class="payout-page payout-page--payout-through-cash">
 	<div class="series-stake-ux-width series-stake-task ptc-task-block">
 		<div class="ptc-task-strip" role="group" aria-label="Условие: цвет, цвет по, cash">
 			<div class="ptc-task-cell">
@@ -158,14 +158,14 @@
 			{% if use_stacks %}
 			<div class="payout-ptc-answer-row">
 				<label class="payout-ptc-answer-cell">
-					<input type="text" name="user_answer_stacks" class="payout-input neighbors-input color-in-cash-answer-input" placeholder="стеков" autocomplete="off" inputmode="none" {% if success or skipped %}disabled{% endif %} id="arPtcInputStacks">
+					<input type="text" name="user_answer_stacks" class="payout-input neighbors-input color-in-cash-answer-input" placeholder="стеков" autocomplete="off" inputmode="numeric" {% if success or skipped %}disabled{% endif %} id="arPtcInputStacks">
 				</label>
 				<label class="payout-ptc-answer-cell">
-					<input type="text" name="user_answer_remainder" class="payout-input neighbors-input color-in-cash-answer-input" placeholder="в неполном" autocomplete="off" inputmode="none" {% if success or skipped %}disabled{% endif %} id="arPtcInputRemainder">
+					<input type="text" name="user_answer_remainder" class="payout-input neighbors-input color-in-cash-answer-input" placeholder="в неполном" autocomplete="off" inputmode="numeric" {% if success or skipped %}disabled{% endif %} id="arPtcInputRemainder">
 				</label>
 			</div>
 			{% else %}
-			<input type="text" name="user_answer" class="payout-input neighbors-input color-in-cash-answer-input" placeholder="ответ" autocomplete="off" inputmode="none" {% if success or skipped %}disabled{% endif %} id="arPtcInput">
+			<input type="text" name="user_answer" class="payout-input neighbors-input color-in-cash-answer-input" placeholder="ответ" autocomplete="off" inputmode="numeric" {% if success or skipped %}disabled{% endif %} id="arPtcInput">
 			{% endif %}
 		</div>
 		<div class="payout-entry">
@@ -232,15 +232,63 @@
 		<div class="payout-success-text">{% if success %}{% include "partials/payout_check_text.html" %}{% if solve_seconds is not None %}<small class="ptc-solve-time">Считали: {{ solve_seconds|floatformat:1 }} с</small>{% endif %}{% else %}{{ message }}{% endif %}</div>
 	</form>
 	{% endif %}
-</div>
+	</div>
+	<nav class="auth-footer ar-exercise-footer" aria-label="Навигация внизу страницы">
+		<a href="{% url 'homepage_index' %}">На главную</a>
+		<a href="{% url 'ar_index' %}">AR</a>
+	</nav>
 </div>
 
 <style>
-.payout-main .main-card:has(.payout-page--payout-through-cash) {
-	padding-top: 14px;
+.ptc-shell__toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+	min-height: 2.5rem;
+	padding: 0 48px;
+	box-sizing: border-box;
+	width: 100%;
+	margin-bottom: 0.65rem;
+}
+.ptc-shell__toolbar .auth-shell__title {
+	margin: 0;
+	text-align: center;
+}
+.ptc-shell__help {
+	position: absolute;
+	left: 0;
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 4px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	-webkit-tap-highlight-color: transparent;
+}
+.ptc-shell__help .neighbors-help-icon {
+	width: 28px;
+	height: 28px;
+	display: block;
+}
+.ptc-shell__help:hover .color-in-cash-help-icon circle { fill: #1d4ed8; }
+.ptc-shell__settings {
+	position: absolute;
+	right: 0;
+	width: 40px;
+	height: 40px;
+	padding: 0;
+	box-sizing: border-box;
+	color: var(--accent, #2563eb);
+}
+.ptc-shell__settings:hover {
+	color: var(--accent-hover, #1d4ed8);
+	background: rgba(37, 99, 235, 0.08);
+	border-radius: var(--radius-sm, 8px);
 }
 .payout-page.payout-page--payout-through-cash {
-	padding-top: 46px;
+	padding-top: 0;
 }
 .series-stake-ux-width {
 	width: calc(4 * 52px + 3 * 8px);
@@ -254,61 +302,6 @@
 		width: calc(4 * 56px + 3 * 10px);
 		max-width: min(calc(4 * 56px + 3 * 10px), calc(100vw - 32px));
 	}
-}
-.payout-page--payout-through-cash .payout-header.series-stake-header {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	position: relative;
-	top: auto;
-	left: auto;
-	right: auto;
-	gap: 0.5rem;
-	min-height: 2.5rem;
-	padding: 0 48px;
-	box-sizing: border-box;
-	width: 100%;
-	margin-bottom: 0;
-}
-.payout-page--payout-through-cash .payout-header.series-stake-header .neighbors-help-btn {
-	position: absolute;
-	left: 0;
-	background: none;
-	border: none;
-	cursor: pointer;
-	padding: 4px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	-webkit-tap-highlight-color: transparent;
-}
-.payout-page--payout-through-cash .payout-header.series-stake-header .neighbors-help-icon {
-	width: 28px;
-	height: 28px;
-	display: block;
-}
-.payout-page--payout-through-cash .payout-header.series-stake-header .neighbors-help-btn:hover .color-in-cash-help-icon circle { fill: #1d4ed8; }
-.payout-page--payout-through-cash .payout-header.series-stake-header .series-stake-settings-btn {
-	position: absolute;
-	right: 0;
-	width: 40px;
-	height: 40px;
-	padding: 0;
-	box-sizing: border-box;
-	color: var(--accent, #2563eb);
-}
-.payout-page--payout-through-cash .payout-header.series-stake-header .series-stake-settings-btn:hover {
-	color: var(--accent-hover, #1d4ed8);
-	background: rgba(37, 99, 235, 0.08);
-	border-radius: var(--radius-sm, 8px);
-}
-.payout-page--payout-through-cash .series-stake-title.payout-bet {
-	margin-bottom: 0;
-	font-size: 1.35rem;
-	font-weight: 700;
-	line-height: 1.25;
-	letter-spacing: -0.02em;
-	text-align: center;
 }
 .ptc-task-block {
 	margin-top: 0.35rem;
@@ -985,5 +978,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endif %}
-<p class="payout-back"><a href="{% url 'ar_index' %}">← К списку игр</a></p>
 {% endblock %}

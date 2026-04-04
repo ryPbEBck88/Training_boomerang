@@ -11,6 +11,8 @@ from django.urls import reverse
 # (url_name, priority) — главная 1.0, разделы 0.9, остальное 0.8
 SITEMAP_URLS = [
     ('homepage_index', '1.0'),
+    ('tip_jar', '0.5'),
+    ('site_authors', '0.5'),
     ('blackjack_index', '0.9'),
     ('blackjack_self_draw', '0.8'),
     ('blackjack_payout', '0.8'),

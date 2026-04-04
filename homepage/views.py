@@ -1,5 +1,7 @@
 import logging
+import random
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import redirect, render
@@ -7,6 +9,8 @@ from django.urls import reverse
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 
+from .constants import TIP_THANK_YOU_MESSAGES
+from .decorators import boomerang_member_required
 from .email_activation import send_activation_email
 from .forms import SignUpForm
 
@@ -16,6 +20,32 @@ User = get_user_model()
 
 def index(request):
     return render(request, 'homepage/index.html')
+
+
+def chaevye(request):
+    return render(
+        request,
+        'homepage/chaevye.html',
+        {'tip_jar_url': settings.TIP_JAR_URL},
+    )
+
+
+def tip_thanks(request):
+    return render(
+        request,
+        'homepage/spasibo.html',
+        {'message': random.choice(TIP_THANK_YOU_MESSAGES)},
+    )
+
+
+def authors_page(request):
+    return render(request, 'homepage/authors.html')
+
+
+@boomerang_member_required
+def boomerang_test(request):
+    """Закрытый раздел для группы Boomerang (содержимое теста — в шаблоне)."""
+    return render(request, 'homepage/boomerang_test.html')
 
 
 def register(request):

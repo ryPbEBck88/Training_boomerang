@@ -3,7 +3,7 @@
 <html lang="ru">
 <head>
 	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 	<meta name="google-site-verification" content="WO-MCoG1CArjfg7cThMG-rU8r5ISp_gCnv96klolCts">
 	<title>{% block title %}Тренажёры крупье{% endblock %}</title>
 	<meta name="description" content="{% block meta_description %}Я крупье — обучение крупье, тренажёры BJ, Poker (Oasis, Texas Hold'em), рулетка, AR заставки для практики выплат и комбинаций.{% endblock %}">
@@ -37,6 +37,11 @@
 				<a href="{% url 'poker_index' %}" class="site-nav__link">Poker</a>
 				<a href="{% url 'ar_index' %}" class="site-nav__link">AR</a>
 				{% if user.is_authenticated %}
+					{% for g in user.groups.all %}
+						{% if g.name == 'Boomerang' %}
+							<a href="{% url 'boomerang_test' %}" class="site-nav__link">Тест</a>
+						{% endif %}
+					{% endfor %}
 					<a href="{% url 'ar_stats' %}" class="site-nav__link">Статистика</a>
 					<form method="post" action="{% url 'logout' %}" class="site-nav__logout-form">
 						{% csrf_token %}
@@ -54,6 +59,15 @@
 			{% block content %}{% endblock %}
 		</div>
 	</main>
+	<footer class="site-footer" role="contentinfo">
+		<div class="site-footer__inner">
+			<div class="site-footer__row">
+				<a href="{% url 'site_authors' %}" class="site-footer__link">Авторы</a>
+				<span class="site-footer__sep" aria-hidden="true">·</span>
+				<a href="{% url 'tip_jar' %}" class="site-footer__link">Чаевые</a>
+			</div>
+		</div>
+	</footer>
 	<button type="button" class="back-to-top" id="back-to-top" title="В начало страницы" aria-label="В начало страницы">↑</button>
 	<script src="{% static 'common/payout-keyboard.js' %}"></script>
 	<script src="{% static 'common/fuse_timer.js' %}"></script>

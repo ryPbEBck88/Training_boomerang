@@ -1,28 +1,99 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Ставка на серию — AR | Тренажёры крупье{% endblock %}
-{% block main_class %}payout-main{% endblock %}
+{% block main_class %}auth-main{% endblock %}
 {% block content %}
-<div class="payout-screen">
-<div class="payout-page payout-page--series-stake">
-	<div class="payout-header series-stake-header">
-		<button type="button" class="neighbors-help-btn" id="seriesStakeHelpBtn" aria-label="Справка: задача, настройки, теория, разбор" title="Справка">
+<div class="auth-shell series-stake-shell">
+	<div class="series-stake-shell__toolbar">
+		<button type="button" class="neighbors-help-btn series-stake-shell__help" id="seriesStakeHelpBtn" aria-label="Справка: задача, настройки, теория, разбор" title="Справка">
 			<svg class="neighbors-help-icon" viewBox="0 0 24 24" aria-hidden="true">
 				<circle cx="12" cy="12" r="10" fill="#2563eb"/>
 				<text x="12" y="17" text-anchor="middle" fill="white" font-size="14" font-weight="bold" font-family="system-ui,sans-serif">?</text>
 			</svg>
 		</button>
-		<div class="payout-bet series-stake-title">Ставка на серию</div>
-		<button type="button" class="payout-settings-btn series-stake-settings-btn" id="seriesStakeSettingsBtn" title="Настройки" aria-label="Настройки">
+		<h1 class="auth-shell__title">Ставка на серию</h1>
+		<button type="button" class="payout-settings-btn series-stake-settings-btn series-stake-shell__settings" id="seriesStakeSettingsBtn" title="Настройки" aria-label="Настройки">
 			<svg class="payout-settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 				<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
 				<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
 			</svg>
 		</button>
 	</div>
-	<div class="series-stake-ux-width series-stake-meta-row" role="status">
-		<span class="series-stake-meta-ar">{{ ar_display_short }}</span>
-		<span class="series-stake-meta-series">{% if round_series_label %}{{ round_series_label }}{% else %}—{% endif %}</span>
+	<div class="neighbors-help-overlay series-stake-doc-hub-overlay" id="seriesStakeHelpHubOverlay" aria-hidden="true">
+		<div class="neighbors-help-modal series-stake-doc-modal series-stake-doc-hub">
+			<p class="series-stake-doc-hub-lead">Справка по тренажёру</p>
+			<nav class="series-stake-doc-nav series-stake-doc-nav--hub" aria-label="Разделы справки">
+				<button type="button" class="series-stake-doc-tab is-active" data-doc-panel="seriesStakePanelTask">Задача</button>
+				<button type="button" class="series-stake-doc-tab" data-doc-panel="seriesStakePanelSettings">Настройки</button>
+				<button type="button" class="series-stake-doc-tab" data-doc-panel="seriesStakePanelTheory">Теория</button>
+				<button type="button" class="series-stake-doc-tab" data-doc-panel="seriesStakePanelWalk">Ответ</button>
+			</nav>
+			<div class="series-stake-doc-panels">
+				<div id="seriesStakePanelTask" class="series-stake-doc-panel is-active">
+					<h3 class="series-stake-doc-title">Задача</h3>
+					<div class="series-stake-help-content">
+						<p>Вам дана <strong>сумма ставки</strong> на <strong>одну из серий рулетки</strong> в этом раунде (Tiers, 0-spiel, Orphelins или Voisins — см. подпись серии над полями).</p>
+						<p><strong>Ваша задача</strong> — посчитать две величины:</p>
+						<ul class="series-stake-help-list">
+							<li><strong>Играет по</strong> — сколько из ставки уходит «по серии» согласно правилам упаковки в пакеты;</li>
+							<li><strong>Сдача</strong> — сколько остаётся сверху после полных пакетов (остаток от деления ставки на размер пакета в каждой фазе; при двух фазах остатки складываются).</li>
+						</ul>
+						<p>Введите оба числа и нажмите проверку. Пустую «сдачу» тренажёр при проверке считает как <strong>0</strong>.</p>
+					</div>
+				</div>
+				<div id="seriesStakePanelSettings" class="series-stake-doc-panel">
+					<h3 class="series-stake-doc-title">Настройки тренажёра</h3>
+					<div class="series-stake-help-content">
+				<p><strong>AR</strong> — это «ваша рулетка»: числа влияют на допустимые ставки, минимумы и пороги.</p>
+				<p><strong>Номер: min / max</strong> — диапазон номера на поле из вашего AR. От <strong>max</strong> считаются верхняя граница суммы ставки для серий и величина <strong>порога</strong> там, где он завязан на max.</p>
+				<p><strong>Серии играют: min по</strong> — минимальная «позиция», от которой строится базовый пакет (например Tiers: пакет 6 × эта величина). <strong>Step</strong> — шаг серии из AR; для <strong>Voisins</strong> размер пакета считается от step (9× и 7× после порога).</p>
+				<p><strong>Пресеты AR</strong> (например 1-100-1) — готовые наборы: один выбор сразу задаёт номер min/max и параметры серий по соглашению тренажёра.</p>
+				<p><strong>Пользовательские настройки</strong> — сами вводите все поля блока «Номер» и «Серии играют». Удобно, если ваш стол отличается от пресетов.</p>
+				<p><strong>Рандом</strong> — перед каждым новым заданием случайно выбирается один из пресетов AR, чтобы не застревать на одних и тех же цифрах.</p>
+				<p><strong>Серия</strong> — какой тип серии считать в раунде: конкретный или <strong>Рандом</strong> по четырём видам.</p>
+				<p><strong>Ставка: min, max, step</strong> — в каких пределах случайно выбирается <strong>сумма задания</strong> на экране. Тренажёр подрезает диапазон под правила выбранной серии (минимальная сумма серии × нужный множитель и т.д.).</p>
+				<p><strong>Таймер</strong> — по желанию: отсчёт до автоматической отправки ответа; длительность в секундах в поле рядом. При включённом таймере можно отдельно включить или выключить <strong>анимацию фитиля</strong> (отсчёт и автопроверка те же).</p>
+					</div>
+				</div>
+				<div id="seriesStakePanelTheory" class="series-stake-doc-panel">
+					<h3 class="series-stake-doc-title">Теория: порог и две фазы</h3>
+					<div class="series-stake-help-content">
+				<p><strong>Tiers</strong> в этом тренажёре устроены просто: один размер пакета (6 × min серии), порога нет.</p>
+				<p>Для <strong>0-spiel</strong>, <strong>Orphelins</strong> и <strong>Voisins</strong> при <strong>большой ставке</strong> включается <strong>две фазы</strong>. До определённой суммы (<strong>порог</strong>) каждая часть ставки «режется» <strong>крупными пакетами</strong> (больше номинал одного пакета на минимум серии). Всё, что <strong>выше порога</strong>, обрабатывается отдельно <strong>меньшими пакетами</strong>. Поэтому «играет по» растёт не пропорционально ставке одинаково на всём диапазоне: после порога на тот же прирост ставки прирост «играет по» меньше.</p>
+				<p><strong>0-spiel:</strong> порог = <strong>номер max × 4</strong> (из AR). Ставка <strong>не выше порога</strong> — пакет <strong>4 × min</strong> серии. Ставка <strong>выше порога</strong> — на сумму ровно до порога считаем пакетами 4 × min; остаток (ставка − порог) — пакетами <strong>3 × min</strong>.</p>
+				<p><em>Пример:</em> max=100, min=1 → порог 400. Ставка <strong>350</strong> ≤ 400: пакет 4×1, 350÷4 = 87 целых пакетов → играет по <strong>87</strong>, сдача <strong>2</strong>.</p>
+				<p><strong>Orphelins:</strong> порог = <strong>номер max × 5</strong>. До порога пакет <strong>5 × min</strong>, остаток после порога — <strong>4 × min</strong>.</p>
+				<p><em>Пример:</em> max=100, min=1 → порог 500. Ставка <strong>480</strong> ≤ 500: 480÷5 = 96 → играет по <strong>96</strong>, сдача <strong>0</strong>.</p>
+				<p><strong>Voisins:</strong> порог = <strong>номер max × 27 ÷ 2</strong> (целое число в тренажёре). До порога пакет <strong>9 × step</strong> серии (step из AR); сумма выше порога по остатку режется пакетами <strong>7 × step</strong>.</p>
+				<p><em>Пример:</em> max=100, step=5 → порог 1350. Ставка <strong>1500</strong> &gt; порог: фаза A — 1350 при пакете 9×5=45 → 1350÷45=30 → играет по <strong>150</strong>, сдача 0; фаза B — остаток 150 при пакете 7×5=35 → 150÷35=4 → играет по <strong>20</strong>, сдача <strong>10</strong>. Итого: <strong>170 и 10</strong>.</p>
+					</div>
+				</div>
+				<div id="seriesStakePanelWalk" class="series-stake-doc-panel">
+					<h3 class="series-stake-doc-title">Ответ на ставку: разбор по шагам</h3>
+					<div class="series-stake-help-content">
+				<p><strong>Tiers (без порога)</strong></p>
+				<ol class="series-stake-help-ol">
+					<li>Взять <strong>min</strong> «серии играют по» из AR (поле «min по» или пресет).</li>
+					<li>Размер пакета = <strong>6 × min</strong>.</li>
+					<li><strong>Играет по</strong> = целая часть <strong>(ставка ÷ пакет)</strong> × <strong>min</strong>.</li>
+					<li><strong>Сдача</strong> = остаток: <strong>ставка − (целое × пакет)</strong>.</li>
+				</ol>
+				<p><em>Пример:</em> min=5, ставка 100 → пакет 30 → 100÷30 = 3 → играет по <strong>15</strong>, сдача <strong>10</strong>.</p>
+				<p><em>Пример:</em> min=5, ставка 160 → 160÷30 = 5 → играет по <strong>25</strong>, сдача <strong>10</strong>.</p>
+				<p><strong>0-spiel / Orphelins / Voisins (если есть порог)</strong></p>
+				<ol class="series-stake-help-ol">
+					<li>Вычислить <strong>порог</strong> по серии (см. раздел «Теория»).</li>
+					<li>Если <strong>ставка ≤ порог</strong> — одна фаза: только «большой» пакет (4×min, 5×min или 9×step).</li>
+					<li>Если <strong>ставка &gt; порог</strong> — <strong>фаза A</strong>: сумма <strong>порог</strong> делится большим пакетом; <strong>фаза B</strong>: остаток <strong>(ставка − порог)</strong> делится меньшим пакетом (3×min, 4×min или 7×step).</li>
+					<li>Сложить «играет по» и «сдачу» из фаз A и B.</li>
+				</ol>
+				<p><em>Пример 0-spiel:</em> min=1, порог 400, ставка <strong>500</strong>. Фаза A: на 400 пакет 4×1 → 400÷4=100 полных пакетов → играет по <strong>100</strong>, сдача 0. Фаза B: остаток 100 пакетом 3×1 → 100÷3=33 → играет по <strong>33</strong>, сдача 1. <strong>Итого: играет по 133, сдача 1.</strong></p>
+				<p><em>Пример Orphelins:</em> min=1, порог 500, ставка <strong>620</strong>. Фаза A: 500 пакетом 5×1 → играет по <strong>100</strong>, сдача 0. Фаза B: 120 пакетом 4×1 → играет по <strong>30</strong>, сдача 0. <strong>Итого: 130 и 0.</strong></p>
+					</div>
+				</div>
+			</div>
+			<button type="button" class="btn btn-primary series-stake-doc-hub-close" id="seriesStakeHelpHubClose">Закрыть</button>
+		</div>
 	</div>
 	<div class="payout-settings-overlay" id="seriesStakeSettingsOverlay">
 		<div class="payout-settings-modal series-stake-settings-modal">
@@ -105,81 +176,11 @@
 			</form>
 		</div>
 	</div>
-	<div class="neighbors-help-overlay series-stake-doc-hub-overlay" id="seriesStakeHelpHubOverlay" aria-hidden="true">
-		<div class="neighbors-help-modal series-stake-doc-modal series-stake-doc-hub">
-			<p class="series-stake-doc-hub-lead">Справка по тренажёру</p>
-			<nav class="series-stake-doc-nav series-stake-doc-nav--hub" aria-label="Разделы справки">
-				<button type="button" class="series-stake-doc-tab is-active" data-doc-panel="seriesStakePanelTask">Задача</button>
-				<button type="button" class="series-stake-doc-tab" data-doc-panel="seriesStakePanelSettings">Настройки</button>
-				<button type="button" class="series-stake-doc-tab" data-doc-panel="seriesStakePanelTheory">Теория</button>
-				<button type="button" class="series-stake-doc-tab" data-doc-panel="seriesStakePanelWalk">Ответ</button>
-			</nav>
-			<div class="series-stake-doc-panels">
-				<div id="seriesStakePanelTask" class="series-stake-doc-panel is-active">
-					<h3 class="series-stake-doc-title">Задача</h3>
-					<div class="series-stake-help-content">
-						<p>Вам дана <strong>сумма ставки</strong> на <strong>одну из серий рулетки</strong> в этом раунде (Tiers, 0-spiel, Orphelins или Voisins — см. подпись серии над полями).</p>
-						<p><strong>Ваша задача</strong> — посчитать две величины:</p>
-						<ul class="series-stake-help-list">
-							<li><strong>Играет по</strong> — сколько из ставки уходит «по серии» согласно правилам упаковки в пакеты;</li>
-							<li><strong>Сдача</strong> — сколько остаётся сверху после полных пакетов (остаток от деления ставки на размер пакета в каждой фазе; при двух фазах остатки складываются).</li>
-						</ul>
-						<p>Введите оба числа и нажмите проверку. Пустую «сдачу» тренажёр при проверке считает как <strong>0</strong>.</p>
-					</div>
-				</div>
-				<div id="seriesStakePanelSettings" class="series-stake-doc-panel">
-					<h3 class="series-stake-doc-title">Настройки тренажёра</h3>
-					<div class="series-stake-help-content">
-				<p><strong>AR</strong> — это «ваша рулетка»: числа влияют на допустимые ставки, минимумы и пороги.</p>
-				<p><strong>Номер: min / max</strong> — диапазон номера на поле из вашего AR. От <strong>max</strong> считаются верхняя граница суммы ставки для серий и величина <strong>порога</strong> там, где он завязан на max.</p>
-				<p><strong>Серии играют: min по</strong> — минимальная «позиция», от которой строится базовый пакет (например Tiers: пакет 6 × эта величина). <strong>Step</strong> — шаг серии из AR; для <strong>Voisins</strong> размер пакета считается от step (9× и 7× после порога).</p>
-				<p><strong>Пресеты AR</strong> (например 1-100-1) — готовые наборы: один выбор сразу задаёт номер min/max и параметры серий по соглашению тренажёра.</p>
-				<p><strong>Пользовательские настройки</strong> — сами вводите все поля блока «Номер» и «Серии играют». Удобно, если ваш стол отличается от пресетов.</p>
-				<p><strong>Рандом</strong> — перед каждым новым заданием случайно выбирается один из пресетов AR, чтобы не застревать на одних и тех же цифрах.</p>
-				<p><strong>Серия</strong> — какой тип серии считать в раунде: конкретный или <strong>Рандом</strong> по четырём видам.</p>
-				<p><strong>Ставка: min, max, step</strong> — в каких пределах случайно выбирается <strong>сумма задания</strong> на экране. Тренажёр подрезает диапазон под правила выбранной серии (минимальная сумма серии × нужный множитель и т.д.).</p>
-				<p><strong>Таймер</strong> — по желанию: отсчёт до автоматической отправки ответа; длительность в секундах в поле рядом. При включённом таймере можно отдельно включить или выключить <strong>анимацию фитиля</strong> (отсчёт и автопроверка те же).</p>
-					</div>
-				</div>
-				<div id="seriesStakePanelTheory" class="series-stake-doc-panel">
-					<h3 class="series-stake-doc-title">Теория: порог и две фазы</h3>
-					<div class="series-stake-help-content">
-				<p><strong>Tiers</strong> в этом тренажёре устроены просто: один размер пакета (6 × min серии), порога нет.</p>
-				<p>Для <strong>0-spiel</strong>, <strong>Orphelins</strong> и <strong>Voisins</strong> при <strong>большой ставке</strong> включается <strong>две фазы</strong>. До определённой суммы (<strong>порог</strong>) каждая часть ставки «режется» <strong>крупными пакетами</strong> (больше номинал одного пакета на минимум серии). Всё, что <strong>выше порога</strong>, обрабатывается отдельно <strong>меньшими пакетами</strong>. Поэтому «играет по» растёт не пропорционально ставке одинаково на всём диапазоне: после порога на тот же прирост ставки прирост «играет по» меньше.</p>
-				<p><strong>0-spiel:</strong> порог = <strong>номер max × 4</strong> (из AR). Ставка <strong>не выше порога</strong> — пакет <strong>4 × min</strong> серии. Ставка <strong>выше порога</strong> — на сумму ровно до порога считаем пакетами 4 × min; остаток (ставка − порог) — пакетами <strong>3 × min</strong>.</p>
-				<p><em>Пример:</em> max=100, min=1 → порог 400. Ставка <strong>350</strong> ≤ 400: пакет 4×1, 350÷4 = 87 целых пакетов → играет по <strong>87</strong>, сдача <strong>2</strong>.</p>
-				<p><strong>Orphelins:</strong> порог = <strong>номер max × 5</strong>. До порога пакет <strong>5 × min</strong>, остаток после порога — <strong>4 × min</strong>.</p>
-				<p><em>Пример:</em> max=100, min=1 → порог 500. Ставка <strong>480</strong> ≤ 500: 480÷5 = 96 → играет по <strong>96</strong>, сдача <strong>0</strong>.</p>
-				<p><strong>Voisins:</strong> порог = <strong>номер max × 27 ÷ 2</strong> (целое число в тренажёре). До порога пакет <strong>9 × step</strong> серии (step из AR); сумма выше порога по остатку режется пакетами <strong>7 × step</strong>.</p>
-				<p><em>Пример:</em> max=100, step=5 → порог 1350. Ставка <strong>1500</strong> &gt; порог: фаза A — 1350 при пакете 9×5=45 → 1350÷45=30 → играет по <strong>150</strong>, сдача 0; фаза B — остаток 150 при пакете 7×5=35 → 150÷35=4 → играет по <strong>20</strong>, сдача <strong>10</strong>. Итого: <strong>170 и 10</strong>.</p>
-					</div>
-				</div>
-				<div id="seriesStakePanelWalk" class="series-stake-doc-panel">
-					<h3 class="series-stake-doc-title">Ответ на ставку: разбор по шагам</h3>
-					<div class="series-stake-help-content">
-				<p><strong>Tiers (без порога)</strong></p>
-				<ol class="series-stake-help-ol">
-					<li>Взять <strong>min</strong> «серии играют по» из AR (поле «min по» или пресет).</li>
-					<li>Размер пакета = <strong>6 × min</strong>.</li>
-					<li><strong>Играет по</strong> = целая часть <strong>(ставка ÷ пакет)</strong> × <strong>min</strong>.</li>
-					<li><strong>Сдача</strong> = остаток: <strong>ставка − (целое × пакет)</strong>.</li>
-				</ol>
-				<p><em>Пример:</em> min=5, ставка 100 → пакет 30 → 100÷30 = 3 → играет по <strong>15</strong>, сдача <strong>10</strong>.</p>
-				<p><em>Пример:</em> min=5, ставка 160 → 160÷30 = 5 → играет по <strong>25</strong>, сдача <strong>10</strong>.</p>
-				<p><strong>0-spiel / Orphelins / Voisins (если есть порог)</strong></p>
-				<ol class="series-stake-help-ol">
-					<li>Вычислить <strong>порог</strong> по серии (см. раздел «Теория»).</li>
-					<li>Если <strong>ставка ≤ порог</strong> — одна фаза: только «большой» пакет (4×min, 5×min или 9×step).</li>
-					<li>Если <strong>ставка &gt; порог</strong> — <strong>фаза A</strong>: сумма <strong>порог</strong> делится большим пакетом; <strong>фаза B</strong>: остаток <strong>(ставка − порог)</strong> делится меньшим пакетом (3×min, 4×min или 7×step).</li>
-					<li>Сложить «играет по» и «сдачу» из фаз A и B.</li>
-				</ol>
-				<p><em>Пример 0-spiel:</em> min=1, порог 400, ставка <strong>500</strong>. Фаза A: на 400 пакет 4×1 → 400÷4=100 полных пакетов → играет по <strong>100</strong>, сдача 0. Фаза B: остаток 100 пакетом 3×1 → 100÷3=33 → играет по <strong>33</strong>, сдача 1. <strong>Итого: играет по 133, сдача 1.</strong></p>
-				<p><em>Пример Orphelins:</em> min=1, порог 500, ставка <strong>620</strong>. Фаза A: 500 пакетом 5×1 → играет по <strong>100</strong>, сдача 0. Фаза B: 120 пакетом 4×1 → играет по <strong>30</strong>, сдача 0. <strong>Итого: 130 и 0.</strong></p>
-					</div>
-				</div>
-			</div>
-			<button type="button" class="btn btn-primary series-stake-doc-hub-close" id="seriesStakeHelpHubClose">Закрыть</button>
-		</div>
+
+	<div class="payout-page payout-page--series-stake">
+	<div class="series-stake-ux-width series-stake-meta-row" role="status">
+		<span class="series-stake-meta-ar">{{ ar_display_short }}</span>
+		<span class="series-stake-meta-series">{% if round_series_label %}{{ round_series_label }}{% else %}—{% endif %}</span>
 	</div>
 
 	<div class="series-stake-ux-width series-stake-task">
@@ -204,10 +205,10 @@
 		{% csrf_token %}
 		<div class="series-stake-ux-width series-stake-answers" role="group" aria-label="Ответ">
 			<div class="series-stake-answer-slot">
-				<input type="text" name="igraet_po" class="payout-input neighbors-input series-stake-answer-input" inputmode="none" pattern="[0-9]*" autocomplete="off" value="{{ user_igraet }}" placeholder="Играет по" aria-label="Играет по" {% if success or skipped %}disabled{% endif %} id="seriesStakeIgraet" title="Играет по">
+				<input type="text" name="igraet_po" class="payout-input neighbors-input series-stake-answer-input" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="{{ user_igraet }}" placeholder="Играет по" aria-label="Играет по" {% if success or skipped %}disabled{% endif %} id="seriesStakeIgraet" title="Играет по">
 			</div>
 			<div class="series-stake-answer-slot">
-				<input type="text" name="sdacha" class="payout-input neighbors-input series-stake-answer-input" inputmode="none" pattern="[0-9]*" autocomplete="off" value="{{ user_sdacha }}" placeholder="Сдача" aria-label="Сдача" {% if success or skipped %}disabled{% endif %} id="seriesStakeSdacha" title="Сдача">
+				<input type="text" name="sdacha" class="payout-input neighbors-input series-stake-answer-input" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="{{ user_sdacha }}" placeholder="Сдача" aria-label="Сдача" {% if success or skipped %}disabled{% endif %} id="seriesStakeSdacha" title="Сдача">
 			</div>
 		</div>
 
@@ -270,28 +271,30 @@
 		<div class="payout-success-text">{% if success %}{% include "partials/payout_check_text.html" %}{% if solve_seconds is not None %}<small class="series-stake-solve-time">Считали: {{ solve_seconds|floatformat:1 }} с</small>{% endif %}{% else %}{{ message }}{% endif %}</div>
 	</form>
 	{% endif %}
-</div>
+	</div>
+	<nav class="auth-footer ar-exercise-footer" aria-label="Навигация внизу страницы">
+		<a href="{% url 'homepage_index' %}">На главную</a>
+		<a href="{% url 'ar_index' %}">AR</a>
+	</nav>
 </div>
 
 <style>
-/* Меньше пустого места над заголовком (общий main-card + payout-page для абсолютного header) */
-.payout-main .main-card:has(.payout-page--series-stake) {
-	padding-top: 14px;
-}
-.payout-page.payout-page--series-stake {
-	padding-top: 46px;
-}
-.series-stake-header {
+.series-stake-shell__toolbar {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	position: relative;
-	gap: 0.5rem;
 	min-height: 2.5rem;
 	padding: 0 48px;
 	box-sizing: border-box;
+	width: 100%;
+	margin-bottom: 0.65rem;
 }
-.series-stake-header .neighbors-help-btn {
+.series-stake-shell__toolbar .auth-shell__title {
+	margin: 0;
+	text-align: center;
+}
+.series-stake-shell__help {
 	position: absolute;
 	left: 0;
 	background: none;
@@ -303,12 +306,12 @@
 	justify-content: center;
 	-webkit-tap-highlight-color: transparent;
 }
-.series-stake-header .neighbors-help-icon {
+.series-stake-shell__toolbar .neighbors-help-icon {
 	width: 28px;
 	height: 28px;
 	display: block;
 }
-.series-stake-header .neighbors-help-btn:hover .neighbors-help-icon circle { fill: #1d4ed8; }
+.series-stake-shell__help:hover .neighbors-help-icon circle { fill: #1d4ed8; }
 .series-stake-doc-nav {
 	display: flex;
 	flex-wrap: wrap;
@@ -418,26 +421,27 @@
 		max-width: min(calc(4 * 56px + 3 * 10px), calc(100vw - 32px));
 	}
 }
-.series-stake-header .series-stake-title.payout-bet {
-	margin-bottom: 0;
-	font-size: 1.35rem;
-	font-weight: 700;
-	line-height: 1.25;
-	letter-spacing: -0.02em;
-}
-.series-stake-header .series-stake-settings-btn {
+.series-stake-shell__settings {
+	position: absolute;
+	right: 0;
+	background: none;
+	border: none;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	width: 40px;
 	height: 40px;
 	padding: 0;
 	box-sizing: border-box;
 	color: var(--accent, #2563eb);
+	-webkit-tap-highlight-color: transparent;
 }
-.series-stake-header .series-stake-settings-btn:hover {
+.series-stake-shell__settings:hover {
 	color: var(--accent-hover, #1d4ed8);
 	background: rgba(37, 99, 235, 0.08);
 	border-radius: var(--radius-sm, 8px);
 }
-.series-stake-title { margin: 0; text-align: center; }
 .series-stake-meta-row {
 	display: flex;
 	align-items: center;
@@ -746,6 +750,9 @@
 	outline: none;
 	box-shadow: inset 0 0 0 2px #3b82f6;
 }
+.series-stake-answer-input.payout-input.payout-keyboard-target:not(:focus) {
+	box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.45);
+}
 .series-stake-answer-input.payout-input:disabled {
 	opacity: 0.85;
 }
@@ -995,7 +1002,6 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 });
 </script>
-<p class="payout-back"><a href="{% url 'ar_index' %}">← К списку игр</a></p>
 {% endblock %}
 
 {% block extra_scripts %}

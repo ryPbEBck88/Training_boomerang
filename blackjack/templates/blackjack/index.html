@@ -1,22 +1,44 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}BJ{% endblock %}
+{% block title %}BJ: тренажёры{% endblock %}
+
+{% block extra_head %}
+<style>
+.bj-hub__tile-img--self {
+	background-color: #1a472a;
+	background-image:
+		repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(255, 255, 255, 0.05) 10px, rgba(255, 255, 255, 0.05) 20px),
+		linear-gradient(160deg, rgba(255, 255, 255, 0.12) 0%, transparent 45%);
+	background-size: cover;
+	background-position: center;
+}
+.bj-hub__tile-img--payout {
+	background-color: #1a472a;
+	background-image: url('{% static "images/blackjack/Black Jack_payout.webp" %}');
+	background-size: cover;
+	background-position: center;
+}
+</style>
+{% endblock %}
+
+{% block main_class %}auth-main auth-main--wide{% endblock %}
 
 {% block content %}
-<div class="home-hero">
-	<h1 class="home-title">BJ</h1>
-	<p class="home-subtitle">Тренажёры по блэкджеку</p>
-</div>
-
-<div class="home-section">
-	<h2 class="home-section-title">Упражнения</h2>
-	<div class="home-links">
-		<a href="{% url 'blackjack_self_draw' %}" class="home-link">Набираю себе</a>
-		<a href="{% url 'blackjack_payout' %}" class="home-link">Выплата BJ</a>
-	</div>
-</div>
-
-<div class="home-footer">
-	<p><a href="{% url 'homepage_index' %}">← На главную</a></p>
+<div class="auth-shell bj-hub">
+	<h1 class="auth-shell__title">BJ: тренажёры</h1>
+	<nav class="bj-hub__nav" aria-label="Упражнения BJ">
+		<div class="bj-hub__grid">
+			<a href="{% url 'blackjack_self_draw' %}" class="bj-hub__tile">
+				<span class="bj-hub__tile-img bj-hub__tile-img--self" role="img" aria-hidden="true"></span>
+				<span class="bj-hub__tile-label">Набираю себе</span>
+			</a>
+			<a href="{% url 'blackjack_payout' %}" class="bj-hub__tile">
+				<span class="bj-hub__tile-img bj-hub__tile-img--payout" role="img" aria-hidden="true"></span>
+				<span class="bj-hub__tile-label">Выплата BJ</span>
+			</a>
+		</div>
+	</nav>
+	<p class="auth-footer"><a href="{% url 'homepage_index' %}">← На главную</a></p>
 </div>
 {% endblock %}

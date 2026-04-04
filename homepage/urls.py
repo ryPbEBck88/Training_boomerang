@@ -7,6 +7,10 @@ from .forms import SiteLoginForm
 
 urlpatterns = [
     path('', views.index, name='homepage_index'),
+    path('chaevye/', views.chaevye, name='tip_jar'),
+    path('spasibo/', views.tip_thanks, name='tip_thanks'),
+    path('avtory/', views.authors_page, name='site_authors'),
+    path('boomerang/', views.boomerang_test, name='boomerang_test'),
     path("register/", views.register, name="register"),
     path("register/sent/", views.register_verify_sent, name="register_verify_sent"),
     path(

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Спасибо{% endblock %}
+
+{% block main_class %}auth-main{% endblock %}
+
+{% block content %}
+<div class="auth-shell">
+	<p class="tip-thanks__quote">{{ message }}</p>
+	<p class="tip-thanks__note">
+		Часть фраз — с юмором по кругу; благодарность настоящая. Удачи за столами и в жизни.
+	</p>
+	<p class="auth-footer" style="margin-top: 1.75rem;"><a href="{% url 'homepage_index' %}">На главную</a></p>
+</div>
+{% endblock %}

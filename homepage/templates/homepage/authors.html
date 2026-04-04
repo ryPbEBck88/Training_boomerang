@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Авторы{% endblock %}
+
+{% block main_class %}auth-main{% endblock %}
+
+{% block content %}
+<div class="auth-shell">
+	<h1 class="auth-shell__title">Авторы</h1>
+	<div class="authors-entries">
+		<div class="authors-entry">
+			<div class="authors-entry__name">Халупа Александр <span class="authors-entry__tag">(технический контур)</span></div>
+			<ul class="authors-entry__list">
+				<li>Ведущий разработчик (бэкенд, фронтенд в одном лице)</li>
+				<li>Архитектура и развёртывание</li>
+				<li>Тестирование и доработка тренажёров</li>
+				<li>Контент-менеджер (тексты, описания режимов)</li>
+			</ul>
+		</div>
+		<div class="authors-entry">
+			<div class="authors-entry__name">Тихонов Сергей <span class="authors-entry__tag">(контент и люди)</span></div>
+			<ul class="authors-entry__list">
+				<li>Связи с общественностью (партнёры, площадки, представление проекта)</li>
+				<li>Контент-менеджер (тексты, описания режимов)</li>
+				<li>Тест по СОП</li>
+				<li>Модерация и обратная связь — сбор отзывов, пожеланий от пользователей</li>
+				<li>Соцсети и продвижение</li>
+			</ul>
+		</div>
+	</div>
+	<div class="authors-thanks">
+		<h2 class="authors-thanks__title">Особая благодарность</h2>
+		<p class="authors-thanks__text">От души благодарим <strong>Дмитрия Караваева</strong> — за советы, текстуры, идеи и поддержку; без него проект был бы беднее и суше.</p>
+	</div>
+	<p class="auth-footer"><a href="{% url 'homepage_index' %}">На главную</a></p>
+</div>
+{% endblock %}

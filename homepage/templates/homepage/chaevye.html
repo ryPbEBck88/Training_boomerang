@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Чаевые — поддержать тренажёры{% endblock %}
+
+{% block main_class %}auth-main{% endblock %}
+
+{% block content %}
+<div class="auth-shell">
+	<h1 class="auth-shell__title">Чаевые</h1>
+	<p class="auth-shell__lead">
+		Если тренажёры пригодились — можно "дать на чай". Это не влияет на доступ к материалам, просто возможность сказать «спасибо».
+	</p>
+	<p class="auth-shell__lead chaevye-sbp-block">
+		<strong>По СБП:</strong>
+		<a href="tel:+79676568168" class="chaevye-sbp-tel">+7&nbsp;967&nbsp;65&nbsp;68&nbsp;168</a>
+	</p>
+	<p class="chaevye-banks" aria-label="Через приложения банков">
+		<span class="chaevye-bank-pill">Сбер</span>
+		<span class="chaevye-bank-pill">Т-Банк</span>
+	</p>
+	{% if tip_jar_url %}
+		<p class="auth-shell__lead" style="margin-top: 0.5rem;">
+			Переходите по ссылке — там безопасная оплата на стороне выбранной площадки.
+		</p>
+		<p style="text-align: center;">
+			<a href="{{ tip_jar_url }}" class="tip-jar__btn" target="_blank" rel="noopener noreferrer">Кинуть чаевые</a>
+		</p>
+	{% endif %}
+	<p class="auth-footer"><a href="{% url 'homepage_index' %}">На главную</a></p>
+</div>
+{% endblock %}

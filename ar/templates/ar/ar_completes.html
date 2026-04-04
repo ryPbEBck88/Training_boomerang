@@ -1,24 +1,36 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Комплиты — AR | Тренажёры крупье{% endblock %}
-{% block main_class %}payout-main{% endblock %}
+{% block main_class %}auth-main{% endblock %}
 {% block content %}
-<div class="payout-screen">
-<div class="payout-page payout-page--completes">
-	<div class="payout-header series-stake-header">
-		<button type="button" class="neighbors-help-btn" id="completesHelpBtn" aria-label="Справка: комплиты" title="Справка">
+<div class="auth-shell completes-shell">
+	<div class="completes-shell__toolbar">
+		<button type="button" class="neighbors-help-btn completes-shell__help" id="completesHelpBtn" aria-label="Справка: комплиты" title="Справка">
 			<svg class="neighbors-help-icon" viewBox="0 0 24 24" aria-hidden="true">
 				<circle cx="12" cy="12" r="10" fill="#2563eb"/>
 				<text x="12" y="17" text-anchor="middle" fill="white" font-size="14" font-weight="bold" font-family="system-ui,sans-serif">?</text>
 			</svg>
 		</button>
-		<div class="payout-bet series-stake-title">Комплиты</div>
-		<button type="button" class="payout-settings-btn series-stake-settings-btn" id="completesSettingsBtn" title="Настройки" aria-label="Настройки">
+		<h1 class="auth-shell__title">Комплиты</h1>
+		<button type="button" class="payout-settings-btn series-stake-settings-btn completes-shell__settings" id="completesSettingsBtn" title="Настройки" aria-label="Настройки">
 			<svg class="payout-settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 				<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
 				<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
 			</svg>
 		</button>
+	</div>
+
+	<div class="neighbors-help-overlay series-stake-doc-hub-overlay" id="completesHelpOverlay" aria-hidden="true">
+		<div class="neighbors-help-modal series-stake-doc-modal series-stake-doc-hub">
+			<p class="series-stake-doc-hub-lead">Справка</p>
+			<div class="series-stake-help-content completes-help-content">
+				<p><strong>Комплит</strong> — ставка одной фишкой в номер, покрывающая все позиции этого номера равными долями.</p>
+				<p><strong>Ставка</strong> = количество фишек × номинал (напр. 30 × 100 = 3000)</p>
+				<p><strong>Выплата</strong> = коэффициент × номинал (напр. 294 × 100 = 29400)</p>
+				<p>Количество фишек и коэффициент зависят от номера: 0 (17/235), 1,3 (27/297), 2 (36/396), средняя колонка (40/392), боковые (30/294), 34,36 (18/198), 35 (24/264).</p>
+			</div>
+			<button type="button" class="btn btn-primary series-stake-doc-hub-close" id="completesHelpClose">Закрыть</button>
+		</div>
 	</div>
 
 	<div class="payout-settings-overlay" id="completesSettingsOverlay">
@@ -79,6 +91,13 @@
 			</form>
 		</div>
 	</div>
+
+	<div class="payout-page payout-page--completes">
+	<div class="series-stake-ux-width series-stake-task completes-task">
+		<p class="series-stake-description completes-task-line">
+			<span class="completes-num-chip">{{ number }}</span><span class="completes-sep"> по </span><span class="completes-denom">{{ denom }}</span>
+		</p>
+	</div>
 	{% if timer_enabled and success is None and not skipped %}
 		{% if timer_fuse_animation %}
 		<div class="series-stake-ux-width series-stake-fuse-wrap">
@@ -91,33 +110,14 @@
 		{% endif %}
 	{% endif %}
 
-	<div class="neighbors-help-overlay series-stake-doc-hub-overlay" id="completesHelpOverlay" aria-hidden="true">
-		<div class="neighbors-help-modal series-stake-doc-modal series-stake-doc-hub">
-			<p class="series-stake-doc-hub-lead">Справка</p>
-			<div class="series-stake-help-content completes-help-content">
-				<p><strong>Комплит</strong> — ставка одной фишкой в номер, покрывающая все позиции этого номера равными долями.</p>
-				<p><strong>Ставка</strong> = количество фишек × номинал (напр. 30 × 100 = 3000)</p>
-				<p><strong>Выплата</strong> = коэффициент × номинал (напр. 294 × 100 = 29400)</p>
-				<p>Количество фишек и коэффициент зависят от номера: 0 (17/235), 1,3 (27/297), 2 (36/396), средняя колонка (40/392), боковые (30/294), 34,36 (18/198), 35 (24/264).</p>
-			</div>
-			<button type="button" class="btn btn-primary series-stake-doc-hub-close" id="completesHelpClose">Закрыть</button>
-		</div>
-	</div>
-
-	<div class="series-stake-ux-width series-stake-task completes-task">
-		<p class="series-stake-description completes-task-line">
-			<span class="completes-num-chip">{{ number }}</span><span class="completes-sep"> по </span><span class="completes-denom">{{ denom }}</span>
-		</p>
-	</div>
-
 	<form method="post" autocomplete="off" class="payout-form neighbors-form">
 		{% csrf_token %}
 		<div class="series-stake-ux-width series-stake-answers" role="group" aria-label="Ставка и выплата">
 			<div class="series-stake-answer-slot">
-				<input type="text" name="stavka" class="payout-input neighbors-input series-stake-answer-input" placeholder="Ставка" inputmode="none" pattern="[0-9]*" autocomplete="off" value="{{ user_stavka }}" {% if success or skipped %}disabled{% endif %} id="completesStavka" aria-label="Ставка" title="Ставка">
+				<input type="text" name="stavka" class="payout-input neighbors-input series-stake-answer-input" placeholder="Ставка" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="{{ user_stavka }}" {% if success or skipped %}disabled{% endif %} id="completesStavka" aria-label="Ставка" title="Ставка">
 			</div>
 			<div class="series-stake-answer-slot">
-				<input type="text" name="payout" class="payout-input neighbors-input series-stake-answer-input" placeholder="Выплата" inputmode="none" pattern="[0-9]*" autocomplete="off" value="{{ user_payout }}" {% if success or skipped %}disabled{% endif %} id="completesPayout" aria-label="Выплата" title="Выплата">
+				<input type="text" name="payout" class="payout-input neighbors-input series-stake-answer-input" placeholder="Выплата" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="{{ user_payout }}" {% if success or skipped %}disabled{% endif %} id="completesPayout" aria-label="Выплата" title="Выплата">
 			</div>
 		</div>
 
@@ -179,28 +179,30 @@
 		<div class="payout-success-text">{% if success %}{% include "partials/payout_check_text.html" %}{% if solve_seconds is not None %}<small class="completes-solve-time">Считали: {{ solve_seconds|floatformat:1 }} с</small>{% endif %}{% else %}{{ message }}{% endif %}</div>
 	</form>
 	{% endif %}
-</div>
+	</div>
+	<nav class="auth-footer ar-exercise-footer" aria-label="Навигация внизу страницы">
+		<a href="{% url 'homepage_index' %}">На главную</a>
+		<a href="{% url 'ar_index' %}">AR</a>
+	</nav>
 </div>
 
 <style>
-.payout-main .main-card:has(.payout-page--completes) {
-	padding-top: 14px;
-}
-.payout-page.payout-page--completes {
-	padding-top: 46px;
-}
-.payout-page--completes .series-stake-header {
+.completes-shell__toolbar {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	position: relative;
-	gap: 0.5rem;
 	min-height: 2.5rem;
 	padding: 0 48px;
 	box-sizing: border-box;
 	width: 100%;
+	margin-bottom: 0.65rem;
 }
-.payout-page--completes .series-stake-header .neighbors-help-btn {
+.completes-shell__toolbar .auth-shell__title {
+	margin: 0;
+	text-align: center;
+}
+.completes-shell__help {
 	position: absolute;
 	left: 0;
 	background: none;
@@ -212,13 +214,13 @@
 	justify-content: center;
 	-webkit-tap-highlight-color: transparent;
 }
-.payout-page--completes .series-stake-header .neighbors-help-icon {
+.completes-shell__toolbar .neighbors-help-icon {
 	width: 28px;
 	height: 28px;
 	display: block;
 }
-.payout-page--completes .series-stake-header .neighbors-help-btn:hover circle { fill: #1d4ed8; }
-.payout-page--completes .series-stake-header .series-stake-settings-btn {
+.completes-shell__help:hover circle { fill: #1d4ed8; }
+.completes-shell__settings {
 	position: absolute;
 	right: 0;
 	background: none;
@@ -234,7 +236,7 @@
 	color: var(--accent, #2563eb);
 	-webkit-tap-highlight-color: transparent;
 }
-.payout-page--completes .series-stake-header .series-stake-settings-btn:hover {
+.completes-shell__settings:hover {
 	color: var(--accent-hover, #1d4ed8);
 	background: rgba(37, 99, 235, 0.08);
 	border-radius: var(--radius-sm, 8px);
@@ -251,14 +253,6 @@
 		width: calc(4 * 56px + 3 * 10px);
 		max-width: min(calc(4 * 56px + 3 * 10px), calc(100vw - 32px));
 	}
-}
-.payout-page--completes .series-stake-title.payout-bet {
-	margin-bottom: 0;
-	font-size: 1.35rem;
-	font-weight: 700;
-	line-height: 1.25;
-	letter-spacing: -0.02em;
-	text-align: center;
 }
 .payout-page--completes .series-stake-task.completes-task {
 	margin: 0.35rem 0 0.4rem;
@@ -337,6 +331,9 @@
 .series-stake-answer-input.payout-input:focus {
 	outline: none;
 	box-shadow: inset 0 0 0 2px #3b82f6;
+}
+.series-stake-answer-input.payout-input.payout-keyboard-target:not(:focus) {
+	box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.45);
 }
 .series-stake-answer-input.payout-input:disabled {
 	opacity: 0.85;
@@ -715,5 +712,4 @@ document.addEventListener('DOMContentLoaded', function() {
 	{% endif %}
 });
 </script>
-<p class="payout-back"><a href="{% url 'ar_index' %}">← К списку игр</a></p>
 {% endblock %}

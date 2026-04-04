@@ -1,29 +1,62 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}Poker{% endblock %}
+{% block title %}Poker: тренажёры{% endblock %}
+
+{% block extra_head %}
+<style>
+.poker-hub__tile-img--payout {
+	background-color: #8b2942;
+	background-image: url('{% static "images/poker/oasic_payout.png" %}');
+	background-size: cover;
+	background-position: center;
+}
+.poker-hub__tile-img--combo {
+	background-color: #8b2942;
+	background-image: url('{% static "images/poker/oasis_combo.png" %}');
+	background-size: cover;
+	background-position: center;
+}
+.poker-hub__tile-img--holdem {
+	background-color: #6b2340;
+	background-image:
+		repeating-linear-gradient(45deg, transparent, transparent 12px, rgba(255, 255, 255, 0.04) 12px, rgba(255, 255, 255, 0.04) 24px),
+		linear-gradient(165deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+	background-size: cover;
+	background-position: center;
+}
+</style>
+{% endblock %}
+
+{% block main_class %}auth-main auth-main--wide{% endblock %}
 
 {% block content %}
-<div class="home-hero">
-	<h1 class="home-title">Poker</h1>
-	<p class="home-subtitle">Тренажёры по покеру</p>
-</div>
-
-<div class="home-section">
-	<h2 class="home-section-title">Oasis poker</h2>
-	<div class="home-links">
-		<a href="{% url 'poker_payout' %}" class="home-link">Выплата</a>
-		<a href="{% url 'poker_combo' %}" class="home-link">Oasis: Комбинации</a>
-	</div>
-</div>
-
-<div class="home-section">
-	<h2 class="home-section-title">Texas Hold'em</h2>
-	<div class="home-links">
-		<a href="{% url 'poker_combo_holdem' %}" class="home-link">Комбинации</a>
-	</div>
-</div>
-
-<div class="home-footer">
-	<p><a href="{% url 'homepage_index' %}">← На главную</a></p>
+<div class="auth-shell poker-hub">
+	<h1 class="auth-shell__title">Poker: тренажёры</h1>
+	<nav class="poker-hub__nav" aria-label="Упражнения Poker">
+		<section class="poker-hub__section" aria-labelledby="poker-oasic-heading">
+			<h2 class="poker-hub__section-title" id="poker-oasic-heading">Oasic</h2>
+			<div class="poker-hub__grid">
+				<a href="{% url 'poker_payout' %}" class="poker-hub__tile">
+					<span class="poker-hub__tile-img poker-hub__tile-img--payout" role="img" aria-hidden="true"></span>
+					<span class="poker-hub__tile-label">Выплата</span>
+				</a>
+				<a href="{% url 'poker_combo' %}" class="poker-hub__tile">
+					<span class="poker-hub__tile-img poker-hub__tile-img--combo" role="img" aria-hidden="true"></span>
+					<span class="poker-hub__tile-label">Комбинации</span>
+				</a>
+			</div>
+		</section>
+		<section class="poker-hub__section" aria-labelledby="poker-holdem-heading">
+			<h2 class="poker-hub__section-title poker-hub__section-title--holdem" id="poker-holdem-heading">Texas Hold'em</h2>
+			<div class="poker-hub__grid poker-hub__grid--holdem">
+				<a href="{% url 'poker_combo_holdem' %}" class="poker-hub__tile poker-hub__tile--holdem">
+					<span class="poker-hub__tile-img poker-hub__tile-img--holdem" role="img" aria-hidden="true"></span>
+					<span class="poker-hub__tile-label poker-hub__tile-label--holdem">Комбинации</span>
+				</a>
+			</div>
+		</section>
+	</nav>
+	<p class="auth-footer"><a href="{% url 'homepage_index' %}">← На главную</a></p>
 </div>
 {% endblock %}
