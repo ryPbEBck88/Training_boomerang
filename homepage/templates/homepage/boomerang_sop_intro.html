@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}{{ test.title }} — Boomerang{% endblock %}
+
+{% block content %}
+<p class="sop-quiz__back"><a href="{% url 'boomerang_test' %}">← К списку тестов</a></p>
+<h1>{{ test.title }}</h1>
+<p class="sop-quiz__lead">В тесте <strong>{{ n_questions }}</strong> вопросов. Порядок вопросов и ответов случайный.</p>
+{% if test.description %}
+<p>{{ test.description }}</p>
+{% endif %}
+<form method="post" action="{% url 'boomerang_sop_start' slug=test.slug %}">
+	{% csrf_token %}
+	<button type="submit" class="btn btn-primary">Начать тест</button>
+</form>
+{% endblock %}

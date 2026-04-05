@@ -10,7 +10,6 @@ from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 
 from .constants import TIP_THANK_YOU_MESSAGES
-from .decorators import boomerang_member_required
 from .email_activation import send_activation_email
 from .forms import SignUpForm
 
@@ -40,12 +39,6 @@ def tip_thanks(request):
 
 def authors_page(request):
     return render(request, 'homepage/authors.html')
-
-
-@boomerang_member_required
-def boomerang_test(request):
-    """Закрытый раздел для группы Boomerang (содержимое теста — в шаблоне)."""
-    return render(request, 'homepage/boomerang_test.html')
 
 
 def register(request):

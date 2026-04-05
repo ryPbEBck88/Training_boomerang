@@ -5,14 +5,16 @@
 {% block main_class %}auth-main{% endblock %}
 
 {% block content %}
-<div class="auth-shell">
+<div class="auth-shell site-shell">
+	<div class="site-shell__panel site-shell__panel--narrow">
 	<div class="auth-icon-warn" aria-hidden="true">✕</div>
 	<h1 class="auth-shell__title">Ссылка недействительна</h1>
 	<p class="auth-shell__lead">Возможно, срок действия истёк или ссылка уже использована. Зарегистрируйтесь снова или войдите, если аккаунт уже активирован.</p>
-	<p class="auth-footer" style="border-top: none; margin-top: 0; padding-top: 0;">
+	<p class="auth-footer site-shell__footer site-shell__footer--tight">
 		<a href="{% url 'register' %}">Регистрация</a>
 		·
 		<a href="{% url 'login' %}">Вход</a>
 	</p>
+	</div>
 </div>
 {% endblock %}

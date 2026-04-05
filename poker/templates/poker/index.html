@@ -49,10 +49,14 @@
 		</section>
 		<section class="poker-hub__section" aria-labelledby="poker-holdem-heading">
 			<h2 class="poker-hub__section-title poker-hub__section-title--holdem" id="poker-holdem-heading">Texas Hold'em</h2>
-			<div class="poker-hub__grid poker-hub__grid--holdem">
+			<div class="poker-hub__grid">
 				<a href="{% url 'poker_combo_holdem' %}" class="poker-hub__tile poker-hub__tile--holdem">
 					<span class="poker-hub__tile-img poker-hub__tile-img--holdem" role="img" aria-hidden="true"></span>
 					<span class="poker-hub__tile-label poker-hub__tile-label--holdem">Комбинации</span>
+				</a>
+				<a href="{% url 'poker_holdem_compare' %}" class="poker-hub__tile poker-hub__tile--holdem">
+					<span class="poker-hub__tile-img poker-hub__tile-img--holdem" role="img" aria-hidden="true"></span>
+					<span class="poker-hub__tile-label poker-hub__tile-label--holdem">Старше / младше</span>
 				</a>
 			</div>
 		</section>

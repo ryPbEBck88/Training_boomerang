@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Вопрос {{ progress }} / {{ total }} — {{ test.title }}{% endblock %}
+
+{% block content %}
+<p class="sop-quiz__back"><a href="{% url 'boomerang_test' %}">Список тестов</a> · {{ test.title }}</p>
+<p class="sop-quiz__progress">Вопрос {{ progress }} из {{ total }}</p>
+<h1 class="sop-quiz__question">{{ question.text }}</h1>
+<form method="post" action="{% url 'boomerang_sop_play' slug=test.slug %}" class="sop-quiz__form">
+	{% csrf_token %}
+	<fieldset class="sop-quiz__options">
+		{% for a in answers %}
+		<label class="sop-quiz__option">
+			<input type="radio" name="answer" value="{{ a.pk }}" required>
+			<span>{{ a.text }}</span>
+		</label>
+		{% endfor %}
+	</fieldset>
+	<button type="submit" class="btn btn-primary">Ответить</button>
+</form>
+{% endblock %}

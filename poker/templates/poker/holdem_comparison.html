@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Hold'em: старше / младше{% endblock %}
+
+{% block main_class %}auth-main auth-main--wide{% endblock %}
+
+{% block content %}
+<div class="auth-shell site-shell holdem-compare-page">
+	<h1 class="auth-shell__title">Старше / младше</h1>
+
+	<div class="site-shell__panel site-shell__panel--wide holdem-compare-panel">
+		<div class="texas-layout texas-layout--compare">
+			<div class="texas-compare-row texas-compare-row--guest">
+				<span class="texas-compare-label">Гость</span>
+				<div class="texas-hole">
+					{% for card in guest_hole %}
+						{% with card_path='cards/'|add:card.img %}
+						<img src="{% static card_path %}" class="card-img" alt="{{ card.name }}">
+						{% endwith %}
+					{% endfor %}
+				</div>
+			</div>
+			<div class="texas-compare-row texas-compare-row--board">
+				<span class="texas-compare-label">Борд</span>
+				<div class="texas-board texas-board--compare">
+					{% for card in board %}
+						{% with card_path='cards/'|add:card.img %}
+						<img src="{% static card_path %}" class="card-img" alt="{{ card.name }}">
+						{% endwith %}
+					{% endfor %}
+				</div>
+			</div>
+			<div class="texas-compare-row texas-compare-row--dealer">
+				<span class="texas-compare-label">Дилер</span>
+				<div class="texas-hole">
+					{% for card in dealer_hole %}
+						{% with card_path='cards/'|add:card.img %}
+						<img src="{% static card_path %}" class="card-img" alt="{{ card.name }}">
+						{% endwith %}
+					{% endfor %}
+				</div>
+			</div>
+		</div>
+	</div>
+
+	{# Форма вне панели с backdrop-filter — иначе fixed-оверлей «верно/неверно» не на весь экран #}
+	<form method="post" autocomplete="off" class="combo-form holdem-compare-form">
+		{% csrf_token %}
+		{% if success is None %}
+			<input type="hidden" name="action" value="check">
+			<div class="holdem-compare-actions">
+				<div class="holdem-compare-buttons">
+					<button type="submit" name="guess" value="younger" class="holdem-compare-btn holdem-compare-btn--lower">Младше</button>
+					<button type="submit" name="guess" value="stay" class="holdem-compare-btn holdem-compare-btn--tie">Ничья</button>
+					<button type="submit" name="guess" value="older" class="holdem-compare-btn holdem-compare-btn--higher">Старше</button>
+				</div>
+				<button type="submit" name="guess" value="ante" class="holdem-compare-btn holdem-compare-btn--ante">Ante</button>
+				<p class="holdem-compare-actions__hint">Ante — если у дилера нет игры (младше пары четвёрок).</p>
+			</div>
+		{% else %}
+		<div class="payout-success-overlay {% if not success %}self-draw-error-overlay{% endif %}">
+			<input type="hidden" name="action" value="{% if success %}next{% else %}retry{% endif %}">
+			<button type="submit" class="payout-success-tap"></button>
+			{% if success %}
+			<div class="payout-fireworks" aria-hidden="true">
+				<span></span><span></span><span></span><span></span><span></span><span></span>
+				<span></span><span></span><span></span><span></span><span></span><span></span>
+			</div>
+			{% else %}
+			<div class="payout-fireworks payout-fireworks--stop" aria-hidden="true">
+				<span></span><span></span><span></span><span></span><span></span><span></span>
+				<span></span><span></span><span></span><span></span><span></span><span></span>
+			</div>
+			{% endif %}
+			<div class="self-draw-error-content">
+				{% if not success %}<span class="self-draw-error-hand" aria-hidden="true">✋</span>{% endif %}
+				<div class="payout-success-text self-draw-error-text">{% if success %}{% include "partials/payout_check_text.html" %}{% else %}{% include "partials/payout_stop_text.html" %}{% endif %}</div>
+			</div>
+		</div>
+		{% endif %}
+	</form>
+
+	<p class="auth-footer site-shell__footer holdem-compare-footer-nav">
+		<a href="{% url 'homepage_index' %}">Главная</a>
+		<a href="{% url 'poker_index' %}">Poker</a>
+	</p>
+</div>
+{% endblock %}

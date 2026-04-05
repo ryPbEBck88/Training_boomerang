@@ -2,14 +2,17 @@
 
 {% block title %}Спасибо{% endblock %}
 
-{% block main_class %}auth-main{% endblock %}
+{% block main_class %}auth-main auth-main--wide{% endblock %}
 
 {% block content %}
-<div class="auth-shell">
-	<p class="tip-thanks__quote">{{ message }}</p>
+<div class="auth-shell site-shell">
+	<h1 class="auth-shell__title">Спасибо</h1>
+	<div class="site-shell__panel site-shell__panel--narrow">
+		<p class="tip-thanks__quote">{{ message }}</p>
+	</div>
 	<p class="tip-thanks__note">
 		Часть фраз — с юмором по кругу; благодарность настоящая. Удачи за столами и в жизни.
 	</p>
-	<p class="auth-footer" style="margin-top: 1.75rem;"><a href="{% url 'homepage_index' %}">На главную</a></p>
+	<p class="auth-footer site-shell__footer"><a href="{% url 'homepage_index' %}">На главную</a></p>
 </div>
 {% endblock %}

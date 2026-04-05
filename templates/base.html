@@ -36,12 +36,8 @@
 				<a href="{% url 'blackjack_index' %}" class="site-nav__link">BJ</a>
 				<a href="{% url 'poker_index' %}" class="site-nav__link">Poker</a>
 				<a href="{% url 'ar_index' %}" class="site-nav__link">AR</a>
+				<a href="{% url 'boomerang_test' %}" class="site-nav__link">СОП</a>
 				{% if user.is_authenticated %}
-					{% for g in user.groups.all %}
-						{% if g.name == 'Boomerang' %}
-							<a href="{% url 'boomerang_test' %}" class="site-nav__link">Тест</a>
-						{% endif %}
-					{% endfor %}
 					<a href="{% url 'ar_stats' %}" class="site-nav__link">Статистика</a>
 					<form method="post" action="{% url 'logout' %}" class="site-nav__logout-form">
 						{% csrf_token %}
@@ -71,6 +67,7 @@
 	<button type="button" class="back-to-top" id="back-to-top" title="В начало страницы" aria-label="В начало страницы">↑</button>
 	<script src="{% static 'common/payout-keyboard.js' %}"></script>
 	<script src="{% static 'common/fuse_timer.js' %}"></script>
+	<script src="{% static 'common/form-scroll-restore.js' %}"></script>
 	<script>
 	(function() {
 		var btn = document.getElementById('back-to-top');

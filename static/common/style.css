@@ -623,7 +623,7 @@ main h2 {
     padding: 10px 8px;
   }
 
-  .tip-jar__btn {
+  .chaevye-btn--platform {
     width: 100%;
     max-width: 20rem;
     box-sizing: border-box;
@@ -734,6 +734,281 @@ main h2 {
   }
   .texas-hole .card-img {
     width: 56px;
+  }
+}
+
+/* --- Hold'em: сравнение гость / дилер (9 карт) --- */
+.texas-layout--compare {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.texas-compare-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.texas-compare-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.texas-board--compare {
+  margin-bottom: 0;
+}
+
+.holdem-compare-panel .texas-layout--compare {
+  margin-top: 0.35rem;
+  margin-bottom: 0.25rem;
+}
+
+.holdem-compare-form {
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(30, 58, 95, 0.1);
+}
+
+/* Оверлей на весь вьюпорт — у формы не оставляем полосы сверху */
+.holdem-compare-form:has(.payout-success-overlay) {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+/* Младше | Ничья | Старше — слева / центр / справа */
+.holdem-compare-buttons {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.holdem-compare-buttons .holdem-compare-btn:nth-child(1) {
+  justify-self: start;
+}
+
+.holdem-compare-buttons .holdem-compare-btn:nth-child(2) {
+  justify-self: center;
+}
+
+.holdem-compare-buttons .holdem-compare-btn:nth-child(3) {
+  justify-self: end;
+}
+
+.holdem-compare-buttons .holdem-compare-btn {
+  min-width: 0;
+  text-align: center;
+}
+
+/* Кнопки ответа: без синих заливок — шкала «слабее → ничья → сильнее» */
+.holdem-compare-btn {
+  font-family: var(--font);
+  font-weight: 600;
+  font-size: 0.92rem;
+  line-height: 1.2;
+  padding: 11px 14px;
+  margin: 0;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  appearance: none;
+  box-shadow: 0 1px 3px rgba(30, 58, 95, 0.07);
+  transition:
+    background 0.18s,
+    border-color 0.18s,
+    color 0.18s,
+    box-shadow 0.18s,
+    transform 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.holdem-compare-btn:focus-visible {
+  outline: 2px solid var(--bg-header);
+  outline-offset: 2px;
+}
+
+.holdem-compare-btn--lower {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
+.holdem-compare-btn--lower:hover {
+  background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
+  border-color: #94a3b8;
+  color: #334155;
+}
+
+.holdem-compare-btn--tie {
+  background: #fff;
+  border-color: #cbd5e1;
+  color: #334155;
+  box-shadow: 0 1px 4px rgba(30, 58, 95, 0.06);
+}
+
+.holdem-compare-btn--tie:hover {
+  border-color: #94a3b8;
+  background: #fafafa;
+}
+
+.holdem-compare-btn--higher {
+  background: linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%);
+  border-color: #6ee7b7;
+  color: #065f46;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.12);
+}
+
+.holdem-compare-btn--higher:hover {
+  background: linear-gradient(180deg, #d1fae5 0%, #a7f3d0 100%);
+  border-color: #34d399;
+  color: #064e3b;
+}
+
+.holdem-compare-btn:active {
+  transform: scale(0.98);
+}
+
+.holdem-compare-btn--ante {
+  background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%);
+  border-color: #f59e0b;
+  color: #92400e;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+}
+
+.holdem-compare-btn--ante:hover {
+  background: linear-gradient(180deg, #fef3c7 0%, #fde68a 100%);
+  border-color: #d97706;
+  color: #78350f;
+}
+
+.holdem-compare-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.65rem;
+  width: 100%;
+  max-width: 26rem;
+  margin: 0 auto;
+}
+
+.holdem-compare-actions__hint {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.holdem-compare-actions .holdem-compare-btn--ante {
+  width: 100%;
+  justify-self: stretch;
+  min-height: 46px;
+}
+
+.holdem-compare-footer-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  text-align: initial;
+}
+
+@media (max-width: 600px) {
+  /* Пять карт борда на всю ширину ряда (без искусственного max-width) */
+  .texas-layout--compare .texas-board--compare {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 4px;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .texas-layout--compare .texas-board--compare .card-img {
+    flex: 1 1 0;
+    min-width: 0;
+    width: 100%;
+    max-width: none;
+    height: auto;
+  }
+
+  /*
+   * Hold'em «старше / младше»: мобилка — обычные поля main/main-card,
+   * у блока с картами сохраняем «стеклянную» панель с нормальными отступами (не в линию с краем экрана).
+   */
+  .holdem-compare-page.auth-shell {
+    padding: 1rem 12px 1.15rem;
+  }
+
+  .holdem-compare-page {
+    overflow: visible;
+    box-sizing: border-box;
+  }
+
+  .holdem-compare-page .holdem-compare-panel {
+    padding: 1.05rem max(14px, env(safe-area-inset-left, 0px)) 1.15rem max(14px, env(safe-area-inset-right, 0px));
+    margin-left: 0;
+    margin-right: 0;
+    border-radius: var(--radius);
+    border: 1px solid rgba(30, 58, 95, 0.12);
+    border-left: 4px solid rgba(37, 99, 235, 0.35);
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 24px rgba(30, 58, 95, 0.07);
+  }
+
+  .holdem-compare-page .texas-layout--compare .texas-board--compare {
+    gap: 5px;
+  }
+
+  .holdem-compare-page .holdem-compare-form {
+    padding-left: max(14px, env(safe-area-inset-left, 0px));
+    padding-right: max(14px, env(safe-area-inset-right, 0px));
+    padding-top: 1rem;
+    padding-bottom: 0.65rem;
+    margin-top: 0.15rem;
+    box-sizing: border-box;
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0.98) 0%, rgba(241, 245, 249, 0.5) 55%, transparent 100%);
+    border-top: 1px solid rgba(30, 58, 95, 0.09);
+  }
+
+  .holdem-compare-page .holdem-compare-actions {
+    max-width: none;
+  }
+
+  .holdem-compare-page .holdem-compare-buttons {
+    gap: 6px;
+  }
+
+  .holdem-compare-page .holdem-compare-btn {
+    min-height: 48px;
+    padding: 10px 8px;
+    font-size: 0.86rem;
+    letter-spacing: 0.01em;
+    border-radius: 12px;
+  }
+
+  .holdem-compare-page .texas-compare-label {
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    color: #64748b;
+  }
+
+  .holdem-compare-page .site-shell__footer {
+    padding-left: max(10px, env(safe-area-inset-left, 0px));
+    padding-right: max(10px, env(safe-area-inset-right, 0px));
+    box-sizing: border-box;
   }
 }
 
@@ -2471,12 +2746,6 @@ main.auth-main--ar-hub .main-card {
   margin: 0 auto;
 }
 
-.poker-hub__grid--holdem {
-  grid-template-columns: 1fr;
-  max-width: 240px;
-  margin: 0 auto;
-}
-
 .poker-hub__tile {
   display: flex;
   flex-direction: column;
@@ -2542,10 +2811,6 @@ main.auth-main--ar-hub .main-card {
   .poker-hub__grid {
     gap: 18px;
     max-width: 520px;
-  }
-
-  .poker-hub__grid--holdem {
-    max-width: 260px;
   }
 }
 
@@ -2845,66 +3110,314 @@ main.auth-main--ar-hub .main-card {
   }
 }
 
-/* Чаевые / благодарность */
-.tip-jar__btn {
+/* Инфо-страницы: тот же фон и стеклянные панели, что у чаевых */
+.site-shell {
+  --shell-spot-teal-dim: rgba(13, 148, 136, 0.14);
+  --shell-spot-warm: rgba(180, 83, 9, 0.1);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .site-shell {
+    background:
+      radial-gradient(ellipse 120% 80% at 100% 0%, var(--shell-spot-teal-dim) 0%, transparent 55%),
+      radial-gradient(ellipse 90% 60% at 0% 100%, var(--shell-spot-warm) 0%, transparent 50%),
+      linear-gradient(165deg, #ffffff 0%, #f0f7ff 45%, #e8f0fc 100%);
+  }
+}
+
+.site-shell .auth-shell__title {
+  text-align: center;
+  color: #0f172a;
+}
+
+.site-shell .auth-shell__lead {
+  text-align: center;
+  max-width: 38rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.site-shell .sop-quiz__lead,
+.site-shell .sop-quiz__public-text {
+  text-align: center;
+  max-width: 38rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.site-shell .tip-thanks__note {
+  text-align: center;
+  max-width: 38rem;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 1rem;
+}
+
+.site-shell__panel {
+  margin-top: 0.85rem;
+  padding: 1.25rem 1.35rem 1.35rem;
+  border-radius: var(--radius);
+  border: 1px solid rgba(30, 58, 95, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 24px rgba(30, 58, 95, 0.07);
+  border-left: 4px solid rgba(37, 99, 235, 0.35);
+}
+
+.site-shell__panel--narrow {
+  max-width: 26rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.site-shell__panel--wide {
+  max-width: 100%;
+}
+
+.site-shell__panel .auth-shell__title {
+  margin-top: 0;
+}
+
+.site-shell__footer {
+  margin-top: 1.75rem;
+}
+
+.site-shell__footer--tight {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: none;
+}
+
+.site-shell .tip-thanks__quote {
+  margin: 0;
+}
+
+.site-shell__panel > .authors-entries:first-child {
+  margin-top: 0.35rem;
+}
+
+/* Чаевые: блоки СБП / онлайн */
+.chaevye-methods {
+  --chaevye-teal: #0d9488;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-width: 26rem;
+  margin: 0.25rem auto 0;
+}
+
+.chaevye-panel {
+  position: relative;
+  padding: 1.25rem 1.35rem 1.35rem;
+  border-radius: var(--radius);
+  border: 1px solid rgba(30, 58, 95, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 24px rgba(30, 58, 95, 0.07);
+}
+
+.chaevye-panel--sbp {
+  border-left: 4px solid var(--chaevye-teal);
+}
+
+.chaevye-panel--online {
+  border-left: 4px solid var(--accent);
+}
+
+.chaevye-panel__head {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.35rem;
+}
+
+.chaevye-panel__head--plain {
+  margin-bottom: 0.5rem;
+}
+
+.chaevye-panel__badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-top: 1.25rem;
-  padding: 12px 22px;
-  border: none;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff;
+  background: linear-gradient(135deg, var(--chaevye-teal) 0%, #0f766e 100%);
+  box-shadow: 0 1px 4px rgba(13, 148, 136, 0.35);
+}
+
+.chaevye-panel__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+.chaevye-panel__hint {
+  margin: 0 0 0.85rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.chaevye-panel__text {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.chaevye-panel__action {
+  display: flex;
+  justify-content: center;
+}
+
+.chaevye-phone {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.2rem;
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
   border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, var(--accent) 0%, #1d4ed8 100%);
-  color: #fff;
-  font-weight: 600;
-  font-size: 1rem;
   text-decoration: none;
-  cursor: pointer;
-  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.35);
-  transition: transform 0.15s, box-shadow 0.2s;
+  color: inherit;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid var(--border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
 }
 
-.tip-jar__btn:hover {
+.chaevye-phone:hover {
+  border-color: rgba(13, 148, 136, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    0 4px 14px rgba(13, 148, 136, 0.12);
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
-  color: #fff;
+  color: inherit;
 }
 
-.chaevye-sbp-block {
-  margin-top: 0.5rem;
+.chaevye-phone:focus-visible {
+  outline: 2px solid var(--chaevye-teal);
+  outline-offset: 2px;
 }
 
-.chaevye-sbp-tel {
-  color: var(--accent);
-  font-weight: 600;
-  text-decoration: none;
-  white-space: nowrap;
+.chaevye-phone__label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
-.chaevye-sbp-tel:hover {
-  text-decoration: underline;
+.chaevye-phone__num {
+  font-size: 1.35rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: var(--chaevye-teal);
+  line-height: 1.2;
 }
 
 .chaevye-banks {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
-  margin: 0.4rem 0 0;
+  gap: 0.45rem;
+  margin: 0;
   padding: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 
 .chaevye-bank-pill {
   display: inline-flex;
   align-items: center;
-  padding: 0.25rem 0.65rem;
+  padding: 0.35rem 0.75rem;
   border-radius: 999px;
-  border: 1px solid var(--border, #e2e8f0);
-  background: var(--surface-hover, #f8fafc);
-  color: var(--text-muted, #64748b);
+  border: 1px solid rgba(30, 58, 95, 0.12);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--text-muted);
   font-weight: 600;
+  font-size: 0.8125rem;
 }
+
+.chaevye-or {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0.65rem 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.chaevye-or span {
+  padding: 0 0.75rem;
+  position: relative;
+}
+
+.chaevye-or span::before,
+.chaevye-or span::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 3.5rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border));
+}
+
+.chaevye-or span::before {
+  right: 100%;
+  margin-right: 0.25rem;
+  background: linear-gradient(90deg, transparent, var(--border));
+}
+
+.chaevye-or span::after {
+  left: 100%;
+  margin-left: 0.25rem;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+.chaevye-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 22px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.2s;
+}
+
+.chaevye-btn--platform {
+  background: linear-gradient(135deg, var(--accent) 0%, #1d4ed8 100%);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.35);
+}
+
+.chaevye-btn--platform:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
+  color: #fff;
+}
+
+.chaevye-btn--platform:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Чаевые / благодарность (страница «Спасибо») */
 
 .tip-thanks__quote {
   margin: 0 0 1rem;
@@ -2920,4 +3433,146 @@ main.auth-main--ar-hub .main-card {
   font-size: 0.92rem;
   color: var(--text-muted);
   text-align: center;
+}
+
+/* --- Тесты СОП (Boomerang) --- */
+.sop-quiz__lead {
+  color: var(--text-muted);
+  max-width: 42rem;
+}
+
+.sop-quiz__public-text {
+  max-width: 40rem;
+}
+
+.sop-quiz__public-actions {
+  margin-top: 1rem;
+}
+
+.sop-quiz__back {
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+}
+
+.sop-quiz__back a {
+  color: var(--accent);
+}
+
+.sop-quiz__test-list {
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+}
+
+.sop-quiz__test-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  background: var(--bg-main);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+}
+
+.sop-quiz__test-link {
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.sop-quiz__test-link:hover {
+  text-decoration: underline;
+}
+
+.sop-quiz__test-meta {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.sop-quiz__progress {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin: 0 0 0.75rem;
+}
+
+.sop-quiz__question {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0 0 1.25rem;
+}
+
+.sop-quiz__options {
+  border: none;
+  margin: 0 0 1.25rem;
+  padding: 0;
+}
+
+.sop-quiz__option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.sop-quiz__option:hover {
+  border-color: var(--accent);
+  background: rgba(37, 99, 235, 0.04);
+}
+
+.sop-quiz__option input {
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.sop-quiz__score {
+  font-size: 1.1rem;
+  margin: 0 0 1.25rem;
+}
+
+.sop-quiz__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.sop-quiz__mistakes {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+}
+
+.sop-quiz__mistake {
+  margin-bottom: 1.25rem;
+  padding: 12px 14px;
+  border-left: 4px solid var(--error);
+  background: rgba(220, 38, 38, 0.06);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.sop-quiz__mistake-q {
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+}
+
+.sop-quiz__mistake-wrong {
+  margin: 0.35rem 0;
+  font-size: 0.95rem;
+  color: var(--error);
+}
+
+.sop-quiz__mistake-right {
+  margin: 0.35rem 0;
+  font-size: 0.95rem;
+  color: var(--success);
 }

@@ -2,30 +2,49 @@
 
 {% block title %}Чаевые — поддержать тренажёры{% endblock %}
 
-{% block main_class %}auth-main{% endblock %}
+{% block main_class %}auth-main auth-main--wide{% endblock %}
 
 {% block content %}
-<div class="auth-shell">
+<div class="auth-shell site-shell">
 	<h1 class="auth-shell__title">Чаевые</h1>
 	<p class="auth-shell__lead">
-		Если тренажёры пригодились — можно "дать на чай". Это не влияет на доступ к материалам, просто возможность сказать «спасибо».
+		Если тренажёры пригодились — можно «дать на чай». Это не влияет на доступ к материалам, просто возможность сказать «спасибо».
 	</p>
-	<p class="auth-shell__lead chaevye-sbp-block">
-		<strong>По СБП:</strong>
-		<a href="tel:+79676568168" class="chaevye-sbp-tel">+7&nbsp;967&nbsp;65&nbsp;68&nbsp;168</a>
-	</p>
-	<p class="chaevye-banks" aria-label="Через приложения банков">
-		<span class="chaevye-bank-pill">Сбер</span>
-		<span class="chaevye-bank-pill">Т-Банк</span>
-	</p>
-	{% if tip_jar_url %}
-		<p class="auth-shell__lead" style="margin-top: 0.5rem;">
-			Переходите по ссылке — там безопасная оплата на стороне выбранной площадки.
-		</p>
-		<p style="text-align: center;">
-			<a href="{{ tip_jar_url }}" class="tip-jar__btn" target="_blank" rel="noopener noreferrer">Кинуть чаевые</a>
-		</p>
-	{% endif %}
-	<p class="auth-footer"><a href="{% url 'homepage_index' %}">На главную</a></p>
+
+	<div class="chaevye-methods">
+		<article class="chaevye-panel chaevye-panel--sbp" aria-labelledby="chaevye-sbp-heading">
+			<div class="chaevye-panel__head">
+				<span class="chaevye-panel__badge" aria-hidden="true">СБП</span>
+				<h2 id="chaevye-sbp-heading" class="chaevye-panel__title">Быстрый перевод</h2>
+			</div>
+			<p class="chaevye-panel__hint">Номер для перевода в приложении банка</p>
+			<a href="tel:+79676568168" class="chaevye-phone" title="Позвонить или открыть набор номера">
+				<span class="chaevye-phone__label">Телефон</span>
+				<span class="chaevye-phone__num">+7&nbsp;967&nbsp;65&nbsp;68&nbsp;168</span>
+			</a>
+			<p class="chaevye-banks" aria-label="Подходит для приложений банков">
+				<span class="chaevye-bank-pill">Сбер</span>
+				<span class="chaevye-bank-pill">Т-Банк</span>
+			</p>
+		</article>
+
+		{% if tip_jar_url %}
+		<p class="chaevye-or" role="presentation"><span>или</span></p>
+
+		<article class="chaevye-panel chaevye-panel--online" aria-labelledby="chaevye-online-heading">
+			<div class="chaevye-panel__head chaevye-panel__head--plain">
+				<h2 id="chaevye-online-heading" class="chaevye-panel__title">Онлайн-оплата</h2>
+			</div>
+			<p class="chaevye-panel__text">
+				Переход по ссылке — оплата проходит на стороне выбранной площадки.
+			</p>
+			<div class="chaevye-panel__action">
+				<a href="{{ tip_jar_url }}" class="chaevye-btn chaevye-btn--platform" target="_blank" rel="noopener noreferrer">Кинуть чаевые</a>
+			</div>
+		</article>
+		{% endif %}
+	</div>
+
+	<p class="auth-footer site-shell__footer"><a href="{% url 'homepage_index' %}">На главную</a></p>
 </div>
 {% endblock %}

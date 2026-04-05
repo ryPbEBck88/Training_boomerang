@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}СОП — тесты{% endblock %}
+
+{% block content %}
+<h1>Тесты по СОП</h1>
+<p class="sop-quiz__lead">Выберите игру. Вопросы и варианты ответов в каждой попытке показываются <strong>в случайном порядке</strong>.</p>
+{% if tests %}
+<ul class="sop-quiz__test-list">
+	{% for test in tests %}
+	<li class="sop-quiz__test-item">
+		<a href="{% url 'boomerang_sop_intro' slug=test.slug %}" class="sop-quiz__test-link">{{ test.title }}</a>
+		<span class="sop-quiz__test-meta">{{ test.q_count }} вопр.</span>
+	</li>
+	{% endfor %}
+</ul>
+{% else %}
+<p class="message error">Тесты ещё не загружены. Администратору: выполните <code>python manage.py import_sop_tests --replace</code>.</p>
+{% endif %}
+{% endblock %}

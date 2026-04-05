@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Результат — {{ test.title }}{% endblock %}
+
+{% block content %}
+<h1>Результат</h1>
+<p class="sop-quiz__score {% if correct == total %}message success{% endif %}">
+	Правильных ответов: <strong>{{ correct }}</strong> из {{ total }}.
+</p>
+<p class="sop-quiz__actions">
+	<a href="{% url 'boomerang_sop_intro' slug=test.slug %}" class="btn btn-primary">Пройти снова</a>
+	<a href="{% url 'boomerang_test' %}" class="btn btn-secondary">Другие тесты</a>
+</p>
+{% if mistakes %}
+<h2>Ошибки</h2>
+<ul class="sop-quiz__mistakes">
+	{% for m in mistakes %}
+	<li class="sop-quiz__mistake">
+		<p class="sop-quiz__mistake-q">{{ m.question.text }}</p>
+		<p class="sop-quiz__mistake-wrong">Ваш ответ: {% if m.chosen %}{{ m.chosen.text }}{% else %}—{% endif %}</p>
+		<p class="sop-quiz__mistake-right">Верно: {% if m.right %}{{ m.right.text }}{% else %}—{% endif %}</p>
+	</li>
+	{% endfor %}
+</ul>
+{% endif %}
+{% endblock %}

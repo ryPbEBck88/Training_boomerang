@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}СОП{% endblock %}
+
+{% block main_class %}auth-main auth-main--wide{% endblock %}
+
+{% block content %}
+<div class="auth-shell site-shell">
+	<h1 class="auth-shell__title">Тесты по СОП</h1>
+	<div class="site-shell__panel site-shell__panel--wide">
+	<p class="sop-quiz__lead sop-quiz__public-text">
+		В этом разделе — проверка знаний стандартов работы (СОП) по играм. Проходить тесты могут только
+		<strong>зарегистрированные</strong> пользователи, включённые в группу <strong>Boomerang</strong>.
+	</p>
+	{% if user.is_authenticated %}
+	<p class="sop-quiz__public-text">
+		Вы вошли как <strong>{{ user.username }}</strong>, но доступа к тестам пока нет.
+		Обратитесь к <strong>руководству</strong> или <strong>администратору сайта</strong>, чтобы вас добавили в группу Boomerang.
+	</p>
+	{% else %}
+	<p class="sop-quiz__public-text">
+		Если вы работник Boomerang: <strong>зарегистрируйтесь</strong> на сайте, подтвердите адрес почты,
+		затем обратитесь к руководству или администратору — после включения в группу тесты откроются по ссылке «СОП» в меню.
+	</p>
+	<p class="auth-footer sop-quiz__public-actions">
+		<a href="{% url 'login' %}">Войти</a>
+		<span class="authors-thanks__sep" aria-hidden="true">·</span>
+		<a href="{% url 'register' %}">Регистрация</a>
+	</p>
+	{% endif %}
+	</div>
+	<p class="auth-footer site-shell__footer"><a href="{% url 'homepage_index' %}">На главную</a></p>
+</div>
+{% endblock %}

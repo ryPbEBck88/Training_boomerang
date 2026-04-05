@@ -3,6 +3,7 @@ from data.cards import get_shuffled_shoe
 from blackjack.utils.payout import get_random_bet
 from training.utils.timer import process_timer_settings
 from .utils.combo import make_combo_queue, make_holdem_combo_queue, hand_to_combo, best_combo_from_7, COMBO_CHOICES, COMBO_CHOICES_HOLDEM
+from .utils.holdem_compare import comparison_answer
 from .utils.payout import check_user_payout
 
 
@@ -68,6 +69,76 @@ def combo(request):
     return render(request, 'poker/combo.html', {
         'hand': hand,
         'combo_choices': COMBO_CHOICES,
+        'message': message,
+        'success': success,
+    })
+
+
+def holdem_comparison(request):
+    """
+    Тренажёр: 9 карт. Игра дилера от пары четвёрок; если нет игры — верный ответ Ante.
+    Иначе: гость сильнее / слабее / ничья с дилером.
+    """
+    message = ''
+    success = None
+
+    shoe = request.session.get('hc_shoe')
+    if request.method == 'GET' and request.GET.get('new'):
+        shoe = get_shuffled_shoe()
+        request.session['hc_shoe'] = shoe
+        request.session.pop('hc_guest', None)
+
+    if not shoe or len(shoe) < 9:
+        shoe = get_shuffled_shoe()
+        request.session['hc_shoe'] = shoe
+
+    guest = request.session.get('hc_guest')
+    board = request.session.get('hc_board')
+    dealer = request.session.get('hc_dealer')
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'next':
+            shoe = request.session.get('hc_shoe')
+            if len(shoe) < 9:
+                shoe = get_shuffled_shoe()
+            guest = [shoe.pop(0) for _ in range(2)]
+            board = [shoe.pop(0) for _ in range(5)]
+            dealer = [shoe.pop(0) for _ in range(2)]
+            request.session['hc_shoe'] = shoe
+            request.session['hc_guest'] = guest
+            request.session['hc_board'] = board
+            request.session['hc_dealer'] = dealer
+        elif action == 'check':
+            guest = request.session.get('hc_guest')
+            board = request.session.get('hc_board')
+            dealer = request.session.get('hc_dealer')
+            if guest is not None and board is not None and dealer is not None:
+                guess = request.POST.get('guess')
+                correct = comparison_answer(guest, dealer, board)
+                if guess == correct:
+                    message = 'Верно!'
+                    success = True
+                else:
+                    message = 'Неправильно!'
+                    success = False
+
+    if guest is None:
+        shoe = request.session.get('hc_shoe')
+        if len(shoe) < 9:
+            shoe = get_shuffled_shoe()
+        guest = [shoe.pop(0) for _ in range(2)]
+        board = [shoe.pop(0) for _ in range(5)]
+        dealer = [shoe.pop(0) for _ in range(2)]
+        request.session['hc_shoe'] = shoe
+        request.session['hc_guest'] = guest
+        request.session['hc_board'] = board
+        request.session['hc_dealer'] = dealer
+
+    return render(request, 'poker/holdem_comparison.html', {
+        'guest_hole': guest,
+        'board': board,
+        'dealer_hole': dealer,
         'message': message,
         'success': success,
     })

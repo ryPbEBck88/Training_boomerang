@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import SitePageVisit
+from .models import SitePageVisit, SopAnswer, SopGameTest, SopQuestion
 
 
 @admin.register(SitePageVisit)
@@ -35,3 +35,32 @@ class SitePageVisitAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser
+
+
+class SopAnswerInline(admin.TabularInline):
+    model = SopAnswer
+    extra = 0
+
+
+@admin.register(SopGameTest)
+class SopGameTestAdmin(admin.ModelAdmin):
+    list_display = ('slug', 'title', 'question_count', 'updated_at')
+    search_fields = ('slug', 'title')
+
+    @admin.display(description='вопросов')
+    def question_count(self, obj):
+        return obj.questions.count()
+
+
+@admin.register(SopQuestion)
+class SopQuestionAdmin(admin.ModelAdmin):
+    list_display = ('short_text', 'test', 'sort_order')
+    list_filter = ('test',)
+    search_fields = ('text',)
+    inlines = [SopAnswerInline]
+    ordering = ('test', 'sort_order', 'id')
+
+    @admin.display(description='вопрос')
+    def short_text(self, obj):
+        t = obj.text
+        return (t[:70] + '…') if len(t) > 70 else t

@@ -5,9 +5,10 @@
 {% block main_class %}auth-main{% endblock %}
 
 {% block content %}
-<div class="auth-shell">
+<div class="auth-shell site-shell">
 	<h1 class="auth-shell__title">Регистрация</h1>
 	<p class="auth-shell__lead">Укажите логин, почту и пароль. На почту придёт ссылка — без неё войти не получится.</p>
+	<div class="site-shell__panel site-shell__panel--narrow">
 	<form method="post" action="{% url 'register' %}" novalidate>
 		{% csrf_token %}
 		{% if form.non_field_errors %}
@@ -29,6 +30,7 @@
 		{% endfor %}
 		<button type="submit" class="auth-btn">Создать аккаунт</button>
 	</form>
-	<p class="auth-footer">Уже есть аккаунт? <a href="{% url 'login' %}">Войти</a></p>
+	</div>
+	<p class="auth-footer site-shell__footer">Уже есть аккаунт? <a href="{% url 'login' %}">Войти</a></p>
 </div>
 {% endblock %}
