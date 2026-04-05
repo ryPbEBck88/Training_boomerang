@@ -5,13 +5,8 @@ from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_GET, require_POST
 
-from .constants import BOOMERANG_GROUP_NAME
-from .decorators import boomerang_member_required
+from .decorators import boomerang_member_required, is_boomerang_member
 from .models import SopAnswer, SopGameTest, SopQuestion
-
-
-def _is_boomerang_member(user):
-    return user.is_authenticated and user.groups.filter(name=BOOMERANG_GROUP_NAME).exists()
 
 
 def _session_key(slug):
@@ -41,7 +36,7 @@ def _build_quiz_payload(test):
 
 def boomerang_sop_hub(request):
     """СОП: для всех — информация; прохождение тестов — только группа Boomerang."""
-    if _is_boomerang_member(request.user):
+    if is_boomerang_member(request.user):
         tests = (
             SopGameTest.objects.annotate(q_count=Count('questions'))
             .filter(q_count__gt=0)
