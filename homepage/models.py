@@ -3,12 +3,14 @@ from django.db import models
 
 
 class SitePageVisit(models.Model):
-    """Запись просмотра HTML-страницы (учёт посещений)."""
+    """Запись HTTP-запроса к сайту (учёт посещений и ответов)."""
 
     created_at = models.DateTimeField('время', auto_now_add=True, db_index=True)
+    http_method = models.CharField('метод', max_length=10, default='GET', db_index=True)
     path = models.CharField('путь', max_length=512, db_index=True)
     query_string = models.CharField('query', max_length=512, blank=True)
-    status_code = models.PositiveSmallIntegerField('код ответа')
+    status_code = models.PositiveSmallIntegerField('код ответа', db_index=True)
+    content_type = models.CharField('Content-Type', max_length=128, blank=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name='пользователь',

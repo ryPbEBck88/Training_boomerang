@@ -166,7 +166,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 
-# Учёт посещений HTML-страниц (homepage.middleware.SiteVisitLogMiddleware).
+# Учёт HTTP-запросов к сайту (homepage.middleware.SiteVisitLogMiddleware).
 SITE_VISIT_LOG_ENABLED = os.environ.get('SITE_VISIT_LOG_ENABLED', '1').strip().lower() in (
     '1',
     'true',

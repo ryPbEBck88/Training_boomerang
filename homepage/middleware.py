@@ -36,7 +36,7 @@ def _should_skip_path(path):
 
 class SiteVisitLogMiddleware:
     """
-    Пишет в БД успешные GET-запросы с ответом text/html (просмотр страниц).
+    Пишет в БД запросы к сайту (все методы и коды ответа), кроме статики/админки и служебных путей.
     """
 
     def __init__(self, get_response):
@@ -54,13 +54,6 @@ class SiteVisitLogMiddleware:
 
     def _maybe_log(self, request, response):
         if not getattr(settings, 'SITE_VISIT_LOG_ENABLED', True):
-            return
-        if request.method != 'GET':
-            return
-        if response.status_code >= 400:
-            return
-        ct = (response.get('Content-Type') or '').split(';')[0].strip().lower()
-        if ct != 'text/html':
             return
         path = request.path or '/'
         if _should_skip_path(path):
@@ -87,10 +80,17 @@ class SiteVisitLogMiddleware:
             except ValueError:
                 ip = None
 
+        raw_ct = (response.get('Content-Type') or '').split(';')[0].strip()
+        content_type = raw_ct[:128] if raw_ct else ''
+
+        method = (getattr(request, 'method', '') or 'GET').upper()[:10]
+
         SitePageVisit.objects.create(
+            http_method=method,
             path=path[:512],
             query_string=qs,
             status_code=response.status_code,
+            content_type=content_type,
             user=user,
             session_key=sk,
             ip_address=ip,

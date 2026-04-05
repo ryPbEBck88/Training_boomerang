@@ -7,20 +7,25 @@ from .models import SitePageVisit, SopAnswer, SopGameTest, SopQuestion
 class SitePageVisitAdmin(admin.ModelAdmin):
     list_display = (
         'created_at',
+        'http_method',
         'path',
-        'query_string',
         'status_code',
+        'content_type',
+        'query_string',
         'user',
         'ip_address',
     )
-    list_filter = ('status_code', 'created_at')
+    list_filter = ('http_method', 'status_code', 'created_at')
     date_hierarchy = 'created_at'
-    search_fields = ('path', 'ip_address', 'user_agent', 'session_key')
+    search_fields = ('path', 'ip_address', 'user_agent', 'session_key', 'content_type')
+    ordering = ('-created_at',)
     readonly_fields = (
         'created_at',
+        'http_method',
         'path',
         'query_string',
         'status_code',
+        'content_type',
         'user',
         'session_key',
         'ip_address',
