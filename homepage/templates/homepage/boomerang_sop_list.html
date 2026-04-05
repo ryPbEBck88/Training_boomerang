@@ -15,6 +15,6 @@
 	{% endfor %}
 </ul>
 {% else %}
-<p class="message error">Тесты ещё не загружены. Администратору: выполните <code>python manage.py import_sop_tests --replace</code>.</p>
+<p class="message error">Тесты ещё не загружены. Добавьте их в <a href="{% url 'admin:index' %}">админке Django</a> (модели СОП).</p>
 {% endif %}
 {% endblock %}

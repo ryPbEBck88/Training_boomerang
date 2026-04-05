@@ -18,6 +18,9 @@ local_settings.py
 media/
 staticfiles/
 
+# Boomerang SOP: не коммитить исходники Excel
+static/boomerang/sop/*.xlsx
+
 # Deploy (локальные конфиги)
 deploy/
 
