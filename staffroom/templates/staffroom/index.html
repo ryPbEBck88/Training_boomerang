@@ -1,15 +1,31 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Staff Room{% endblock %}
 {% block main_class %}auth-main auth-main--wide{% endblock %}
 
+{% block extra_head %}
+<style>
+.staff-hub__tile-img--blackjack {
+    background:
+        radial-gradient(circle at 26% 28%, rgba(255, 255, 255, 0.18) 0 22%, transparent 24%),
+        linear-gradient(145deg, #166534 0%, #14532d 48%, #0f3f23 100%);
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="auth-shell">
+<div class="auth-shell staff-hub">
     <h1 class="auth-shell__title">Staff Room</h1>
     <p class="auth-shell__lead">Игровая зона для тренировки. Баланс: <strong>{{ wallet.balance }}</strong></p>
-    <div class="auth-actions" style="justify-content:center;">
-        <a href="{% url 'blackjack_staff_room' %}" class="btn btn-primary">Black Jack</a>
-        <a href="{% url 'homepage_index' %}" class="btn btn-secondary">На главную</a>
-    </div>
+    <nav class="ar-hub__nav" aria-label="Упражнения Staff Room">
+        <div class="ar-hub__grid">
+            <a href="{% url 'blackjack_staff_room' %}" class="ar-hub__tile">
+                <span class="ar-hub__tile-img staff-hub__tile-img--blackjack" role="img" aria-hidden="true"></span>
+                <span class="ar-hub__tile-label">Black Jack</span>
+            </a>
+        </div>
+    </nav>
+    <p class="auth-footer"><a href="{% url 'homepage_index' %}">← На главную</a></p>
 </div>
 {% endblock %}

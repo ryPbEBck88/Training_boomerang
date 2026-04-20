@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core.exceptions import ValidationError
-from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.contrib.auth.validators import ASCIIUsernameValidator
 
 User = get_user_model()
 
@@ -28,21 +28,21 @@ class SignUpForm(UserCreationForm):
         self.fields['password1'].widget.attrs.update({'class': 'auth-input', 'autocomplete': 'new-password'})
         self.fields['password2'].widget.attrs.update({'class': 'auth-input', 'autocomplete': 'new-password'})
         self.fields['username'].help_text = (
-            'Разрешены буквы (в т.ч. русские), цифры и символы @/./+/-/_. '
-            'Пробелы недопустимы.'
+            'Разрешены только латинские буквы, цифры и символы @/./+/-/_. '
+            'Пробелы и кириллица недопустимы.'
         )
 
     def clean_username(self):
         username = (self.cleaned_data.get('username') or '').strip()
         if not username:
             raise ValidationError('Укажите имя пользователя.')
-        validator = UnicodeUsernameValidator()
+        validator = ASCIIUsernameValidator()
         try:
             validator(username)
         except ValidationError:
             raise ValidationError(
                 'Имя пользователя содержит недопустимые символы. '
-                'Используйте буквы (в т.ч. русские), цифры и @/./+/-/_.'
+                'Используйте латинские буквы, цифры и @/./+/-/_.'
             )
         if User.objects.filter(username__iexact=username).exists():
             raise ValidationError('Это имя пользователя уже занято.')

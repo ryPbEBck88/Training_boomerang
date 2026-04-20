@@ -276,6 +276,21 @@ def _boxes_for_origin(boxes, origin):
     return [b for b in boxes if int(b.get('origin_box', 0)) == int(origin) and Decimal(b.get('bet', '0')) > 0]
 
 
+def _insert_index_after_origin_group(boxes, origin):
+    """
+    Возвращает индекс вставки нового сплит-бокса:
+    в конец группы исходного бокса (origin), чтобы порядок хода
+    оставался 4.1 -> 4.2 -> 4.3, а не перескакивал на 4.3.
+    """
+    last_idx = None
+    for i, b in enumerate(boxes):
+        if int(b.get('origin_box', 0) or 0) == int(origin):
+            last_idx = i
+    if last_idx is None:
+        return len(boxes)
+    return last_idx + 1
+
+
 def _can_split_current_box(state, box, wallet_balance):
     if not box or box.get('status') != 'playing':
         return False
@@ -540,6 +555,7 @@ def staff_room_blackjack(request):
             dealer_can_blackjack = dealer_card['rank'] in {'10', 'J', 'Q', 'K', 'A'}
             dealer_upcard_is_ace = dealer_card['rank'] == 'A'
             natural_bj_indexes = _natural_blackjack_box_indexes(boxes, active_boxes)
+            insurance_eligible_indexes = _insurance_eligible_box_indexes(boxes, natural_bj_indexes)
             instant_blackjack_payout = Decimal('0.00')
             equal_money_offer_boxes = []
             if dealer_upcard_is_ace and natural_bj_indexes:
@@ -570,14 +586,24 @@ def staff_room_blackjack(request):
                 'shoe': shoe,
                 'dealer_hand': dealer_hand,
                 'boxes': boxes,
-                'phase': 'equal_money_offer' if equal_money_offer_boxes else 'player_turn',
-                'current_box': None if equal_money_offer_boxes else _next_active_box_index(boxes),
+                'phase': (
+                    'equal_money_offer'
+                    if equal_money_offer_boxes
+                    else ('insurance_offer' if dealer_upcard_is_ace and insurance_eligible_indexes else 'player_turn')
+                ),
+                'current_box': (
+                    None
+                    if (equal_money_offer_boxes or (dealer_upcard_is_ace and insurance_eligible_indexes))
+                    else _next_active_box_index(boxes)
+                ),
                 'total_bet': _format_money(total_bet),
                 'total_payout': _format_money(instant_blackjack_payout),
                 'equal_money_offer_boxes': equal_money_offer_boxes,
                 'natural_bj_boxes': natural_bj_indexes,
                 'insurance_bet': '0.00',
                 'insurance_payout': '0.00',
+                'insurance_offer_eligible_count': len(insurance_eligible_indexes) if dealer_upcard_is_ace else 0,
+                'insurance_offer_max': str(200 * len(insurance_eligible_indexes)) if dealer_upcard_is_ace else '0',
                 'split_limits': {},
                 'split_seq': {},
             }
@@ -769,7 +795,8 @@ def staff_room_blackjack(request):
                     card, state['shoe'] = draw_card(state['shoe'])
                     new_box['hand'].append(card)
 
-                state['boxes'].insert(current_idx + 1, new_box)
+                insert_idx = _insert_index_after_origin_group(state['boxes'], origin)
+                state['boxes'].insert(insert_idx, new_box)
                 state['split_limits'] = split_limits
                 state['split_seq'] = split_seq
                 state['current_box'] = _next_active_box_index(state['boxes'], current_idx)
@@ -931,6 +958,8 @@ def staff_room_blackjack(request):
                 {
                     'index': idx,
                     'display_name': _display_name_for_box(box),
+                    'origin_box': int(box.get('origin_box', idx) or idx),
+                    'split_no': int(box.get('split_no') or 1),
                     'bet': box['bet'],
                     'hand': box['hand'],
                     'best': best,
@@ -956,7 +985,11 @@ def staff_room_blackjack(request):
                     ),
                 }
             )
-        ordered_boxes = sorted(view_boxes, key=lambda b: b['index'], reverse=True)
+        ordered_boxes = sorted(
+            view_boxes,
+            key=lambda b: (b.get('origin_box', 0), b.get('split_no', 1)),
+            reverse=True,
+        )
     else:
         ordered_boxes = [
             {
