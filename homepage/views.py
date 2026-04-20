@@ -52,12 +52,13 @@ def register(request):
                 send_activation_email(request, user)
             except Exception:
                 logger.exception('activation email failed for user_id=%s', user.pk)
-                user.delete()
                 form.add_error(
                     None,
-                    'Не удалось отправить письмо. Проверьте адрес почты или настройки сервера и попробуйте снова.',
+                    'Аккаунт создан, но письмо не отправилось. '
+                    'Проверьте почту и попробуйте отправить письмо ещё раз.',
                 )
             else:
+                request.session['register_pending_user_id'] = user.pk
                 return redirect('register_verify_sent')
     else:
         form = SignUpForm()
@@ -67,7 +68,52 @@ def register(request):
 def register_verify_sent(request):
     if request.user.is_authenticated:
         return redirect('homepage_index')
-    return render(request, 'registration/register_verify_sent.html')
+    pending_user_id = request.session.get('register_pending_user_id')
+    can_resend = False
+    if pending_user_id:
+        try:
+            user = User.objects.get(pk=pending_user_id)
+            can_resend = not user.is_active
+        except User.DoesNotExist:
+            can_resend = False
+    return render(request, 'registration/register_verify_sent.html', {'can_resend': can_resend})
+
+
+def resend_activation(request):
+    if request.user.is_authenticated:
+        return redirect('homepage_index')
+    if request.method != 'POST':
+        return redirect('register_verify_sent')
+    pending_user_id = request.session.get('register_pending_user_id')
+    if not pending_user_id:
+        return redirect('register')
+    try:
+        user = User.objects.get(pk=pending_user_id)
+    except User.DoesNotExist:
+        request.session.pop('register_pending_user_id', None)
+        return redirect('register')
+    if user.is_active:
+        request.session.pop('register_pending_user_id', None)
+        return redirect(f'{reverse("login")}?confirmed=1')
+    try:
+        send_activation_email(request, user)
+    except Exception:
+        logger.exception('activation email resend failed for user_id=%s', user.pk)
+        return render(
+            request,
+            'registration/register_verify_sent.html',
+            {
+                'can_resend': True,
+                'resend_error': (
+                    'Письмо снова не отправилось. Проверьте адрес или настройки почты и повторите попытку.'
+                ),
+            },
+        )
+    return render(
+        request,
+        'registration/register_verify_sent.html',
+        {'can_resend': True, 'resend_ok': 'Письмо отправлено повторно. Проверьте почту.'},
+    )
 
 
 def activate_account(request, uidb64, token):

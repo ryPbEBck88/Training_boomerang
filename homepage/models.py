@@ -25,11 +25,11 @@ class SitePageVisit(models.Model):
 
     class Meta:
         ordering = ['-created_at']
-        verbose_name = 'просмотр страницы'
-        verbose_name_plural = 'просмотры страниц'
+        verbose_name = 'запрос к сайту'
+        verbose_name_plural = 'запросы к сайту'
 
     def __str__(self):
-        return f'{self.created_at:%Y-%m-%d %H:%M} {self.path}'
+        return f'{self.created_at:%Y-%m-%d %H:%M} {self.http_method} {self.path}'
 
 
 class SopGameTest(models.Model):

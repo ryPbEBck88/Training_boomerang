@@ -1,0 +1,1117 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Black Jack{% endblock %}
+{% block main_class %}bj-main auth-main--wide{% endblock %}
+{% block extra_head %}
+<style>
+main.bj-main.auth-main--wide {
+    max-width: none !important;
+}
+main.bj-main.auth-main--wide .main-card {
+    max-width: none !important;
+    width: 100% !important;
+}
+@media (min-width: 1024px) {
+    main.bj-main.auth-main--wide {
+        width: 100vw !important;
+        max-width: none !important;
+        margin-left: calc(50% - 50vw) !important;
+        margin-right: 0 !important;
+        margin-top: 0 !important;
+        padding: 10px 14px 20px !important;
+    }
+    main.bj-main.auth-main--wide .main-card {
+        width: 100% !important;
+        max-width: none !important;
+        min-height: calc(100vh - 120px) !important;
+    }
+}
+.bj-screen {
+    overflow-x: hidden;
+}
+.bj-dealer-cards {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.bj-dealer-score {
+    margin: 8px auto 0;
+    width: fit-content;
+    min-width: 44px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    background: rgba(15, 23, 42, 0.34);
+    color: #f8fafc;
+    font-weight: 700;
+    text-align: center;
+}
+.bj-dealer-card {
+    background: #fff;
+    border-radius: 6px;
+    display: block;
+}
+.bj-deal-anim {
+    animation: bj-deal-in 380ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    will-change: transform, opacity;
+}
+.bj-deal-anim-dealer {
+    animation-duration: 560ms;
+}
+.bj-boxes-row {
+    overflow-x: auto;
+    padding: 6px 4px 8px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: nowrap;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    cursor: grab;
+    user-select: none;
+    touch-action: auto;
+}
+.bj-boxes-row.is-dragging {
+    cursor: grabbing;
+}
+.bj-boxes-row::before,
+.bj-boxes-row::after {
+    content: '';
+    flex: 0 0 calc(50% - 100px);
+}
+.bj-box {
+    display: inline-block;
+    flex: 0 0 auto;
+    vertical-align: top;
+    text-align: center;
+    width: 200px;
+    border-radius: 10px;
+    padding: 4px 2px 6px;
+    scroll-snap-align: center;
+}
+.bj-box.is-active {
+    border: 2px solid #facc15;
+    box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.2);
+    background: rgba(15, 23, 42, 0.24);
+}
+.bj-box.is-selected {
+    border: 2px solid #93c5fd;
+    box-shadow: 0 0 0 2px rgba(147, 197, 253, 0.24);
+    background: rgba(15, 23, 42, 0.2);
+}
+.bj-table {
+    margin-top: 8px;
+    padding: 10px 12px 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(0, 0, 0, 0.28);
+    background: linear-gradient(165deg, #166534 0%, #14532d 42%, #0c3d22 100%);
+    color: #f8fafc;
+}
+.bj-chip-row {
+    margin-top: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+.bj-chip-btn {
+    --chip-main: #64748b;
+    --chip-edge: #0f172a;
+    --chip-text: #ffffff;
+    position: relative;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    border: 2px solid var(--chip-edge);
+    background:
+        radial-gradient(circle at 35% 32%, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.06) 34%, transparent 38%),
+        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.22) 0 38%, transparent 40%),
+        linear-gradient(180deg, color-mix(in srgb, var(--chip-main) 88%, white 12%) 0%, var(--chip-main) 68%, color-mix(in srgb, var(--chip-main) 85%, black 15%) 100%);
+    color: var(--chip-text);
+    font-weight: 800;
+    font-size: 0.78rem;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        inset 0 -3px 8px rgba(0, 0, 0, 0.25),
+        0 6px 10px rgba(2, 6, 23, 0.38);
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.bj-chip-btn::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border-radius: 50%;
+    border: 2px dashed rgba(255, 255, 255, 0.55);
+    pointer-events: none;
+}
+.bj-chip-btn:hover {
+    transform: translateY(-1px) scale(1.03);
+}
+.bj-chip-btn:active {
+    transform: translateY(1px) scale(0.98);
+}
+.bj-chip-btn[data-chip="1"] { --chip-main: #94a3b8; --chip-edge: #1f2937; --chip-text: #0f172a; }
+.bj-chip-btn[data-chip="5"] { --chip-main: #c41e3a; --chip-edge: #7f1d1d; }
+.bj-chip-btn[data-chip="25"] { --chip-main: #15803d; --chip-edge: #14532d; }
+.bj-chip-btn[data-chip="100"] { --chip-main: #1f2937; --chip-edge: #020617; }
+.bj-chip-btn[data-chip="500"] { --chip-main: #db2777; --chip-edge: #831843; }
+.bj-chip-btn[data-chip="1000"] { --chip-main: #f8fafc; --chip-edge: #334155; --chip-text: #0f172a; }
+.bj-chip-btn[data-chip="5000"] { --chip-main: #7c3aed; --chip-edge: #4c1d95; }
+.bj-chip-btn[data-chip="1000"]::before {
+    border-color: rgba(15, 23, 42, 0.45);
+}
+.bj-bet-chip {
+    --chip-main: #1f2937;
+    --chip-edge: #020617;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 52px;
+    height: 52px;
+    padding: 0 8px;
+    border-radius: 999px;
+    border: 2px solid var(--chip-edge);
+    background:
+        radial-gradient(circle at 35% 32%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.08) 34%, transparent 40%),
+        linear-gradient(180deg, color-mix(in srgb, var(--chip-main) 88%, white 12%) 0%, var(--chip-main) 68%, color-mix(in srgb, var(--chip-main) 85%, black 15%) 100%);
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.8rem;
+    letter-spacing: 0.01em;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), inset 0 -2px 8px rgba(0, 0, 0, 0.25), 0 5px 10px rgba(2, 6, 23, 0.35);
+}
+.bj-bet-tray {
+    margin: 0 auto 8px;
+    width: 168px;
+    min-height: 62px;
+    border: 2px solid rgba(255, 255, 255, 0.42);
+    border-radius: 10px;
+    background: rgba(15, 23, 42, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 6px 8px;
+}
+.bj-bet-tray-slot {
+    width: 72px;
+    height: 48px;
+    border-radius: 8px;
+    border: 1px dashed rgba(255, 255, 255, 0.32);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.bj-bet-tray.is-editable {
+    cursor: pointer;
+}
+.bj-bet-tray-edit {
+    display: none;
+    width: 72px;
+    height: 48px;
+    text-align: center;
+    font-weight: 800;
+    border: 1px dashed rgba(255, 255, 255, 0.32);
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.35);
+    color: #fff;
+    outline: none;
+}
+.bj-bet-tray.is-editing .bj-bet-tray-slot {
+    display: none;
+}
+.bj-bet-tray.is-editing .bj-bet-tray-edit {
+    display: inline-block;
+}
+.bj-bet-chip.is-hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+.bj-bet-chip.anim-pop {
+    animation: bj-chip-pop 360ms ease-out 1;
+}
+.bj-bet-chip.anim-take {
+    animation: bj-chip-take 360ms ease-in 1;
+}
+.bj-bet-chip.anim-take-long {
+    animation: bj-chip-take-long 1400ms ease-in 1;
+}
+.bj-box.anim-dealer-work {
+    animation: bj-dealer-work 420ms ease-in-out 1;
+}
+/* Лесенка карт игрока: каждая следующая ниже и левее (от верхнего правого угла зоны). */
+.bj-card-stack {
+    background: transparent;
+    border: 0;
+    border-radius: 10px;
+    box-shadow: none;
+    overflow: visible;
+}
+.bj-card-stack .bj-card {
+    position: absolute;
+    top: calc(var(--i) * 18px);
+    right: calc(var(--i) * 18px);
+    z-index: var(--zi);
+    background: #fff;
+    border-radius: 6px;
+    display: block;
+}
+.bj-table a,
+.bj-table p,
+.bj-table strong,
+.bj-table label {
+    color: #f8fafc;
+}
+.bj-table .site-muted {
+    color: #cbd5e1;
+}
+.bj-result-row {
+    margin: 4px 0;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    background: rgba(15, 23, 42, 0.2);
+    color: #f8fafc;
+}
+.bj-result-row[data-result='выигрыш'],
+.bj-result-row[data-result='blackjack'] {
+    animation: bj-win-pulse 1300ms ease-out 1, bj-win-glow 1800ms ease-in-out 2;
+}
+.bj-result-row[data-result='blackjack'] {
+    border-color: rgba(250, 204, 21, 0.8);
+    background: rgba(250, 204, 21, 0.16);
+}
+.bj-result-row[data-result='пуш'] {
+    border-color: rgba(148, 163, 184, 0.65);
+}
+.bj-result-row[data-result='проигрыш'] {
+    border-color: rgba(248, 113, 113, 0.55);
+}
+.bj-settle-seq {
+    margin-top: 8px;
+}
+.bj-settle-step {
+    margin: 4px 0;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.26);
+    background: rgba(15, 23, 42, 0.22);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    animation: bj-win-pulse 500ms ease-out 1;
+}
+.bj-settle-left {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.bj-settle-action {
+    font-weight: 700;
+}
+.bj-settle-action--win { color: #34d399; }
+.bj-settle-action--bj { color: #facc15; }
+.bj-settle-action--lose { color: #fda4af; }
+.bj-settle-action--push { color: #cbd5e1; }
+.bj-settle-total {
+    margin-top: 8px;
+}
+.bj-double-panel {
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: rgba(15, 23, 42, 0.28);
+}
+.bj-double-panel[hidden] {
+    display: none;
+}
+.bj-double-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+.bj-double-value {
+    font-weight: 700;
+}
+@keyframes bj-win-pulse {
+    0% { transform: scale(0.98); opacity: 0.55; }
+    40% { transform: scale(1.03); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+@keyframes bj-deal-in {
+    0% {
+        opacity: 0;
+        transform: translate(-140px, -70px) rotate(-10deg) scale(0.72);
+        filter: blur(1px);
+    }
+    70% {
+        opacity: 1;
+        transform: translate(6px, -4px) rotate(1deg) scale(1.02);
+        filter: blur(0);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(0, 0) rotate(0deg) scale(1);
+        filter: blur(0);
+    }
+}
+@keyframes bj-win-glow {
+    0% { box-shadow: 0 0 0 rgba(16, 185, 129, 0); }
+    45% { box-shadow: 0 0 18px rgba(16, 185, 129, 0.55); }
+    100% { box-shadow: 0 0 0 rgba(16, 185, 129, 0); }
+}
+@keyframes bj-chip-pop {
+    0% { transform: scale(0.7); opacity: 0; }
+    60% { transform: scale(1.08); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+@keyframes bj-chip-take {
+    0% { transform: translate(0, 0) scale(1); opacity: 1; }
+    100% { transform: translate(26px, -10px) scale(0.72); opacity: 0; }
+}
+@keyframes bj-chip-take-long {
+    0% { transform: translate(0, 0) scale(1); opacity: 1; }
+    60% { transform: translate(16px, -6px) scale(0.86); opacity: 0.75; }
+    100% { transform: translate(34px, -14px) scale(0.66); opacity: 0; }
+}
+@keyframes bj-dealer-work {
+    0% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0); }
+    45% { box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.32); }
+    100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0); }
+}
+@media (max-width: 760px) {
+    .bj-box {
+        width: 170px;
+    }
+    .bj-card-stack {
+        width: 163px !important;
+        height: 213px !important;
+    }
+    .bj-card-stack .bj-card {
+        width: 63px !important;
+        height: 94px !important;
+    }
+    .bj-bet-box {
+        width: 64px !important;
+        height: 94px !important;
+    }
+    .bj-dealer-cards .bj-dealer-card {
+        width: 63px !important;
+        height: 94px !important;
+    }
+    .bj-chip-btn {
+        width: 48px;
+        height: 48px;
+        font-size: 0.72rem;
+    }
+    .bj-bet-tray {
+        width: 150px;
+        min-height: 58px;
+        gap: 6px;
+        padding: 6px;
+    }
+    .bj-bet-tray-slot {
+        width: 66px;
+        height: 44px;
+    }
+    .bj-boxes-row {
+        gap: 6px;
+    }
+    .bj-boxes-row::before,
+    .bj-boxes-row::after {
+        flex-basis: calc(50% - 85px);
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bj-screen">
+    <div style="display:flex;align-items:center;gap:10px;">
+        <h1 style="margin:0;">Black Jack</h1>
+    </div>
+    <p>Баланс: <strong>{{ wallet.balance }}</strong></p>
+    <form method="post" style="margin:6px 0 10px;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="toggle_payout_anim">
+        <label style="display:inline-flex;align-items:center;gap:8px;">
+            <input type="hidden" name="enabled" value="0">
+            <input type="checkbox" name="enabled" value="1" onchange="this.form.submit()" {% if payout_anim_enabled %}checked{% endif %}>
+            Анимация выплат
+        </label>
+    </form>
+    {% if not state or state.phase == 'settled' %}
+    <p><strong>Делайте Ваши ставки!</strong></p>
+    {% endif %}
+
+    {% if message %}
+    <p class="auth-error">{{ message }}</p>
+    {% endif %}
+
+    <div class="bj-table">
+        <div>
+            {% if state %}
+                <div class="bj-dealer-cards">
+                {% for card in state.dealer_hand %}
+                    <img class="bj-dealer-card" data-dealer-card-idx="{{ forloop.counter0 }}" src="{% static 'cards/'|add:card.img %}" width="70" height="105" alt="">
+                {% endfor %}
+                </div>
+                {% if dealer_score_display %}<p class="bj-dealer-score">{{ dealer_score_display }}</p>{% endif %}
+            {% endif %}
+        </div>
+
+        <div class="bj-boxes-row">
+            {% for box in ordered_boxes %}
+            <span class="bj-box{% if box.is_current and state and state.phase == 'player_turn' %} is-active{% endif %}" data-box-item data-box-index="{{ box.index }}" data-box-status="{% if box.status %}{{ box.status }}{% else %}idle{% endif %}">
+                <p style="margin:0 0 4px;"><strong>Бокс {{ box.display_name|default:box.index }}</strong></p>
+                {% if state %}
+                <p class="bj-dealer-score" style="margin-top:0;margin-bottom:6px;">
+                    {{ box.score_display|default:"" }}
+                </p>
+                <div class="bj-card-stack" style="position:relative;width:188px;height:250px;margin:0 auto 4px;">
+                    {% for card in box.hand %}
+                        <img
+                            class="bj-card"
+                            src="{% static 'cards/'|add:card.img %}"
+                            width="70"
+                            height="105"
+                            alt=""
+                            data-player-box="{{ box.index }}"
+                            data-card-idx="{{ forloop.counter0 }}"
+                            style="--i:{{ forloop.counter0 }};--zi:{{ forloop.counter }};top: calc(var(--i) * 18px);{% if forloop.counter <= 4 %}right: calc(var(--i) * 18px);{% else %}right: auto;left: calc({{ forloop.counter|add:'-4' }} * 18px);{% endif %}"
+                        >
+                    {% empty %}
+                        <span class="site-muted"></span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% if not state %}
+                <div
+                    data-bet-box="{{ box.index }}"
+                    class="bj-bet-box"
+                    style="display:block;width:72px;height:108px;margin:0 auto 6px;border:2px solid #475569;border-radius:8px;background:#f8fafc;padding:6px;"
+                >
+                    <input
+                        type="number"
+                        min="0"
+                        max="200"
+                        step="5"
+                        name="bet_{{ box.index }}"
+                        value="0"
+                        form="staff-bj-bet-form"
+                        data-bet-input="{{ box.index }}"
+                        style="width:100%;height:100%;text-align:center;font-weight:700;border:0;background:transparent;outline:none;"
+                    >
+                </div>
+                {% elif state.phase == 'settled' %}
+                <div
+                    data-bet-box="{{ box.index }}"
+                    class="bj-bet-tray"
+                    aria-label="Ставка на бокс {{ box.index }}"
+                    data-settled-bet-tray
+                >
+                    <span class="bj-bet-tray-slot">
+                        {% if box.bet != '0.00' and box.bet != '0' and box.result != 'проигрыш' and box.result != '1/2' %}
+                        <span class="bj-bet-chip" data-chip-left>{{ box.bet|floatformat:"-2" }}</span>
+                        {% elif box.bet != '0.00' and box.bet != '0' %}
+                        <span class="bj-bet-chip is-hidden" data-chip-left>{{ box.bet|floatformat:"-2" }}</span>
+                        {% endif %}
+                    </span>
+                    <span class="bj-bet-tray-slot">
+                        {% if box.result == '1/2' and box.payout_chip and box.payout_chip != '0.00' and box.payout_chip != '0' %}
+                        <span class="bj-bet-chip" data-chip-right>{{ box.payout_chip|floatformat:"-2" }}</span>
+                        {% elif box.payout_chip and box.payout_chip != '0.00' and box.payout_chip != '0' %}
+                        <span class="bj-bet-chip" data-chip-right>{{ box.payout_chip|floatformat:"-2" }}</span>
+                        {% endif %}
+                    </span>
+                    <input
+                        type="number"
+                        min="0"
+                        max="200"
+                        step="5"
+                        name="bet_{{ box.index }}"
+                        value="{{ box.bet|floatformat:'-0' }}"
+                        form="staff-bj-bet-form"
+                        data-bet-input="{{ box.index }}"
+                        class="bj-bet-tray-edit"
+                    >
+                </div>
+                {% else %}
+                <div class="bj-bet-tray" aria-label="Место ставки бокса {{ box.index }}">
+                    <span class="bj-bet-tray-slot">
+                        {% if box.bet != '0.00' and box.bet != '0' and box.result != 'проигрыш' and box.result != '1/2' %}
+                        <span class="bj-bet-chip" data-chip-left>{{ box.bet|floatformat:"-2" }}</span>
+                        {% elif box.bet != '0.00' and box.bet != '0' %}
+                        <span class="bj-bet-chip is-hidden" data-chip-left>{{ box.bet|floatformat:"-2" }}</span>
+                        {% endif %}
+                    </span>
+                    <span class="bj-bet-tray-slot">
+                        {% if box.result == '1/2' and box.payout_chip and box.payout_chip != '0.00' and box.payout_chip != '0' %}
+                        <span class="bj-bet-chip" data-chip-right>{{ box.payout_chip|floatformat:"-2" }}</span>
+                        {% elif state.phase == 'settled' and box.payout_chip and box.payout_chip != '0.00' and box.payout_chip != '0' %}
+                        <span class="bj-bet-chip" data-chip-right>{{ box.payout_chip|floatformat:"-2" }}</span>
+                        {% endif %}
+                    </span>
+                </div>
+                {% endif %}
+                {% if state %}
+                    <p>{% if box.status and box.status != "idle" and box.status != "playing" and state.phase != "settled" %}{{ box.status }}{% endif %}</p>
+                {% endif %}
+            </span>
+            {% endfor %}
+        </div>
+
+        {% if state and state.phase == 'equal_money_offer' %}
+        <form method="post" style="margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+            {% csrf_token %}
+            <button type="submit" name="action" value="equal_money_take" class="btn btn-primary">равные</button>
+            <button type="submit" name="action" value="equal_money_continue" class="btn btn-secondary">дальше</button>
+        </form>
+        {% endif %}
+
+        {% if state and state.phase == 'insurance_offer' %}
+        <form method="post" style="margin-top:10px;display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;">
+            {% csrf_token %}
+            <span style="font-weight:700;">Страхование:</span>
+            <input
+                type="number"
+                name="insurance_amount"
+                min="1"
+                max="{{ insurance_offer_max }}"
+                step="1"
+                value="{{ insurance_offer_max }}"
+                style="width:120px;text-align:center;"
+            >
+            <span class="site-muted">1..{{ insurance_offer_max }} ({{ insurance_offer_eligible_count }} бокс.)</span>
+            <button type="submit" name="action" value="insurance_take" class="btn btn-primary">страховать</button>
+            <button type="submit" name="action" value="insurance_skip" class="btn btn-secondary">дальше</button>
+        </form>
+        {% endif %}
+
+        {% if state and state.phase == 'player_turn' and state.current_box != None %}
+        <form method="post" style="margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+            {% csrf_token %}
+            <button type="submit" name="action" value="hit" class="btn btn-primary">Карту</button>
+            <button type="submit" name="action" value="stand" class="btn btn-secondary">Стоп</button>
+            {% if active_double_options %}
+            <button type="button" class="btn btn-secondary" id="bj-double-toggle">Дабл</button>
+            {% endif %}
+            {% for box in ordered_boxes %}
+                {% if box.is_current and box.can_surrender %}
+                <button type="submit" name="action" value="surrender" class="btn btn-secondary">1/2</button>
+                {% endif %}
+            {% endfor %}
+            {% for box in ordered_boxes %}
+                {% if box.is_current and box.can_split %}
+                <button type="submit" name="action" value="split" class="btn btn-secondary">Сплит</button>
+                {% endif %}
+            {% endfor %}
+            {% if active_double_options %}
+            <div class="bj-double-panel" id="bj-double-panel" hidden>
+                <div class="bj-double-top">
+                    <span>Сумма дабл:</span>
+                    <span class="bj-double-value" id="bj-double-value"></span>
+                </div>
+                <input
+                    type="range"
+                    id="bj-double-range"
+                    min="0"
+                    max="{{ active_double_options|length|add:'-1' }}"
+                    step="1"
+                    value="{{ active_double_options|length|add:'-1' }}"
+                    data-options="{{ active_double_options|join:',' }}"
+                    style="width:100%;"
+                >
+                <input type="hidden" name="double_amount" id="bj-double-amount-input" value="{{ active_double_options|last }}">
+                <div style="margin-top:10px;text-align:center;display:flex;gap:8px;justify-content:center;">
+                    <button type="button" class="btn btn-secondary" id="bj-double-cancel">Отмена</button>
+                    <button type="submit" name="action" value="double" class="btn btn-secondary">Ок</button>
+                </div>
+            </div>
+            {% endif %}
+        </form>
+        {% endif %}
+
+        {% if not state or state.phase == 'settled' %}
+        <form method="post" id="staff-bj-bet-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="new_round">
+            <div style="margin:10px 0;">
+                <strong>Фишки:</strong>
+                <div class="bj-chip-row">
+                    <button type="button" data-chip="5" class="bj-chip-btn" title="Фишка 5">5</button>
+                    <button type="button" data-chip="25" class="bj-chip-btn" title="Фишка 25">25</button>
+                    <button type="button" data-chip="100" class="bj-chip-btn" title="Фишка 100">100</button>
+                    <button type="button" data-chip="500" class="bj-chip-btn" title="Фишка 500">500</button>
+                    <button type="button" data-chip="1000" class="bj-chip-btn" title="Фишка 1000">1000</button>
+                    <button type="button" data-chip="5000" class="bj-chip-btn" title="Фишка 5000">5000</button>
+                </div>
+            </div>
+            <div style="margin-top:10px;">
+                <button type="submit" class="btn btn-primary">Начать раунд</button>
+                <a href="{% url 'staffroom_index' %}" class="btn btn-secondary">Назад в Staff Room</a>
+            </div>
+        </form>
+        {% endif %}
+
+        {% if state %}
+        <p><strong>Ставка раунда:</strong> {{ state.total_bet|floatformat:"-2" }} | <strong>Страхование:</strong> {{ state.insurance_bet|default:"0.00"|floatformat:"-2" }} | <strong>Фаза:</strong> {{ state.phase }}</p>
+        {% endif %}
+
+        {% if state and state.phase == 'settled' %}
+        <div class="bj-settle-seq" id="bj-settle-seq" data-anim-enabled="{% if payout_anim_enabled %}1{% else %}0{% endif %}">
+            <div id="bj-settle-data" hidden>
+                {% for box in ordered_boxes %}
+                    {% if box.is_active_bet and box.result %}
+                    <span
+                        data-box="{{ box.index }}"
+                        data-result="{{ box.result }}"
+                        data-bet="{{ box.bet|floatformat:'-2' }}"
+                    ></span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if state and state.phase != 'settled' %}
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" name="action" value="clear_round" class="btn btn-secondary">Очистить раунд</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var betInputs = Array.from(document.querySelectorAll('[data-bet-input]'));
+    if (betInputs.length) {
+        var betBoxes = Array.from(document.querySelectorAll('[data-bet-box]'));
+        var selectedIndex = '7';
+
+        function markSelected(boxIndex) {
+            selectedIndex = String(boxIndex);
+            betBoxes.forEach(function(box) {
+                if (box.dataset.betBox === selectedIndex) {
+                    box.style.borderColor = '#2563eb';
+                    box.style.boxShadow = '0 0 0 2px rgba(37,99,235,0.25)';
+                } else {
+                    box.style.borderColor = '#475569';
+                    box.style.boxShadow = 'none';
+                }
+            });
+        }
+
+        betInputs.forEach(function(input) {
+            input.addEventListener('focus', function() {
+                markSelected(input.dataset.betInput);
+            });
+            input.addEventListener('click', function() {
+                markSelected(input.dataset.betInput);
+            });
+        });
+
+        document.querySelectorAll('[data-chip]').forEach(function(chipBtn) {
+            chipBtn.addEventListener('click', function() {
+                var chip = parseInt(chipBtn.dataset.chip || '0', 10);
+                if (!chip) return;
+                var target = document.querySelector('[data-bet-input="' + selectedIndex + '"]');
+                if (!target) return;
+                var current = parseInt(target.value || '0', 10);
+                if (Number.isNaN(current) || current < 0) current = 0;
+                var next = current + chip;
+                if (next > 200) next = 200;
+                // Ставка разрешена только шагом 5.
+                next = Math.floor(next / 5) * 5;
+                target.value = String(next);
+                target.focus();
+            });
+        });
+
+        markSelected(selectedIndex);
+    }
+
+    var doubleToggle = document.getElementById('bj-double-toggle');
+    var doublePanel = document.getElementById('bj-double-panel');
+    var doubleRange = document.getElementById('bj-double-range');
+    var doubleValue = document.getElementById('bj-double-value');
+    var doubleAmountInput = document.getElementById('bj-double-amount-input');
+    var doubleCancel = document.getElementById('bj-double-cancel');
+    if (doublePanel && doubleRange && doubleValue && doubleAmountInput) {
+        var options = (doubleRange.dataset.options || '').split(',').map(function(v) { return v.trim(); }).filter(Boolean);
+        function syncDoubleFromIndex(idx) {
+            var i = Math.max(0, Math.min(options.length - 1, idx));
+            var amount = options[i] || '';
+            doubleRange.value = String(i);
+            doubleValue.textContent = amount;
+            doubleAmountInput.value = amount;
+        }
+        syncDoubleFromIndex(options.length - 1); // По умолчанию max.
+        doubleRange.addEventListener('input', function() {
+            syncDoubleFromIndex(parseInt(doubleRange.value || '0', 10));
+        });
+        if (doubleToggle) {
+            doubleToggle.addEventListener('click', function() {
+                var willOpen = doublePanel.hasAttribute('hidden');
+                if (willOpen) doublePanel.removeAttribute('hidden');
+                else doublePanel.setAttribute('hidden', '');
+            });
+        }
+        if (doubleCancel) {
+            doubleCancel.addEventListener('click', function() {
+                doublePanel.setAttribute('hidden', '');
+            });
+        }
+    }
+
+    // Анимация только новых карт (раздача, добор дилера, "Карту" игрока).
+    try {
+        var prevDealerCount = parseInt(sessionStorage.getItem('bj_prev_dealer_count') || '0', 10);
+        if (Number.isNaN(prevDealerCount) || prevDealerCount < 0) prevDealerCount = 0;
+        var dealerCards = Array.from(document.querySelectorAll('[data-dealer-card-idx]'));
+        if (dealerCards.length < prevDealerCount) prevDealerCount = 0;
+        var dealerNewCount = 0;
+        var dealerAnimEndMs = 0;
+        dealerCards.forEach(function(card, idx) {
+            if (idx >= prevDealerCount) {
+                card.classList.add('bj-deal-anim');
+                card.classList.add('bj-deal-anim-dealer');
+                // Даем столу "успокоиться", потом дилер набирает медленнее.
+                var delay = 500 + (idx - prevDealerCount) * 260;
+                card.style.animationDelay = delay + 'ms';
+                dealerNewCount += 1;
+                dealerAnimEndMs = Math.max(dealerAnimEndMs, delay + 560);
+            }
+        });
+        sessionStorage.setItem('bj_prev_dealer_count', String(dealerCards.length));
+
+        var prevByBox = {};
+        try {
+            prevByBox = JSON.parse(sessionStorage.getItem('bj_prev_player_counts') || '{}') || {};
+        } catch (_e) {
+            prevByBox = {};
+        }
+        var nextByBox = {};
+        var cardsByBox = {};
+        Array.from(document.querySelectorAll('[data-player-box][data-card-idx]')).forEach(function(card) {
+            var box = String(card.getAttribute('data-player-box'));
+            if (!cardsByBox[box]) cardsByBox[box] = [];
+            cardsByBox[box].push(card);
+        });
+        Object.keys(cardsByBox).forEach(function(box) {
+            cardsByBox[box].sort(function(a, b) {
+                return parseInt(a.getAttribute('data-card-idx') || '0', 10) - parseInt(b.getAttribute('data-card-idx') || '0', 10);
+            });
+            var prev = parseInt(prevByBox[box] || '0', 10);
+            if (Number.isNaN(prev) || prev < 0) prev = 0;
+            if (cardsByBox[box].length < prev) prev = 0;
+            cardsByBox[box].forEach(function(card, idx) {
+                if (idx >= prev) {
+                    card.classList.add('bj-deal-anim');
+                    card.style.animationDelay = (idx - prev) * 90 + 'ms';
+                }
+            });
+            nextByBox[box] = cardsByBox[box].length;
+        });
+        sessionStorage.setItem('bj_prev_player_counts', JSON.stringify(nextByBox));
+    } catch (_err) {
+        // Безопасный fallback: если sessionStorage недоступен, игра продолжается без анимации новых карт.
+        var dealerAnimEndMs = 0;
+        var dealerNewCount = 0;
+    }
+
+    // Лента боксов: сохраняем позицию скролла и избегаем резких прыжков после хода.
+    var stripBoxes = Array.from(document.querySelectorAll('[data-box-item]'));
+    var strip = document.querySelector('.bj-boxes-row');
+    var activeBox = document.querySelector('.bj-box.is-active');
+    var selectedBox = null;
+    var prevActiveBoxIdx = null;
+    try {
+        prevActiveBoxIdx = sessionStorage.getItem('bj_prev_active_box_idx');
+    } catch (_err) {
+        prevActiveBoxIdx = null;
+    }
+
+    function centerBox(boxEl, smooth) {
+        if (!boxEl) return;
+        boxEl.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', inline: 'center', block: 'nearest' });
+    }
+    function keepBoxInView(boxEl) {
+        if (!strip || !boxEl) return;
+        var stripRect = strip.getBoundingClientRect();
+        var boxRect = boxEl.getBoundingClientRect();
+        var pad = 16;
+        if (boxRect.left < stripRect.left + pad) {
+            strip.scrollBy({ left: boxRect.left - stripRect.left - pad, behavior: 'auto' });
+        } else if (boxRect.right > stripRect.right - pad) {
+            strip.scrollBy({ left: boxRect.right - stripRect.right + pad, behavior: 'auto' });
+        }
+    }
+    function paintSelection() {
+        stripBoxes.forEach(function(box) {
+            box.classList.remove('is-selected');
+        });
+        if (selectedBox) selectedBox.classList.add('is-selected');
+    }
+
+    // Восстанавливаем позицию ленты между ходами.
+    if (strip) {
+        try {
+            var savedScrollLeft = parseInt(sessionStorage.getItem('bj_boxes_scroll_left') || '', 10);
+            if (!Number.isNaN(savedScrollLeft)) {
+                strip.scrollLeft = savedScrollLeft;
+            }
+            strip.addEventListener('scroll', function() {
+                sessionStorage.setItem('bj_boxes_scroll_left', String(strip.scrollLeft));
+            }, { passive: true });
+        } catch (_err) {
+            // Если sessionStorage недоступен, просто пропускаем сохранение скролла.
+        }
+    }
+
+    // На первом открытии раунда центрируем активный бокс.
+    // На следующих шагах при смене активного бокса тоже центрируем,
+    // но без плавной анимации, чтобы не было "перелёта".
+    if (activeBox) {
+        var activeIdx = String(activeBox.getAttribute('data-box-index') || '');
+        if (!prevActiveBoxIdx) {
+            centerBox(activeBox, true);
+        } else if (prevActiveBoxIdx !== activeIdx) {
+            centerBox(activeBox, false);
+        } else {
+            keepBoxInView(activeBox);
+        }
+        try {
+            sessionStorage.setItem('bj_prev_active_box_idx', activeIdx);
+        } catch (_err) {
+            // noop
+        }
+    } else {
+        try {
+            sessionStorage.removeItem('bj_prev_active_box_idx');
+        } catch (_err) {
+            // noop
+        }
+    }
+    paintSelection();
+
+    document.querySelectorAll('[data-box-item]').forEach(function(el) {
+        el.addEventListener('click', function() {
+            selectedBox = el;
+            paintSelection();
+            centerBox(el, true);
+        });
+    });
+
+    // Перетаскивание ленты боксов мышью/пальцем.
+    if (strip) {
+        var drag = {
+            active: false,
+            pointerId: null,
+            startX: 0,
+            startScrollLeft: 0,
+            moved: false
+        };
+        var suppressNextClick = false;
+
+        strip.addEventListener('pointerdown', function(e) {
+            // На iPhone/iPad используем нативный скролл контейнера.
+            if (e.pointerType === 'touch') return;
+            // В settled клики по зоне ставки не должны запускать drag.
+            if (e.target && e.target.closest && e.target.closest('[data-settled-bet-tray]')) return;
+            drag.active = true;
+            drag.pointerId = e.pointerId;
+            drag.startX = e.clientX;
+            drag.startScrollLeft = strip.scrollLeft;
+            drag.moved = false;
+            strip.classList.add('is-dragging');
+            if (strip.setPointerCapture) strip.setPointerCapture(e.pointerId);
+        });
+
+        strip.addEventListener('pointermove', function(e) {
+            if (!drag.active || drag.pointerId !== e.pointerId) return;
+            var dx = e.clientX - drag.startX;
+            if (Math.abs(dx) > 4) drag.moved = true;
+            strip.scrollLeft = drag.startScrollLeft - dx;
+        });
+
+        function stopDrag(e) {
+            if (!drag.active) return;
+            if (drag.moved) suppressNextClick = true;
+            if (e && drag.pointerId != null && strip.releasePointerCapture) {
+                try { strip.releasePointerCapture(drag.pointerId); } catch (_err) {}
+            }
+            drag.active = false;
+            drag.pointerId = null;
+            drag.moved = false;
+            strip.classList.remove('is-dragging');
+        }
+
+        strip.addEventListener('pointerup', stopDrag);
+        strip.addEventListener('pointercancel', stopDrag);
+        strip.addEventListener('pointerleave', function(e) {
+            if (drag.active && e.pointerType === 'mouse') stopDrag(e);
+        });
+
+        // После drag не открываем click-выбор бокса.
+        strip.addEventListener('click', function(e) {
+            // Клики по ставке всегда пропускаем.
+            if (e.target && e.target.closest && e.target.closest('[data-settled-bet-tray]')) {
+                suppressNextClick = false;
+                return;
+            }
+            if (!suppressNextClick) return;
+            e.preventDefault();
+            e.stopPropagation();
+            suppressNextClick = false;
+        }, true);
+    }
+
+    // Пошаговая анимация выплат по активным боксам: от 7 к 1.
+    var settleRoot = document.getElementById('bj-settle-seq');
+    if (settleRoot) {
+        var animateEnabled = settleRoot.getAttribute('data-anim-enabled') === '1';
+        var settleCanEdit = !animateEnabled;
+        var pendingEditTray = null;
+        var data = Array.from(settleRoot.querySelectorAll('#bj-settle-data [data-box]')).map(function(el) {
+            return {
+                box: parseInt(el.getAttribute('data-box') || '0', 10),
+                result: (el.getAttribute('data-result') || '').trim(),
+                bet: (el.getAttribute('data-bet') || '').trim()
+            };
+        }).sort(function(a, b) { return b.box - a.box; });
+        var settledTrays = Array.from(document.querySelectorAll('[data-settled-bet-tray]'));
+
+        function openSettledTrayEdit(tray) {
+            if (!tray) return;
+            tray.classList.add('is-editing');
+            var input = tray.querySelector('.bj-bet-tray-edit');
+            if (input) {
+                input.focus();
+                input.select();
+            }
+        }
+
+        function unlockSettledEditing() {
+            settleCanEdit = true;
+            settledTrays.forEach(function(tray) {
+                tray.classList.add('is-editable');
+                tray.classList.add('is-editing');
+            });
+            if (pendingEditTray) {
+                openSettledTrayEdit(pendingEditTray);
+                pendingEditTray = null;
+            } else if (settledTrays.length) {
+                // Надежный fallback: после завершения анимации ввод доступен без клика.
+                var firstInput = settledTrays[0].querySelector('.bj-bet-tray-edit');
+                if (firstInput) firstInput.focus();
+            }
+        }
+
+        settledTrays.forEach(function(tray) {
+            tray.addEventListener('click', function(e) {
+                if (!settleCanEdit) {
+                    pendingEditTray = tray;
+                    e.stopPropagation();
+                    return;
+                }
+                openSettledTrayEdit(tray);
+                e.stopPropagation();
+            });
+        });
+
+        function animateOneBox(item) {
+            var boxEl = document.querySelector('[data-box-item][data-box-index="' + item.box + '"]');
+            if (!boxEl) return;
+            var leftChip = boxEl.querySelector('[data-chip-left]');
+            var rightChip = boxEl.querySelector('[data-chip-right]');
+            boxEl.classList.add('anim-dealer-work');
+            setTimeout(function() { boxEl.classList.remove('anim-dealer-work'); }, 430);
+
+            if (item.result === 'выигрыш' || item.result === 'blackjack') {
+                if (rightChip) {
+                    rightChip.classList.remove('is-hidden');
+                    rightChip.classList.add('anim-pop');
+                    setTimeout(function() { rightChip.classList.remove('anim-pop'); }, 380);
+                }
+            } else if (item.result === 'проигрыш' || item.result === '1/2') {
+                if (leftChip && !leftChip.classList.contains('is-hidden')) {
+                    leftChip.classList.add('anim-take');
+                    setTimeout(function() {
+                        leftChip.classList.remove('anim-take');
+                        leftChip.classList.add('is-hidden');
+                    }, 350);
+                }
+                if (item.result === '1/2' && rightChip) {
+                    setTimeout(function() {
+                        rightChip.classList.remove('is-hidden');
+                        rightChip.classList.add('anim-pop');
+                        setTimeout(function() { rightChip.classList.remove('anim-pop'); }, 380);
+                    }, 180);
+                }
+            } else {
+                // push/стей: только подсветка рабочего бокса.
+            }
+        }
+
+        if (!animateEnabled) {
+            // При отключенной анимации последовательность по боксам не показываем.
+            unlockSettledEditing();
+        } else {
+            var startDelay = (typeof dealerAnimEndMs === 'number' ? dealerAnimEndMs : 0) + 120;
+            data.forEach(function(item, idx) {
+                setTimeout(function() {
+                    animateOneBox(item);
+                }, startDelay + idx * 520);
+            });
+            var unlockDelay = startDelay + (Math.max(data.length, 1) * 520) + 260;
+            setTimeout(unlockSettledEditing, unlockDelay);
+            // Fallback: гарантированная разблокировка даже при сбое тайминга анимации.
+            setTimeout(unlockSettledEditing, Math.max(unlockDelay, 3200));
+        }
+    }
+
+    // Если игрок получил "много" на доборе, показываем длительный "забор" фишки.
+    try {
+        var prevStatuses = {};
+        try {
+            prevStatuses = JSON.parse(sessionStorage.getItem('bj_prev_box_statuses') || '{}') || {};
+        } catch (_e) {
+            prevStatuses = {};
+        }
+        var nextStatuses = {};
+        Array.from(document.querySelectorAll('[data-box-item][data-box-index][data-box-status]')).forEach(function(boxEl) {
+            var idx = String(boxEl.getAttribute('data-box-index'));
+            var status = String(boxEl.getAttribute('data-box-status') || 'idle');
+            nextStatuses[idx] = status;
+            var prev = String(prevStatuses[idx] || 'idle');
+            if (status === 'bust' && prev !== 'bust') {
+                var leftChip = boxEl.querySelector('[data-chip-left]');
+                if (leftChip && !leftChip.classList.contains('is-hidden')) {
+                    leftChip.classList.add('anim-take-long');
+                    setTimeout(function() {
+                        leftChip.classList.remove('anim-take-long');
+                        leftChip.classList.add('is-hidden');
+                    }, 1400);
+                }
+            }
+        });
+        sessionStorage.setItem('bj_prev_box_statuses', JSON.stringify(nextStatuses));
+    } catch (_err) {
+        // Безопасный fallback без анимации.
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Staff Room{% endblock %}
+{% block main_class %}auth-main auth-main--wide{% endblock %}
+
+{% block content %}
+<div class="auth-shell">
+    <h1 class="auth-shell__title">Staff Room</h1>
+    <p class="auth-shell__lead">Игровая зона для тренировки. Баланс: <strong>{{ wallet.balance }}</strong></p>
+    <div class="auth-actions" style="justify-content:center;">
+        <a href="{% url 'blackjack_staff_room' %}" class="btn btn-primary">Black Jack</a>
+        <a href="{% url 'homepage_index' %}" class="btn btn-secondary">На главную</a>
+    </div>
+</div>
+{% endblock %}

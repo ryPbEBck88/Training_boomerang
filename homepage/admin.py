@@ -17,7 +17,14 @@ class SitePageVisitAdmin(admin.ModelAdmin):
     )
     list_filter = ('http_method', 'status_code', 'created_at')
     date_hierarchy = 'created_at'
-    search_fields = ('path', 'ip_address', 'user_agent', 'session_key', 'content_type')
+    search_fields = (
+        'path',
+        'http_method',
+        'ip_address',
+        'user_agent',
+        'session_key',
+        'content_type',
+    )
     ordering = ('-created_at',)
     readonly_fields = (
         'created_at',

@@ -33,6 +33,7 @@ urlpatterns = [
     ),
     path("register/", views.register, name="register"),
     path("register/sent/", views.register_verify_sent, name="register_verify_sent"),
+    path("register/resend/", views.resend_activation, name="register_resend_activation"),
     path(
         "activate/<uidb64>/<token>/",
         views.activate_account,

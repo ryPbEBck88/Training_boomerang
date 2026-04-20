@@ -52,6 +52,7 @@ urlpatterns = [
     path('yandex_70c1c5ce1a91d4b2.html', TemplateView.as_view(template_name='yandex_70c1c5ce1a91d4b2.html', content_type='text/html')),
     path('admin/', admin.site.urls),
     path('', include('homepage.urls')),
+    path('staff-room/', include('staffroom.urls')),
     path('blackjack/', include('blackjack.urls')),
     path('poker/', include('poker.urls')),
     path('ar/', include('ar.urls')),

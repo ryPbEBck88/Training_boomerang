@@ -38,6 +38,7 @@
 				<a href="{% url 'ar_index' %}" class="site-nav__link">AR</a>
 				<a href="{% url 'boomerang_test' %}" class="site-nav__link">СОП</a>
 				{% if user.is_authenticated %}
+					<a href="{% url 'staffroom_index' %}" class="site-nav__link">Staff Room</a>
 					<a href="{% url 'ar_stats' %}" class="site-nav__link">Статистика</a>
 					<form method="post" action="{% url 'logout' %}" class="site-nav__logout-form">
 						{% csrf_token %}
