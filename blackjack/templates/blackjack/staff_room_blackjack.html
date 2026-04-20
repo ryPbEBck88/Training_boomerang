@@ -11,6 +11,10 @@ main.bj-main.auth-main--wide {
 main.bj-main.auth-main--wide .main-card {
     max-width: none !important;
     width: 100% !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 16px 14px 28px !important;
 }
 @media (min-width: 1024px) {
     main.bj-main.auth-main--wide {
@@ -29,6 +33,187 @@ main.bj-main.auth-main--wide .main-card {
 }
 .bj-screen {
     overflow-x: hidden;
+    min-height: 100%;
+    padding-bottom: 16px;
+    background:
+        radial-gradient(ellipse 90% 70% at 50% 20%, rgba(15, 23, 42, 0.35) 0%, transparent 55%),
+        radial-gradient(ellipse 120% 60% at 50% 100%, rgba(2, 6, 23, 0.55) 0%, transparent 50%),
+        linear-gradient(180deg, #0f172a 0%, #020617 100%);
+}
+.bj-topbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    margin-bottom: 10px;
+}
+.bj-balance-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    max-width: 100%;
+}
+.bj-balance-chip {
+    text-align: right;
+    padding: 8px 14px 10px;
+    border-radius: 14px;
+    border: 2px solid rgba(234, 179, 8, 0.55);
+    background: linear-gradient(165deg, rgba(15, 23, 42, 0.75) 0%, rgba(2, 6, 23, 0.82) 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        0 8px 20px rgba(2, 6, 23, 0.4);
+}
+.bj-balance-label {
+    display: block;
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(254, 252, 232, 0.72);
+    margin-bottom: 2px;
+}
+.bj-balance-value {
+    font-size: clamp(1.15rem, 4vw, 1.45rem);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: #fef9c3;
+    line-height: 1.15;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+.bj-balance-stake {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 0.82rem;
+    color: #cbd5e1;
+}
+.bj-balance-stake-label {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #94a3b8;
+}
+.bj-balance-stake-value {
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: #e2e8f0;
+}
+.bj-title {
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.45rem 0.65rem;
+    line-height: 1.05;
+}
+.bj-title__inner {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.12em;
+    padding: 0.15em 0.35em 0.2em 0;
+    border-radius: 4px;
+    background: linear-gradient(105deg, rgba(15, 23, 42, 0.55) 0%, transparent 55%);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+.bj-title__b,
+.bj-title__j {
+    font-size: clamp(1.5rem, 5vw, 2.05rem);
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.bj-title__b {
+    color: #e2e8f0;
+    text-shadow:
+        0 0 20px rgba(148, 163, 184, 0.35),
+        0 2px 4px rgba(0, 0, 0, 0.5);
+}
+.bj-title__j {
+    background: linear-gradient(185deg, #fef9c3 0%, #facc15 38%, #ca8a04 72%, #a16207 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.45));
+    position: relative;
+}
+.bj-title__j::after {
+    content: '';
+    position: absolute;
+    left: -0.02em;
+    right: -0.02em;
+    bottom: -0.06em;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, transparent, rgba(250, 204, 21, 0.75), transparent);
+    opacity: 0.85;
+}
+.bj-title__badge {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #fef9c3;
+    padding: 0.35em 0.65em;
+    border-radius: 999px;
+    border: 1px solid rgba(234, 179, 8, 0.55);
+    background: linear-gradient(180deg, rgba(120, 53, 15, 0.45) 0%, rgba(69, 26, 3, 0.65) 100%);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    vertical-align: middle;
+}
+.bj-title__suit {
+    margin-left: 0.06em;
+    font-size: 0.68em;
+    color: #f8fafc;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
+    filter: drop-shadow(0 0 5px rgba(220, 38, 38, 0.45));
+}
+.bj-payout-toggle {
+    margin: 6px 0 10px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: rgba(15, 23, 42, 0.45);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #e2e8f0;
+    font-size: 0.9rem;
+}
+.bj-callout {
+    margin: 0 0 10px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(250, 204, 21, 0.45);
+    background: rgba(250, 204, 21, 0.12);
+    color: #fefce8;
+    font-weight: 700;
+    text-align: center;
+}
+.bj-callout--muted {
+    border-color: rgba(148, 163, 184, 0.4);
+    background: rgba(15, 23, 42, 0.45);
+    color: #e2e8f0;
+    font-weight: 600;
+    font-size: 0.92rem;
+}
+.bj-screen .auth-error {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(248, 113, 113, 0.55);
+    background: rgba(127, 29, 29, 0.35);
+    color: #fecaca;
+}
+.bj-dealer-zone {
+    text-align: center;
+    padding: 14px 10px 16px;
+    margin: 0 -4px 8px;
+    border-radius: 0 0 50% 50% / 0 0 28% 28%;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.18);
+    background: radial-gradient(ellipse 85% 120% at 50% 0%, rgba(0, 0, 0, 0.22) 0%, transparent 65%);
 }
 .bj-dealer-cards {
     display: flex;
@@ -50,8 +235,12 @@ main.bj-main.auth-main--wide .main-card {
 }
 .bj-dealer-card {
     background: #fff;
-    border-radius: 6px;
+    border-radius: 8px;
     display: block;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    box-shadow:
+        0 2px 0 rgba(255, 255, 255, 0.35) inset,
+        0 10px 22px rgba(2, 6, 23, 0.45);
 }
 .bj-deal-anim {
     animation: bj-deal-in 380ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -86,27 +275,85 @@ main.bj-main.auth-main--wide .main-card {
     vertical-align: top;
     text-align: center;
     width: 200px;
-    border-radius: 10px;
-    padding: 4px 2px 6px;
+    border-radius: 14px;
+    padding: 8px 6px 10px;
     scroll-snap-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: linear-gradient(165deg, rgba(15, 23, 42, 0.28) 0%, rgba(15, 23, 42, 0.12) 100%);
+    box-shadow: 0 6px 16px rgba(2, 6, 23, 0.25);
 }
 .bj-box.is-active {
     border: 2px solid #facc15;
-    box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.2);
-    background: rgba(15, 23, 42, 0.24);
+    box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.2), 0 10px 24px rgba(2, 6, 23, 0.35);
+    background: rgba(15, 23, 42, 0.34);
 }
 .bj-box.is-selected {
     border: 2px solid #93c5fd;
-    box-shadow: 0 0 0 2px rgba(147, 197, 253, 0.24);
-    background: rgba(15, 23, 42, 0.2);
+    box-shadow: 0 0 0 2px rgba(147, 197, 253, 0.24), 0 8px 20px rgba(2, 6, 23, 0.3);
+    background: rgba(15, 23, 42, 0.26);
+}
+.bj-box-label {
+    margin: 0 0 4px;
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #fefce8;
+    opacity: 0.92;
 }
 .bj-table {
     margin-top: 8px;
-    padding: 10px 12px 12px;
-    border-radius: 14px;
-    border: 1px solid rgba(0, 0, 0, 0.28);
-    background: linear-gradient(165deg, #166534 0%, #14532d 42%, #0c3d22 100%);
+    padding: 14px 14px 16px;
+    border-radius: 18px;
+    position: relative;
+    border: 3px solid #a16207;
+    box-shadow:
+        inset 0 0 0 1px rgba(253, 224, 71, 0.35),
+        inset 0 0 80px rgba(0, 0, 0, 0.18),
+        0 16px 48px rgba(2, 6, 23, 0.55);
+    background-color: #0f3d24;
+    background-image:
+        radial-gradient(ellipse 100% 55% at 50% 0%, rgba(255, 255, 255, 0.07) 0%, transparent 52%),
+        repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0, 0, 0, 0.035) 3px, rgba(0, 0, 0, 0.035) 6px),
+        repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(0, 0, 0, 0.022) 3px, rgba(0, 0, 0, 0.022) 6px),
+        linear-gradient(165deg, #166534 0%, #14532d 38%, #0c3d22 100%);
     color: #f8fafc;
+}
+.bj-card-stack .bj-card {
+    border-radius: 8px;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    box-shadow:
+        0 2px 0 rgba(255, 255, 255, 0.3) inset,
+        0 8px 18px rgba(2, 6, 23, 0.4);
+}
+.bj-start-row {
+    margin-top: 12px;
+    display: flex;
+    justify-content: center;
+}
+.bj-start-row .btn.btn-primary {
+    min-width: 200px;
+    min-height: 44px;
+    border-radius: 999px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+}
+.bj-nav-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 12px;
+    padding-top: 4px;
+}
+.bj-nav-footer a {
+    color: #cbd5e1;
+    font-weight: 600;
+    text-decoration: none;
+}
+.bj-nav-footer a:hover {
+    color: #f8fafc;
+    text-decoration: underline;
 }
 .bj-chip-row {
     margin-top: 6px;
@@ -191,14 +438,25 @@ main.bj-main.auth-main--wide .main-card {
     margin: 0 auto 8px;
     width: 168px;
     min-height: 62px;
-    border: 2px solid rgba(255, 255, 255, 0.42);
-    border-radius: 10px;
-    background: rgba(15, 23, 42, 0.25);
+    border: 2px solid rgba(180, 83, 9, 0.55);
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.42) 0%, rgba(2, 6, 23, 0.38) 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 4px 12px rgba(2, 6, 23, 0.28);
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     padding: 6px 8px;
+}
+.bj-bet-tray--settled-readonly {
+    cursor: default;
+}
+.bj-box-result {
+    margin: 4px 0 0;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #fde68a;
+    letter-spacing: 0.02em;
 }
 .bj-bet-tray-slot {
     width: 72px;
@@ -280,7 +538,7 @@ main.bj-main.auth-main--wide .main-card {
     background: rgba(15, 23, 42, 0.2);
     color: #f8fafc;
 }
-.bj-result-row[data-result='выигрыш'],
+.bj-result-row[data-result='win'],
 .bj-result-row[data-result='blackjack'] {
     animation: bj-win-pulse 1300ms ease-out 1, bj-win-glow 1800ms ease-in-out 2;
 }
@@ -288,10 +546,10 @@ main.bj-main.auth-main--wide .main-card {
     border-color: rgba(250, 204, 21, 0.8);
     background: rgba(250, 204, 21, 0.16);
 }
-.bj-result-row[data-result='пуш'] {
+.bj-result-row[data-result='stay'] {
     border-color: rgba(148, 163, 184, 0.65);
 }
-.bj-result-row[data-result='проигрыш'] {
+.bj-result-row[data-result='lose'] {
     border-color: rgba(248, 113, 113, 0.55);
 }
 .bj-settle-seq {
@@ -346,10 +604,16 @@ main.bj-main.auth-main--wide .main-card {
     font-weight: 700;
 }
 .bj-actions {
-    margin-top: 10px;
+    margin-top: 12px;
+    padding: 12px 12px 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(15, 23, 42, 0.38);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
     display: flex;
     gap: 8px;
     justify-content: center;
+    align-items: center;
     flex-wrap: wrap;
 }
 .bj-action-btn {
@@ -431,6 +695,26 @@ main.bj-main.auth-main--wide .main-card {
     100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0); }
 }
 @media (max-width: 760px) {
+    .bj-table {
+        padding: 10px 8px 12px !important;
+        border-width: 2px;
+        border-radius: 14px;
+    }
+    .bj-dealer-zone {
+        margin-left: 0;
+        margin-right: 0;
+        padding-top: 10px;
+    }
+    .bj-balance-stack {
+        align-items: stretch;
+        width: 100%;
+    }
+    .bj-balance-chip {
+        text-align: center;
+    }
+    .bj-balance-stake {
+        justify-content: center;
+    }
     .bj-box {
         width: 170px;
     }
@@ -483,21 +767,39 @@ main.bj-main.auth-main--wide .main-card {
 
 {% block content %}
 <div class="bj-screen">
-    <div style="display:flex;align-items:center;gap:10px;">
-        <h1 style="margin:0;">Black Jack</h1>
+    <div class="bj-topbar">
+        <h1 class="bj-title" id="staff-bj-heading">
+            <span class="bj-title__inner">
+                <span class="bj-title__b">Black</span><span class="bj-title__j">Jack</span><span class="bj-title__suit" aria-hidden="true">♠</span>
+            </span>
+            <span class="bj-title__badge">Staff Room</span>
+        </h1>
+        <div class="bj-balance-stack">
+            <div class="bj-balance-chip" title="Остаток на кошельке Staff Room">
+                <span class="bj-balance-label">Кредит</span>
+                <span class="bj-balance-value">{{ wallet.balance|floatformat:2 }}</span>
+            </div>
+            {% if staff_bj_table_stake_display %}
+            <div class="bj-balance-stake" title="Сумма ставок по боксам в текущей раздаче">
+                <span class="bj-balance-stake-label">На столе</span>
+                <span class="bj-balance-stake-value">{{ staff_bj_table_stake_display }}</span>
+            </div>
+            {% endif %}
+        </div>
     </div>
-    <p>Баланс: <strong>{{ wallet.balance }}</strong></p>
-    <form method="post" style="margin:6px 0 10px;">
+    <form method="post" class="bj-payout-toggle">
         {% csrf_token %}
         <input type="hidden" name="action" value="toggle_payout_anim">
-        <label style="display:inline-flex;align-items:center;gap:8px;">
+        <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;">
             <input type="hidden" name="enabled" value="0">
             <input type="checkbox" name="enabled" value="1" onchange="this.form.submit()" {% if payout_anim_enabled %}checked{% endif %}>
             Анимация выплат
         </label>
     </form>
-    {% if not state or state.phase == 'settled' %}
-    <p><strong>Делайте Ваши ставки!</strong></p>
+    {% if not state %}
+    <p class="bj-callout">Делайте Ваши ставки!</p>
+    {% elif state and state.phase == 'settled' %}
+    <p class="bj-callout bj-callout--muted">Раздача завершена. Нажмите «Завершить раунд», затем выставьте ставки и начните новый раунд.</p>
     {% endif %}
 
     {% if message %}
@@ -505,7 +807,7 @@ main.bj-main.auth-main--wide .main-card {
     {% endif %}
 
     <div class="bj-table">
-        <div>
+        <div class="bj-dealer-zone">
             {% if state %}
                 <div class="bj-dealer-cards">
                 {% for card in state.dealer_hand %}
@@ -519,7 +821,7 @@ main.bj-main.auth-main--wide .main-card {
         <div class="bj-boxes-row">
             {% for box in ordered_boxes %}
             <span class="bj-box{% if box.is_current and state and state.phase == 'player_turn' %} is-active{% endif %}" data-box-item data-box-index="{{ box.index }}" data-box-status="{% if box.status %}{{ box.status }}{% else %}idle{% endif %}">
-                <p style="margin:0 0 4px;"><strong>Бокс {{ box.display_name|default:box.index }}</strong></p>
+                <p class="bj-box-label">Бокс {{ box.display_name|default:box.index }}</p>
                 {% if state %}
                 <p class="bj-dealer-score" style="margin-top:0;margin-bottom:6px;">
                     {{ box.score_display|default:"" }}
@@ -563,12 +865,12 @@ main.bj-main.auth-main--wide .main-card {
                 {% elif state.phase == 'settled' %}
                 <div
                     data-bet-box="{{ box.index }}"
-                    class="bj-bet-tray"
-                    aria-label="Ставка на бокс {{ box.index }}"
-                    data-settled-bet-tray
+                    class="bj-bet-tray bj-bet-tray--settled-readonly"
+                    aria-label="Итог ставок бокса {{ box.index }}"
+                    data-settled-view
                 >
                     <span class="bj-bet-tray-slot">
-                        {% if box.bet != '0.00' and box.bet != '0' and box.result != 'проигрыш' and box.result != '1/2' %}
+                        {% if box.bet != '0.00' and box.bet != '0' and box.result != 'lose' and box.result != '1/2' %}
                         <span class="bj-bet-chip" data-chip-left>{{ box.bet|floatformat:"-2" }}</span>
                         {% elif box.bet != '0.00' and box.bet != '0' %}
                         <span class="bj-bet-chip is-hidden" data-chip-left>{{ box.bet|floatformat:"-2" }}</span>
@@ -581,22 +883,11 @@ main.bj-main.auth-main--wide .main-card {
                         <span class="bj-bet-chip" data-chip-right>{{ box.payout_chip|floatformat:"-2" }}</span>
                         {% endif %}
                     </span>
-                    <input
-                        type="number"
-                        min="0"
-                        max="200"
-                        step="5"
-                        name="bet_{{ box.index }}"
-                        value="{{ box.bet|floatformat:'-0' }}"
-                        form="staff-bj-bet-form"
-                        data-bet-input="{{ box.index }}"
-                        class="bj-bet-tray-edit"
-                    >
                 </div>
                 {% else %}
                 <div class="bj-bet-tray" aria-label="Место ставки бокса {{ box.index }}">
                     <span class="bj-bet-tray-slot">
-                        {% if box.bet != '0.00' and box.bet != '0' and box.result != 'проигрыш' and box.result != '1/2' %}
+                        {% if box.bet != '0.00' and box.bet != '0' and box.result != 'lose' and box.result != '1/2' %}
                         <span class="bj-bet-chip" data-chip-left>{{ box.bet|floatformat:"-2" }}</span>
                         {% elif box.bet != '0.00' and box.bet != '0' %}
                         <span class="bj-bet-chip is-hidden" data-chip-left>{{ box.bet|floatformat:"-2" }}</span>
@@ -608,6 +899,9 @@ main.bj-main.auth-main--wide .main-card {
                         {% endif %}
                     </span>
                 </div>
+                {% endif %}
+                {% if state and state.phase == 'settled' and box.is_active_bet and box.result %}
+                <p class="bj-box-result">{{ box.result }}</p>
                 {% endif %}
                 {% if state %}
                     <p>{% if box.status and box.status != "idle" and box.status != "playing" and state.phase != "settled" %}{{ box.status }}{% endif %}</p>
@@ -625,21 +919,30 @@ main.bj-main.auth-main--wide .main-card {
         {% endif %}
 
         {% if state and state.phase == 'insurance_offer' %}
-        <form method="post" class="bj-actions" style="align-items:center;">
+        <form method="post" class="bj-actions">
             {% csrf_token %}
-            <span style="font-weight:700;">Страхование:</span>
-            <input
-                type="number"
-                name="insurance_amount"
-                min="1"
-                max="{{ insurance_offer_max }}"
-                step="1"
-                value="{{ insurance_offer_max }}"
-                style="width:120px;text-align:center;"
-            >
-            <span class="site-muted">1..{{ insurance_offer_max }} ({{ insurance_offer_eligible_count }} бокс.)</span>
-            <button type="submit" name="action" value="insurance_take" class="btn bj-action-btn bj-action-btn--primary">страховать</button>
+            <button type="button" class="btn bj-action-btn bj-action-btn--accent" id="bj-insurance-toggle">страховка</button>
             <button type="submit" name="action" value="insurance_skip" class="btn bj-action-btn">дальше</button>
+            <div class="bj-double-panel" id="bj-insurance-panel" hidden>
+                <div class="bj-double-top">
+                    <span>Сумма страховки:</span>
+                    <span class="bj-double-value" id="bj-insurance-value"></span>
+                </div>
+                <input
+                    type="range"
+                    id="bj-insurance-range"
+                    min="1"
+                    max="{{ insurance_offer_max }}"
+                    step="1"
+                    value="{{ insurance_offer_max }}"
+                    style="width:100%;"
+                >
+                <input type="hidden" name="insurance_amount" id="bj-insurance-amount-input" value="{{ insurance_offer_max }}">
+                <div style="margin-top:10px;text-align:center;display:flex;gap:8px;justify-content:center;">
+                    <button type="button" class="btn btn-secondary" id="bj-insurance-cancel">Отмена</button>
+                    <button type="submit" name="action" value="insurance_take" class="btn btn-secondary">Ок</button>
+                </div>
+            </div>
         </form>
         {% endif %}
 
@@ -687,22 +990,28 @@ main.bj-main.auth-main--wide .main-card {
         </form>
         {% endif %}
 
-        {% if not state or state.phase == 'settled' %}
-        <form method="post" id="staff-bj-bet-form">
+        {% if state and state.phase == 'settled' %}
+        <form method="post" class="bj-actions">
             {% csrf_token %}
-            <input type="hidden" name="action" value="new_round">
-            <div style="margin-top:10px;">
-                <button type="submit" class="btn btn-primary">Начать раунд</button>
-            </div>
+            <input type="hidden" name="action" value="finish_round">
+            <button type="submit" class="btn bj-action-btn bj-action-btn--primary" style="min-width:220px;">Завершить раунд</button>
         </form>
-        <nav class="auth-footer" aria-label="Навигация внизу страницы" style="display:flex;justify-content:space-between;gap:12px;margin-top:10px;">
+        <nav class="auth-footer bj-nav-footer" aria-label="Навигация внизу страницы">
             <a href="{% url 'homepage_index' %}">На главную</a>
             <a href="{% url 'staffroom_index' %}">Staff Room</a>
         </nav>
-        {% endif %}
-
-        {% if state %}
-        <p><strong>Ставка раунда:</strong> {{ state.total_bet|floatformat:"-2" }} | <strong>Страхование:</strong> {{ state.insurance_bet|default:"0.00"|floatformat:"-2" }} | <strong>Фаза:</strong> {{ state.phase }}</p>
+        {% elif not state %}
+        <form method="post" id="staff-bj-bet-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="new_round">
+            <div class="bj-start-row">
+                <button type="submit" class="btn btn-primary">Начать раунд</button>
+            </div>
+        </form>
+        <nav class="auth-footer bj-nav-footer" aria-label="Навигация внизу страницы">
+            <a href="{% url 'homepage_index' %}">На главную</a>
+            <a href="{% url 'staffroom_index' %}">Staff Room</a>
+        </nav>
         {% endif %}
 
         {% if state and state.phase == 'settled' %}
@@ -801,6 +1110,34 @@ document.addEventListener('DOMContentLoaded', function() {
         if (doubleCancel) {
             doubleCancel.addEventListener('click', function() {
                 doublePanel.setAttribute('hidden', '');
+            });
+        }
+    }
+
+    var insToggle = document.getElementById('bj-insurance-toggle');
+    var insPanel = document.getElementById('bj-insurance-panel');
+    var insRange = document.getElementById('bj-insurance-range');
+    var insValue = document.getElementById('bj-insurance-value');
+    var insAmountInput = document.getElementById('bj-insurance-amount-input');
+    var insCancel = document.getElementById('bj-insurance-cancel');
+    if (insPanel && insRange && insValue && insAmountInput) {
+        function syncInsuranceFromRange() {
+            var v = String(insRange.value || '1');
+            insValue.textContent = v;
+            insAmountInput.value = v;
+        }
+        syncInsuranceFromRange();
+        insRange.addEventListener('input', syncInsuranceFromRange);
+        if (insToggle) {
+            insToggle.addEventListener('click', function() {
+                var willOpen = insPanel.hasAttribute('hidden');
+                if (willOpen) insPanel.removeAttribute('hidden');
+                else insPanel.setAttribute('hidden', '');
+            });
+        }
+        if (insCancel) {
+            insCancel.addEventListener('click', function() {
+                insPanel.setAttribute('hidden', '');
             });
         }
     }
@@ -959,7 +1296,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // На iPhone/iPad используем нативный скролл контейнера.
             if (e.pointerType === 'touch') return;
             // В settled клики по зоне ставки не должны запускать drag.
-            if (e.target && e.target.closest && e.target.closest('[data-settled-bet-tray]')) return;
+            if (e.target && e.target.closest && e.target.closest('[data-settled-view]')) return;
             drag.active = true;
             drag.pointerId = e.pointerId;
             drag.startX = e.clientX;
@@ -997,7 +1334,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // После drag не открываем click-выбор бокса.
         strip.addEventListener('click', function(e) {
             // Клики по ставке всегда пропускаем.
-            if (e.target && e.target.closest && e.target.closest('[data-settled-bet-tray]')) {
+            if (e.target && e.target.closest && e.target.closest('[data-settled-view]')) {
                 suppressNextClick = false;
                 return;
             }
@@ -1021,16 +1358,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 bet: (el.getAttribute('data-bet') || '').trim()
             };
         }).sort(function(a, b) { return b.box - a.box; });
-        var settledTrays = Array.from(document.querySelectorAll('[data-settled-bet-tray]'));
+        var settledTrays = Array.from(document.querySelectorAll('[data-settled-view]')).filter(function(tray) {
+            return tray.querySelector('.bj-bet-tray-edit');
+        });
 
         function openSettledTrayEdit(tray) {
             if (!tray) return;
-            tray.classList.add('is-editing');
             var input = tray.querySelector('.bj-bet-tray-edit');
-            if (input) {
-                input.focus();
-                input.select();
-            }
+            if (!input) return;
+            tray.classList.add('is-editing');
+            input.focus();
+            input.select();
         }
 
         function unlockSettledEditing() {
@@ -1069,13 +1407,13 @@ document.addEventListener('DOMContentLoaded', function() {
             boxEl.classList.add('anim-dealer-work');
             setTimeout(function() { boxEl.classList.remove('anim-dealer-work'); }, 430);
 
-            if (item.result === 'выигрыш' || item.result === 'blackjack') {
+            if (item.result === 'win' || item.result === 'blackjack') {
                 if (rightChip) {
                     rightChip.classList.remove('is-hidden');
                     rightChip.classList.add('anim-pop');
                     setTimeout(function() { rightChip.classList.remove('anim-pop'); }, 380);
                 }
-            } else if (item.result === 'проигрыш' || item.result === '1/2') {
+            } else if (item.result === 'lose' || item.result === '1/2') {
                 if (leftChip && !leftChip.classList.contains('is-hidden')) {
                     leftChip.classList.add('anim-take');
                     setTimeout(function() {
@@ -1091,7 +1429,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }, 180);
                 }
             } else {
-                // push/стей: только подсветка рабочего бокса.
+                // stay / прочее: только подсветка рабочего бокса.
             }
         }
 

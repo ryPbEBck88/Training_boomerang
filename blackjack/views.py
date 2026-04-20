@@ -206,6 +206,34 @@ def _format_money(val):
     return f'{val.quantize(Decimal("0.01"))}'
 
 
+def _staff_bj_table_stake_display(state):
+    """
+    Сумма ставок по всем боксам в сессии — для подписи «на столе» в UI.
+    Если у боксов нули, пробуем state['total_bet'] (например до первой раздачи).
+    """
+    if not state:
+        return None
+    total = Decimal('0.00')
+    for box in state.get('boxes') or []:
+        raw = box.get('bet', '0') or '0'
+        try:
+            total += Decimal(str(raw))
+        except (InvalidOperation, TypeError, ValueError):
+            continue
+    total = total.quantize(Decimal('0.01'))
+    if total > 0:
+        return _format_money(total)
+    raw_total = state.get('total_bet')
+    if raw_total is not None and str(raw_total).strip() != '':
+        try:
+            t = Decimal(str(raw_total)).quantize(Decimal('0.01'))
+        except (InvalidOperation, TypeError, ValueError):
+            return None
+        if t > 0:
+            return _format_money(t)
+    return None
+
+
 def _double_options(current_bet, wallet_balance):
     """
     Диапазон добавки к ставке на дабл:
@@ -431,33 +459,27 @@ def _settle_round(state):
 
         if player_bust:
             payout = Decimal('0.00')
-            result = 'проигрыш'
+            result = 'lose'
         elif player_best == dealer_best:
-            # Ничья по очкам: ставка возвращается (пуш).
+            # Ничья по очкам: ставка возвращается.
             payout = bet
-            result = 'пуш'
-        elif player_blackjack and dealer_blackjack:
-            payout = bet
-            result = 'пуш'
+            result = 'stay'
         elif player_blackjack:
             payout = (bet * Decimal('2.5')).quantize(Decimal('0.01'))
             result = 'blackjack'
         elif dealer_blackjack:
             # Black Jack дилера (A + 10 за 2 карты) старше обычных 21 у игрока.
             payout = Decimal('0.00')
-            result = 'проигрыш'
+            result = 'lose'
         elif dealer_bust:
             payout = (bet * Decimal('2.0')).quantize(Decimal('0.01'))
-            result = 'выигрыш'
+            result = 'win'
         elif player_best > dealer_best:
             payout = (bet * Decimal('2.0')).quantize(Decimal('0.01'))
-            result = 'выигрыш'
-        elif player_best == dealer_best:
-            payout = bet
-            result = 'пуш'
+            result = 'win'
         else:
             payout = Decimal('0.00')
-            result = 'проигрыш'
+            result = 'lose'
 
         box['result'] = result
         box['payout'] = _format_money(payout)
@@ -516,6 +538,7 @@ def staff_room_blackjack(request):
                     'message': message,
                     'active_double_options': [],
                     'payout_anim_enabled': payout_anim_enabled,
+                    'staff_bj_table_stake_display': _staff_bj_table_stake_display(state),
                 },
             )
         total_bet = sum(bets, Decimal('0.00')).quantize(Decimal('0.01'))
@@ -615,6 +638,11 @@ def staff_room_blackjack(request):
             request.session.modified = True
             return redirect('blackjack_staff_room')
 
+    elif request.method == 'POST' and request.POST.get('action') == 'finish_round':
+        st = request.session.get('staff_bj_state')
+        if st and st.get('phase') == 'settled':
+            request.session.pop('staff_bj_state', None)
+        return redirect('blackjack_staff_room')
     elif request.method == 'POST' and request.POST.get('action') == 'clear_round':
         request.session.pop('staff_bj_state', None)
         return redirect('blackjack_staff_room')
@@ -936,15 +964,15 @@ def staff_room_blackjack(request):
                 score_display = str(best)
 
             # Для UI "чипа оплаты" показываем чистую оплату (прибыль), а не возврат ставки:
-            # - выигрыш: +ставка
+            # - win: +ставка
             # - blackjack: +1.5 ставки
-            # - пуш: 0
+            # - stay: 0
             # - 1/2: возврат половины ставки
             bet_dec = Decimal(box.get('bet', '0') or '0')
             payout_dec = Decimal(box.get('payout', '0') or '0')
             result = box.get('result')
             payout_chip = Decimal('0.00')
-            if result == 'выигрыш':
+            if result == 'win':
                 payout_chip = max(Decimal('0.00'), payout_dec - bet_dec)
             elif result == 'blackjack':
                 payout_chip = max(Decimal('0.00'), payout_dec - bet_dec)
@@ -1024,6 +1052,7 @@ def staff_room_blackjack(request):
             'insurance_offer_max': insurance_offer_max,
             'insurance_offer_eligible_count': insurance_offer_eligible_count,
             'payout_anim_enabled': payout_anim_enabled,
+            'staff_bj_table_stake_display': _staff_bj_table_stake_display(state),
         },
     )
 
