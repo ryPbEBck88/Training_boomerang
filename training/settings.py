@@ -213,3 +213,9 @@ EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587') or '587')
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', '1').strip().lower() in ('1', 'true', 'yes', 'on')
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+
+# Антиспам регистрации.
+REGISTER_RATE_LIMIT_COUNT = int(os.environ.get('REGISTER_RATE_LIMIT_COUNT', '5') or '5')
+REGISTER_RATE_LIMIT_WINDOW = int(os.environ.get('REGISTER_RATE_LIMIT_WINDOW', '600') or '600')  # сек.
+TURNSTILE_SITE_KEY = os.environ.get('TURNSTILE_SITE_KEY', '').strip()
+TURNSTILE_SECRET_KEY = os.environ.get('TURNSTILE_SECRET_KEY', '').strip()

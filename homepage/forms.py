@@ -8,6 +8,7 @@ User = get_user_model()
 
 
 class SignUpForm(UserCreationForm):
+    hp_field = forms.CharField(required=False, widget=forms.HiddenInput())
     email = forms.EmailField(
         label='Электронная почта',
         required=True,
@@ -54,6 +55,13 @@ class SignUpForm(UserCreationForm):
         if User.objects.filter(email__iexact=email).exists():
             raise ValidationError('Этот адрес уже используется. Войдите или укажите другую почту.')
         return email
+
+    def clean_hp_field(self):
+        # Honeypot: нормальный пользователь поле не заполняет.
+        val = (self.cleaned_data.get('hp_field') or '').strip()
+        if val:
+            raise ValidationError('Проверка не пройдена.')
+        return ''
 
     def save(self, commit=True):
         user = super().save(commit=False)

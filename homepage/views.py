@@ -1,9 +1,12 @@
 import logging
 import random
+import json
+from urllib import parse, request as urlrequest
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
+from django.core.cache import cache
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.encoding import force_str
@@ -15,6 +18,57 @@ from .forms import SignUpForm
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
+
+
+def _get_client_ip(request):
+    forwarded = (request.META.get('HTTP_X_FORWARDED_FOR') or '').strip()
+    if forwarded:
+        return forwarded.split(',')[0].strip()
+    return (request.META.get('REMOTE_ADDR') or '').strip() or 'unknown'
+
+
+def _register_rate_limited(request):
+    ip = _get_client_ip(request)
+    window = max(1, int(getattr(settings, 'REGISTER_RATE_LIMIT_WINDOW', 600)))
+    limit = max(1, int(getattr(settings, 'REGISTER_RATE_LIMIT_COUNT', 5)))
+    key = f'register:attempts:{ip}'
+    attempts = cache.get(key, 0)
+    if attempts >= limit:
+        return True
+    if attempts == 0:
+        cache.set(key, 1, timeout=window)
+    else:
+        cache.incr(key)
+    return False
+
+
+def _verify_turnstile(request):
+    secret = (getattr(settings, 'TURNSTILE_SECRET_KEY', '') or '').strip()
+    if not secret:
+        return True
+    token = (request.POST.get('cf-turnstile-response') or '').strip()
+    if not token:
+        return False
+    payload = parse.urlencode(
+        {
+            'secret': secret,
+            'response': token,
+            'remoteip': _get_client_ip(request),
+        }
+    ).encode('utf-8')
+    req = urlrequest.Request(
+        'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+        data=payload,
+        headers={'Content-Type': 'application/x-www-form-urlencoded'},
+        method='POST',
+    )
+    try:
+        with urlrequest.urlopen(req, timeout=8) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+    except Exception:
+        logger.exception('turnstile verification failed')
+        return False
+    return bool(data.get('success'))
 
 
 def index(request):
@@ -44,9 +98,14 @@ def authors_page(request):
 def register(request):
     if request.user.is_authenticated:
         return redirect('homepage_index')
+    turnstile_site_key = (getattr(settings, 'TURNSTILE_SITE_KEY', '') or '').strip()
     if request.method == 'POST':
         form = SignUpForm(request.POST)
-        if form.is_valid():
+        if _register_rate_limited(request):
+            form.add_error(None, 'Слишком много попыток регистрации. Подождите несколько минут и попробуйте снова.')
+        elif turnstile_site_key and not _verify_turnstile(request):
+            form.add_error(None, 'Проверка защиты не пройдена. Обновите страницу и попробуйте снова.')
+        elif form.is_valid():
             user = form.save()
             try:
                 send_activation_email(request, user)
@@ -62,7 +121,11 @@ def register(request):
                 return redirect('register_verify_sent')
     else:
         form = SignUpForm()
-    return render(request, 'registration/register.html', {'form': form})
+    return render(
+        request,
+        'registration/register.html',
+        {'form': form, 'turnstile_site_key': turnstile_site_key},
+    )
 
 
 def register_verify_sent(request):
