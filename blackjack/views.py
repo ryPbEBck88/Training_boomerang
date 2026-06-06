@@ -495,10 +495,16 @@ def staff_room_blackjack(request):
     state = request.session.get('staff_bj_state')
     message = ''
     payout_anim_enabled = request.session.get('bj_payout_anim_enabled', True)
+    gestures_enabled = request.session.get('bj_staff_gestures_enabled', False)
 
     if request.method == 'POST' and request.POST.get('action') == 'toggle_payout_anim':
         payout_anim_enabled = request.POST.get('enabled') == '1'
         request.session['bj_payout_anim_enabled'] = payout_anim_enabled
+        return redirect('blackjack_staff_room')
+
+    if request.method == 'POST' and request.POST.get('action') == 'toggle_staff_bj_gestures':
+        gestures_enabled = request.POST.get('gestures_enabled') == '1'
+        request.session['bj_staff_gestures_enabled'] = gestures_enabled
         return redirect('blackjack_staff_room')
 
     if request.method == 'POST' and request.POST.get('action') == 'new_round':
@@ -538,6 +544,7 @@ def staff_room_blackjack(request):
                     'message': message,
                     'active_double_options': [],
                     'payout_anim_enabled': payout_anim_enabled,
+                    'gestures_enabled': gestures_enabled,
                     'staff_bj_table_stake_display': _staff_bj_table_stake_display(state),
                 },
             )
@@ -1052,6 +1059,7 @@ def staff_room_blackjack(request):
             'insurance_offer_max': insurance_offer_max,
             'insurance_offer_eligible_count': insurance_offer_eligible_count,
             'payout_anim_enabled': payout_anim_enabled,
+            'gestures_enabled': gestures_enabled,
             'staff_bj_table_stake_display': _staff_bj_table_stake_display(state),
         },
     )

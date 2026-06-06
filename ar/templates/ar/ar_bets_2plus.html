@@ -1,0 +1,1993 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_head %}
+<style>
+.ar-bets-sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+#ar-settings-overlay .payout-settings-modal.ar-bets-settings-modal {
+	max-width: 400px;
+}
+#ar-settings-overlay .ar-bets-settings-fields.payout-settings-fields {
+	gap: 0;
+}
+#ar-settings-overlay .ar-bets-settings-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 10px;
+}
+#ar-settings-overlay .ar-bets-settings-label {
+	font-size: 0.875rem;
+	font-weight: 600;
+	flex-shrink: 0;
+	color: var(--text, #1e293b);
+}
+#ar-settings-overlay .ar-bets-ar-select {
+	flex: 1;
+	min-width: 0;
+	max-width: 14rem;
+	min-height: 2.5rem;
+	margin-left: auto;
+	padding: 8px 10px;
+	font-size: 0.875rem;
+	border: 1px solid var(--border, #cbd5e1);
+	border-radius: var(--radius-sm, 8px);
+	background: var(--surface, #fff);
+	color: var(--text);
+}
+#ar-settings-overlay .ar-bets-timer-settings {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	flex-wrap: wrap;
+	margin-bottom: 10px;
+}
+#ar-settings-overlay .ar-bets-timer-settings-hint {
+	font-size: 0.875rem;
+	font-weight: 500;
+	color: var(--text-muted, #64748b);
+	flex: 1 1 auto;
+	min-width: 0;
+}
+#ar-settings-overlay .ar-bets-timer-switch {
+	position: relative;
+	flex-shrink: 0;
+	width: 48px;
+	height: 28px;
+	padding: 0;
+	border: none;
+	border-radius: 14px;
+	background: #cbd5e1;
+	box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.2);
+	cursor: pointer;
+	transition: background 0.22s ease, box-shadow 0.22s ease;
+	-webkit-tap-highlight-color: transparent;
+}
+#ar-settings-overlay .ar-bets-timer-switch::after {
+	content: '';
+	position: absolute;
+	top: 3px;
+	left: 3px;
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	background: #fff;
+	box-shadow: 0 1px 4px rgba(15, 23, 42, 0.25);
+	transition: transform 0.24s cubic-bezier(0.4, 0, 0.2, 1),background 0.2s;
+}
+#ar-settings-overlay .ar-bets-timer-switch.is-on {
+	background: linear-gradient(180deg, #34d399 0%, #059669 100%);
+	box-shadow: inset 0 1px 2px rgba(255,255,255,0.35), 0 0 0 1px rgba(5, 150, 105, 0.35);
+}
+#ar-settings-overlay .ar-bets-timer-switch.is-on::after {
+	transform: translateX(20px);
+}
+#ar-settings-overlay .ar-bets-timer-switch:focus-visible {
+	outline: 2px solid #3b82f6;
+	outline-offset: 2px;
+}
+#ar-settings-overlay .ar-bets-timer-sec {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0;
+	flex-shrink: 0;
+}
+#ar-settings-overlay .ar-bets-timer-sec-lbl {
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: var(--text-muted, #64748b);
+}
+#ar-settings-overlay .ar-bets-timer-sec-input {
+	width: 4rem !important;
+	max-width: none !important;
+	min-height: 2.25rem !important;
+	text-align: center !important;
+}
+#ar-settings-overlay .ar-bets-number-select {
+	flex: 0 0 auto !important;
+	width: 4rem !important;
+	max-width: 4rem !important;
+	min-width: 4rem !important;
+	min-height: 2.25rem !important;
+	margin-left: 0 !important;
+	padding: 6px 4px !important;
+	font-size: 0.875rem !important;
+	text-align: center !important;
+	text-align-last: center !important;
+}
+#ar-settings-overlay label.ar-bets-number-wrap {
+	margin: 0;
+	gap: 0;
+}
+#ar-settings-overlay .ar-bets-stacks-controls {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 10px;
+	flex: 1;
+	min-width: 0;
+}
+#ar-settings-overlay .ar-bets-stacks-controls .ar-bets-ar-select {
+	flex: 0 1 5.5rem;
+	max-width: 6rem;
+	margin-left: 0;
+}
+#ar-settings-overlay .ar-bets-params-heading {
+	font-size: 0.82rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--text-muted, #64748b);
+	margin: 14px 0 8px;
+	padding-top: 12px;
+	border-top: 1px solid var(--border, #e2e8f0);
+}
+#ar-settings-overlay .ar-bets-params-heading:first-of-type {
+	margin-top: 0;
+	padding-top: 0;
+	border-top: none;
+}
+#ar-settings-overlay .ar-bets-param-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	margin-bottom: 8px;
+}
+#ar-settings-overlay .ar-bets-param-label {
+	font-size: 0.875rem;
+	font-weight: 500;
+	flex-shrink: 0;
+}
+#ar-settings-overlay .ar-bets-param-input {
+	width: 7rem;
+	max-width: 45%;
+	min-height: 2.5rem;
+	padding: 6px 10px;
+	font-size: 0.875rem;
+	text-align: right;
+	border: 1px solid var(--border, #cbd5e1);
+	border-radius: var(--radius-sm, 8px);
+	background: var(--surface, #fff);
+	color: var(--text);
+	box-sizing: border-box;
+}
+#ar-settings-overlay .ar-bets-param-input:disabled {
+	background: var(--surface-hover, #f1f5f9);
+	color: var(--text-muted, #475569);
+	cursor: default;
+}
+#ar-settings-overlay .ar-bets-denom-toolbar {
+	display: flex;
+	justify-content: flex-end;
+	margin: 2px 0 6px;
+}
+#ar-settings-overlay .ar-bets-denom-select-all {
+	min-height: 2rem;
+	padding: 4px 10px;
+	font-size: 0.8125rem;
+}
+#ar-settings-overlay .ar-bets-denom-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 6px;
+	margin-bottom: 10px;
+	padding: 2px;
+}
+#ar-settings-overlay .ar-bets-denom-option {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 8px;
+	margin: 0;
+	border-radius: 6px;
+	min-width: 0;
+	width: 100%;
+	box-sizing: border-box;
+	background: var(--surface-hover, #f8fafc);
+	border: 1px solid var(--border, #e2e8f0);
+	cursor: pointer;
+}
+#ar-settings-overlay .ar-bets-denom-option:hover {
+	background: var(--surface-hover, #f1f5f9);
+}
+#ar-settings-overlay .ar-bets-denom-swatch {
+	width: 1rem;
+	height: 1rem;
+	border-radius: 50%;
+	border: 1px solid rgba(0, 0, 0, 0.18);
+	flex-shrink: 0;
+}
+#ar-settings-overlay .ar-bets-denom-num {
+	font-size: 0.8125rem;
+	font-weight: 600;
+	flex: 1;
+	min-width: 0;
+	color: var(--text, #0f172a);
+}
+#ar-settings-overlay .ar-bets-denom-cb {
+	width: 1.05rem;
+	height: 1.05rem;
+	flex-shrink: 0;
+	accent-color: var(--accent, #2563eb);
+	cursor: pointer;
+}
+#ar-settings-overlay .ar-bets-timer-settings--fuse {
+	margin-top: 4px;
+	margin-bottom: 10px;
+}
+#ar-settings-overlay .ar-bets-timer-settings--fuse.is-inactive {
+	opacity: 0.45;
+	pointer-events: none;
+}
+/* Разметка страницы (не .payout-settings-fields — тот класс для полей модалки) */
+.ar-bets-layout {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+.ar-bets-fuse-wrap {
+	flex-shrink: 0;
+	align-self: stretch;
+	margin: 10px 0 0;
+	width: 100%;
+	max-width: 300px;
+	margin-left: auto;
+	margin-right: auto;
+	box-sizing: border-box;
+	position: relative;
+	z-index: 1;
+	overflow: visible;
+}
+.ar-bets-fuse-wrap .fuse-timer {
+	width: 100%;
+	max-width: none;
+	margin-left: 0;
+	margin-right: 0;
+}
+.ar-bets-fuse-wrap .fuse-timer-track {
+	width: 100%;
+	min-height: 12px;
+	display: block;
+}
+.ar-bets-fuse-fill-stub {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+.ar-bets-solve-time {
+	display: block;
+	margin-top: 0.65rem;
+	font-size: 1rem;
+	font-weight: 600;
+	opacity: 0.95;
+}
+</style>
+{% endblock %}
+
+{% block title %}Заставки 2+{% endblock %}
+
+{% block content %}
+<div class="ar-bets-layout">
+<div class="ar-canvas-wrap">
+	<canvas id="ar-canvas"></canvas>
+	<div class="ar-rotate-hint ar-rotate-hint--hidden" aria-hidden="true">
+		<span class="ar-rotate-hint__icon">👆</span>
+		<span class="ar-rotate-hint__arrows">↔</span>
+		<span class="ar-rotate-hint__text">Нажми и води</span>
+	</div>
+	<button type="button" class="payout-settings-btn ar-settings-btn" id="arSettingsBtn" title="Настройки" aria-label="Настройки">
+		<svg class="payout-settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+			<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+			<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/>
+		</svg>
+	</button>
+	<button type="button" class="payout-settings-btn ar-settings-btn ar-camera-reset-btn" id="arCameraResetBtn" title="Сбросить камеру" aria-label="Сбросить камеру">
+		<svg class="payout-settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+			<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+			<circle cx="12" cy="13" r="4"/>
+		</svg>
+	</button>
+	<button type="button" class="payout-settings-btn ar-settings-btn" id="arCameraSaveBtn" title="Сохранить текущее положение камеры (и точку взгляда) для вашего пользователя на этом устройстве" aria-label="Сохранить текущее состояние камеры для конкретного пользователя" style="position:absolute;top:12px;left:56px;right:auto;z-index:10;max-width:11rem;padding:6px 8px;font-size:0.72rem;line-height:1.25;white-space:normal;">Сохранить камеру</button>
+	<div id="ar-camera-save-toast" style="display:none;position:absolute;bottom:12px;left:12px;right:12px;z-index:10;background:rgba(0,0,0,0.88);color:#b8e0b8;font:12px/1.45 ui-monospace,monospace;padding:10px 12px;border-radius:6px;pointer-events:none;" aria-live="polite"></div>
+</div>
+<div id="ar-settings-overlay" class="payout-settings-overlay">
+	<div class="payout-settings-modal ar-bets-settings-modal">
+		<h3 class="payout-settings-title">Настройки</h3>
+		{% csrf_token %}
+		<input type="checkbox" id="ar-use-stacks" class="ar-bets-sr-only" checked tabindex="-1" aria-hidden="true">
+		<input type="checkbox" name="timer_enabled" id="ar-timer-enabled-cb" class="ar-bets-sr-only" {% if timer_enabled %}checked{% endif %} tabindex="-1" aria-hidden="true">
+		<div class="payout-settings-fields ar-bets-settings-fields">
+			<div class="ar-bets-settings-row">
+				<span class="ar-bets-settings-label" id="ar-bets-stacks-label">Стеков в заставке</span>
+				<div class="ar-bets-stacks-controls" aria-labelledby="ar-bets-stacks-label">
+					<button type="button" class="ar-bets-timer-switch is-on" id="ar-bets-pool-switch" role="switch" aria-checked="true" title="Пул стеков: вкл — распределение из стеков, выкл — min/max на позицию" aria-label="Пул стеков"></button>
+					<select id="ar-stacks-select" class="ar-bets-ar-select" aria-label="Число стеков в заставке">
+						<option value="1" selected>1</option>
+						<option value="2">2</option>
+						<option value="3">3</option>
+						<option value="4">4</option>
+						<option value="5">5</option>
+						<option value="6">6</option>
+						<option value="7">7</option>
+						<option value="8">8</option>
+					</select>
+				</div>
+			</div>
+			<div class="ar-bets-timer-settings" role="group" aria-labelledby="ar-bets-timer-label">
+				<span class="ar-bets-timer-settings-hint" id="ar-bets-timer-label">Таймер</span>
+				<button type="button" class="ar-bets-timer-switch{% if timer_enabled %} is-on{% endif %}" id="ar-bets-timer-switch" role="switch" aria-checked="{% if timer_enabled %}true{% else %}false{% endif %}" aria-labelledby="ar-bets-timer-label"></button>
+				<label class="ar-bets-timer-sec">
+					<span class="ar-bets-timer-sec-lbl">сек</span>
+					<input type="number" name="timer_seconds" class="ar-bets-timer-sec-input ar-bets-param-input" id="ar-timer-seconds-input" min="1" max="120" value="{{ timer_seconds }}" inputmode="numeric" title="Секунд до автопроверки" aria-label="Секунд до автопроверки">
+				</label>
+			</div>
+			<div class="ar-bets-timer-settings ar-bets-timer-settings--fuse" id="arBetsFuseAnimRow" role="group" aria-labelledby="ar-bets-fuse-anim-label">
+				<span class="ar-bets-timer-settings-hint" id="ar-bets-fuse-anim-label">Анимация фитиля</span>
+				<button type="button" class="ar-bets-timer-switch{% if timer_fuse_animation %} is-on{% endif %}" id="ar-bets-fuse-anim-switch" role="switch" aria-checked="{% if timer_fuse_animation %}true{% else %}false{% endif %}" aria-labelledby="ar-bets-fuse-anim-label"></button>
+				<input type="hidden" name="timer_fuse_animation" id="ar-bets-fuse-anim-enabled" value="{% if timer_fuse_animation %}1{% else %}0{% endif %}">
+			</div>
+			<div class="ar-bets-settings-row">
+				<span class="ar-bets-settings-label" id="ar-bets-number-label">Номер</span>
+				<label class="ar-bets-timer-sec ar-bets-number-wrap">
+					<select id="ar-number-select" class="ar-bets-ar-select ar-bets-number-select" aria-labelledby="ar-bets-number-label"></select>
+				</label>
+			</div>
+			<div class="ar-bets-params-heading">Фишек на позиции</div>
+			<label class="ar-bets-param-row">
+				<span class="ar-bets-param-label">min</span>
+				<input type="number" id="ar-min-chips" class="ar-bets-param-input" min="0" max="20" value="0" inputmode="numeric">
+			</label>
+			<label class="ar-bets-param-row">
+				<span class="ar-bets-param-label">max</span>
+				<input type="number" id="ar-max-chips" class="ar-bets-param-input" min="0" max="20" value="5" inputmode="numeric">
+			</label>
+			<div class="ar-bets-params-heading" id="ar-bets-denoms-label">Номиналы</div>
+			<div class="ar-bets-denom-toolbar">
+				<button type="button" class="btn btn-secondary ar-bets-denom-select-all" id="arDenomSelectAll">Выбрать все</button>
+			</div>
+			<div class="ar-bets-denom-grid" id="ar-denom-grid" role="group" aria-labelledby="ar-bets-denoms-label"></div>
+			<div class="ar-bets-settings-row">
+				<span class="ar-bets-settings-label" id="ar-bets-hints-label">Подсказки</span>
+				<button type="button" class="ar-bets-timer-switch is-on" id="ar-bets-hints-switch" role="switch" aria-checked="true" aria-labelledby="ar-bets-hints-label"></button>
+			</div>
+		</div>
+		<div class="payout-settings-actions">
+			<button type="button" class="btn btn-primary" id="arSettingsSave">Сохранить</button>
+			<button type="button" class="btn btn-secondary" id="arSettingsClose">Отмена</button>
+		</div>
+	</div>
+</div>
+{% if timer_enabled %}
+<div class="ar-bets-fuse-wrap" id="ar-bets-2plus-fuse-wrap">
+	{% if timer_fuse_animation %}
+	{% include "partials/fuse_timer.html" with prefix="ar-bets-2plus" %}
+	{% else %}
+	<div class="ar-bets-fuse-fill-stub" aria-hidden="true">
+		<div id="ar-bets-2plus-fuse-fill" style="width:100%"></div>
+	</div>
+	{% endif %}
+</div>
+{% endif %}
+<div class="ar-answer-row" style="margin-top: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+	<div class="ar-answer-left" style="display: flex; align-items: center; gap: 12px;">
+		<input type="number" id="user-answer" min="0" step="1" placeholder="ответ" style="width: 100px; padding: 8px 12px;">
+		<button type="button" id="btn-check" class="btn btn-secondary" title="Проверить">↵</button>
+	</div>
+	<button type="button" id="btn-pass" class="btn btn-secondary" style="margin-left: auto;">Pass</button>
+</div>
+<p id="answer-display" style="margin-top: 10px; font-size: 1.1rem; font-weight: 600;"></p>
+
+<div id="ar-success-overlay" class="payout-success-overlay" style="display: none;">
+	<button type="button" class="payout-success-tap" id="ar-success-close" style="position:absolute;inset:0;border:none;background:transparent;cursor:pointer;"></button>
+	<div class="payout-fireworks" aria-hidden="true">
+		<span></span><span></span><span></span><span></span><span></span><span></span>
+		<span></span><span></span><span></span><span></span><span></span><span></span>
+	</div>
+	<div class="payout-success-text">{% include "partials/payout_check_text.html" %}<small id="ar-bets-solve-time" class="ar-bets-solve-time" hidden></small></div>
+</div>
+<div id="ar-error-overlay" class="payout-success-overlay self-draw-error-overlay" style="display: none;">
+	<button type="button" class="payout-success-tap" id="ar-error-close" style="position:absolute;inset:0;border:none;background:transparent;cursor:pointer;"></button>
+	<div class="self-draw-error-content" id="ar-error-content">
+		<span class="self-draw-error-hand" id="ar-error-hand" aria-hidden="true">✋</span>
+		<div class="payout-success-text self-draw-error-text" id="ar-error-text"></div>
+		<small class="self-draw-error-hint">Нажмите, чтобы попробовать снова</small>
+	</div>
+</div>
+<div id="ar-timeup-overlay" class="payout-success-overlay self-draw-error-overlay" style="display: none;" aria-hidden="true">
+	<button type="button" class="payout-success-tap" id="ar-timeup-close" style="position:absolute;inset:0;border:none;background:transparent;cursor:pointer;" aria-label="Закрыть"></button>
+	<div class="self-draw-error-content">
+		<div class="payout-success-text self-draw-error-text">Время вышло!</div>
+		<small class="self-draw-error-hint">Нажмите, чтобы продолжить</small>
+	</div>
+</div>
+</div>
+<script>window.__AR_BETS_2PLUS_CAMERA_USER_ID__ = "{% if user.is_authenticated %}{{ user.pk }}{% else %}guest{% endif %}";</script>
+<script>
+window.__AR_BETS_2PLUS_TIMER_SNAPSHOT__ = {
+	enabled: {% if timer_enabled %}true{% else %}false{% endif %},
+	sec: '{{ timer_seconds }}',
+	fuse: '{% if timer_fuse_animation %}1{% else %}0{% endif %}'
+};
+window.__AR_BETS_2PLUS_TIMER_SAVE_URL__ = '{% url "ar_bets_2plus" %}';
+</script>
+<script type="importmap">
+{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/","ar-track-chip-factory":"{% static 'js/ar_track_chip_factory.mjs' %}"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { TrackChipFactory, CHIP_COLORS } from 'ar-track-chip-factory';
+
+const canvas = document.getElementById('ar-canvas');
+if (!canvas) throw new Error('canvas not found');
+const ALL_DENOM_OPTIONS = [1, 2, 5, 25, 100, 500, 1000, 5000];
+const DEFAULT_ALLOWED_DENOMS = [2, 5];
+let arAllowedDenoms = DEFAULT_ALLOWED_DENOMS.slice();
+
+function parseAllowedDenomsStored(stored) {
+	try {
+		const arr = JSON.parse(stored);
+		if (!Array.isArray(arr)) return null;
+		const picked = new Set(arr.map(function (v) { return parseInt(v, 10); }).filter(function (n) {
+			return !isNaN(n) && ALL_DENOM_OPTIONS.indexOf(n) !== -1;
+		}));
+		const out = ALL_DENOM_OPTIONS.filter(function (d) { return picked.has(d); });
+		return out.length > 0 ? out : null;
+	} catch (_) {
+		return null;
+	}
+}
+
+function denomColorCss(denom) {
+	const c = CHIP_COLORS[denom];
+	if (c === undefined) return '#9ca3af';
+	return '#' + (c >>> 0).toString(16).padStart(6, '0');
+}
+
+(function populateDenomGrid() {
+	const grid = document.getElementById('ar-denom-grid');
+	if (!grid) return;
+	grid.innerHTML = '';
+	for (let i = 0; i < ALL_DENOM_OPTIONS.length; i++) {
+		const d = ALL_DENOM_OPTIONS[i];
+		const label = document.createElement('label');
+		label.className = 'ar-bets-denom-option';
+		const swatch = document.createElement('span');
+		swatch.className = 'ar-bets-denom-swatch';
+		swatch.style.background = denomColorCss(d);
+		const num = document.createElement('span');
+		num.className = 'ar-bets-denom-num';
+		num.textContent = String(d);
+		const cb = document.createElement('input');
+		cb.type = 'checkbox';
+		cb.className = 'ar-bets-denom-cb';
+		cb.dataset.denom = String(d);
+		cb.checked = DEFAULT_ALLOWED_DENOMS.indexOf(d) !== -1;
+		label.appendChild(swatch);
+		label.appendChild(num);
+		label.appendChild(cb);
+		grid.appendChild(label);
+	}
+})();
+
+function readDenomsFromSettingsUI() {
+	const result = [];
+	for (let i = 0; i < ALL_DENOM_OPTIONS.length; i++) {
+		const d = ALL_DENOM_OPTIONS[i];
+		const cb = document.querySelector('#ar-denom-grid input[data-denom="' + d + '"]');
+		if (cb && cb.checked) result.push(d);
+	}
+	return result;
+}
+
+function syncDenomSettingsUI() {
+	for (let i = 0; i < ALL_DENOM_OPTIONS.length; i++) {
+		const d = ALL_DENOM_OPTIONS[i];
+		const cb = document.querySelector('#ar-denom-grid input[data-denom="' + d + '"]');
+		if (cb) cb.checked = arAllowedDenoms.indexOf(d) !== -1;
+	}
+	updateDenomSelectAllBtn();
+}
+
+function updateDenomSelectAllBtn() {
+	const btn = document.getElementById('arDenomSelectAll');
+	if (!btn) return;
+	const allOn = readDenomsFromSettingsUI().length === ALL_DENOM_OPTIONS.length;
+	btn.textContent = allOn ? 'Снять все' : 'Выбрать все';
+	btn.setAttribute('title', allOn ? 'Снять все номиналы' : 'Отметить все номиналы');
+}
+
+(function populateNumberSelect() {
+	const sel = document.getElementById('ar-number-select');
+	if (!sel) return;
+	sel.innerHTML = '';
+	for (let n = 0; n <= 36; n++) {
+		const opt = document.createElement('option');
+		opt.value = String(n);
+		opt.textContent = String(n);
+		sel.appendChild(opt);
+	}
+})();
+
+function setCookie(name, value, days) {
+	const maxAge = days ? days * 24 * 60 * 60 : 31536000;
+	document.cookie = name + '=' + encodeURIComponent(value) + '; Path=/; Max-Age=' + maxAge;
+}
+function getCookie(name) {
+	const prefix = name + '=';
+	const parts = document.cookie.split(';');
+	for (let i = 0; i < parts.length; i++) {
+		const part = parts[i].trim();
+		if (part.indexOf(prefix) === 0) return decodeURIComponent(part.substring(prefix.length));
+	}
+	return null;
+}
+
+let arMinChips = 0;
+let arMaxChips = 5;
+let arUseStacks = true;
+let arStacksCount = 1;
+let arSelectedNumber = 5;
+let arHintsDisabled = false;
+const arVisibleDozens = [1, 2, 3];
+let arCameraSaveToastTimer = null;
+try {
+	const stored = getCookie('ar_bets_2plus_chips_range') || localStorage.getItem('ar_bets_2plus_chips_range');
+	if (stored) {
+		const p = JSON.parse(stored);
+		const vmin = parseInt(p.min, 10);
+		const vmax = parseInt(p.max, 10);
+		if (!isNaN(vmin)) arMinChips = Math.max(0, Math.min(20, vmin));
+		if (!isNaN(vmax)) arMaxChips = Math.max(0, Math.min(20, vmax));
+	}
+	const stacksStored = getCookie('ar_bets_2plus_stacks_mode') || localStorage.getItem('ar_bets_2plus_stacks_mode');
+	if (stacksStored) {
+		const q = JSON.parse(stacksStored);
+		arUseStacks = !!q.enabled;
+		const sc = parseInt(q.stacks, 10);
+		if (!isNaN(sc) && sc >= 1 && sc <= 8) arStacksCount = sc;
+	}
+	const numberStored = getCookie('ar_bets_2plus_number_select') || localStorage.getItem('ar_bets_2plus_number_select');
+	if (numberStored !== null && numberStored !== undefined && numberStored !== '') {
+		const n = parseInt(numberStored, 10);
+		if (!isNaN(n) && n >= 0 && n <= 36) arSelectedNumber = n;
+	}
+	const hintsStored = getCookie('ar_bets_2plus_hints_disabled') || localStorage.getItem('ar_bets_2plus_hints_disabled');
+	arHintsDisabled = hintsStored === '1' || hintsStored === 'true';
+	const denomsStored = getCookie('ar_bets_2plus_denoms') || localStorage.getItem('ar_bets_2plus_denoms');
+	const parsedDenoms = denomsStored ? parseAllowedDenomsStored(denomsStored) : null;
+	if (parsedDenoms) arAllowedDenoms = parsedDenoms;
+} catch (_) {}
+
+/* Применяем настройку подсказки до инициализации сцены, чтобы исключить мигание. */
+var initialRotateHint = document.querySelector('.ar-rotate-hint');
+if (initialRotateHint) {
+	initialRotateHint.classList.toggle('ar-rotate-hint--hidden', arHintsDisabled);
+}
+
+var containerW = canvas.parentElement ? canvas.parentElement.clientWidth : 0;
+var containerH = canvas.parentElement ? canvas.parentElement.clientHeight : 0;
+if (!containerW || containerW < 100) containerW = 640;
+if (!containerH || containerH < 100) containerH = 360;
+var w = containerW;
+var h = containerH;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x1a1a1a);
+
+const aspect = (h > 0 && w > 0) ? w / h : 16 / 9;
+const camera = new THREE.PerspectiveCamera(50, aspect, 0.1, 1000);
+camera.position.set(12.095, 2.566, 18.105);
+camera.lookAt(12.281, 17.126, 1.613);
+
+const controls = new OrbitControls(camera, canvas);
+controls.target.set(12.281, 17.126, 1.613);
+var rotateHint = document.querySelector('.ar-rotate-hint');
+function hideRotateHint() {
+	if (rotateHint && !arHintsDisabled && !rotateHint.classList.contains('ar-rotate-hint--hidden')) {
+		rotateHint.classList.add('ar-rotate-hint--hidden');
+	}
+}
+controls.addEventListener('start', hideRotateHint);
+const cameraHomePos = { x: 12.095, y: 2.566, z: 18.105 };
+const cameraHomeTarget = { x: 12.281, y: 17.126, z: 1.613 };
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.maxPolarAngle = Math.PI * 0.95;
+controls.minAzimuthAngle = -Math.PI / 2;
+controls.maxAzimuthAngle = Math.PI / 2;
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+if (!renderer.getContext()) {
+	canvas.parentElement && canvas.parentElement.insertAdjacentHTML('beforeend', '<p style="color:#e11;padding:16px;margin:0;">WebGL не доступен. Обновите браузер или включите аппаратное ускорение.</p>');
+}
+renderer.setSize(w, h);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+const dir = new THREE.DirectionalLight(0xffffff, 0.9);
+dir.position.set(20, 25, 20);
+scene.add(dir);
+
+const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+const whiteStripMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 }); /* полоски — всегда белые, DoubleSide для AR */
+const blueMat = new THREE.MeshStandardMaterial({ color: 0x2563eb });
+const cellW = 8, cellH = 10;
+const gap = 0.3;
+const edge = 0.15;
+const cornerScale = 0.3;
+const lineDepth = 0.12;  /* глубина линий — одинаковая толщина при любом угле (AR) */
+
+function makeNumberTexture(num, color) {
+	const size = 768;
+	const canvas = document.createElement('canvas');
+	canvas.width = size;
+	canvas.height = size;
+	const ctx = canvas.getContext('2d');
+	ctx.fillStyle = color || '#ffffff';
+	ctx.font = 'bold 576px sans-serif';
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+	ctx.fillText(String(num), size / 2, size / 2);
+	const tex = new THREE.CanvasTexture(canvas);
+	tex.needsUpdate = true;
+	return tex;
+}
+
+function makeTextTexture(text, color) {
+	const width = 1024;
+	const height = 256;
+	const canvas = document.createElement('canvas');
+	canvas.width = width;
+	canvas.height = height;
+	const ctx = canvas.getContext('2d');
+	ctx.fillStyle = color || '#ffffff';
+	ctx.font = 'bold 180px sans-serif';
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+	ctx.fillText(String(text), width / 2, height / 2);
+	const tex = new THREE.CanvasTexture(canvas);
+	tex.needsUpdate = true;
+	return tex;
+}
+
+/* Конфиг дюжин: порядок чисел в сетке 4×3 (сверху вниз: 1-4-7-10, 2-5-8-11, 3-6-9-12) */
+const DOZEN_CONFIG = {
+	1: { numbers: [1, 4, 7, 10, 2, 5, 8, 11, 3, 6, 9, 12], label: '1st Dozen', red: [1, 3, 5, 7, 9, 12] },
+	2: { numbers: [13, 16, 19, 22, 14, 17, 20, 23, 15, 18, 21, 24], label: '2nd Dozen', red: [14, 16, 18, 19, 21, 23] },
+	3: { numbers: [25, 28, 31, 34, 26, 29, 32, 35, 27, 30, 33, 36], label: '3rd Dozen', red: [25, 27, 30, 32, 34, 36] }
+};
+const BLOCK_HEIGHT = 36.15;
+const BLOCK_GAP = 0.3;
+
+function addCell(scene, cx, cy, num, redSet) {
+	const cell = new THREE.Mesh(new THREE.PlaneGeometry(cellW, cellH), blueMat);
+	cell.name = 'number ' + num;
+	cell.position.set(cx, cy, 0);
+	scene.add(cell);
+
+	const isRed = redSet.indexOf(num) !== -1;
+	const labelColor = isRed ? '#c00' : '#000';
+	const labelPlane = new THREE.Mesh(
+		new THREE.PlaneGeometry(7.2, 7.2),
+		new THREE.MeshBasicMaterial({
+			map: makeNumberTexture(num, labelColor),
+			transparent: true,
+			side: THREE.DoubleSide
+		})
+	);
+	labelPlane.position.set(cx, cy, 0.02);
+	labelPlane.rotation.z = Math.PI / 2;
+	labelPlane.name = 'label ' + num;
+	scene.add(labelPlane);
+}
+
+const cx0 = cellW / 2, cx1 = cellW + gap + cellW / 2, cx2 = cellW + gap + cellW + gap + cellW / 2, cx3 = cellW + gap + cellW + gap + cellW + gap + cellW / 2;
+const cy0 = cellH / 2, cy1 = cellH + gap + cellH / 2, cy2 = cellH + gap + cellH + gap + cellH / 2;
+const centers = [
+	[cx0, cy0], [cx1, cy0], [cx2, cy0], [cx3, cy0],
+	[cx0, cy1], [cx1, cy1], [cx2, cy1], [cx3, cy1],
+	[cx0, cy2], [cx1, cy2], [cx2, cy2], [cx3, cy2]
+];
+
+const gridLeft = -edge;
+const gridRight = cellW + gap + cellW + gap + cellW + gap + cellW + edge;
+const gridBottom = -edge;
+const gridTop = cellH + gap + cellH + gap + cellH + edge;
+const vertLineH = gridTop - gridBottom;
+const horzLineW = gridRight - gridLeft;
+const vertX = [
+	gridLeft,
+	cellW + gap / 2,
+	cellW + gap + cellW + gap / 2,
+	cellW + gap + cellW + gap + cellW + gap / 2,
+	gridRight
+];
+const horzY = [gridBottom, cellH + gap / 2, cellH + gap + cellH + gap / 2, gridTop];
+
+/* Дюжина: зазор от поля чисел до нижнего края синей полосы */
+const DOZEN_GAP_FROM_GRID = 0.6;
+const dozenStripHeight = 36 - (gridTop + DOZEN_GAP_FROM_GRID); /* верх полосы на y=36 */
+const dozenRectBottom = gridTop + DOZEN_GAP_FROM_GRID;
+const dozenRectTop = dozenRectBottom + dozenStripHeight;
+
+const dozRight = 33.05 - 0.15;
+const topRectBorderThickness = gap;
+const BLOCK_WIDTH = dozRight + BLOCK_GAP;  /* ширина блока дюжины по x */
+/* Камера: цепочка +3: 5,8,11 (3 клона по x) | 14–23 и 26–35 (4 позиции, с кол.0) — см. arCameraXForStep345Chain */
+const AR_CAM_STEP345_X0 = 12.15;
+const AR_CAM_STEP345_DX = 8.15;
+/* Камера: 3,6,…,36 (шаг 3): x = 4 + k*AR_CAM_STEP345_DX, общие y/z */
+const AR_CAM_COL369_POS_Y = 12.528;
+const AR_CAM_COL369_POS_Z = 21.022;
+const AR_CAM_COL369_TGT_Y = 26.17;
+const AR_CAM_COL369_TGT_Z = 5.916;
+
+function arCameraXForStep345Chain(n) {
+	const x0 = AR_CAM_STEP345_X0;
+	const dx = AR_CAM_STEP345_DX;
+	if (n <= 11) {
+		return x0 + ((n - 5) / 3) * dx;
+	}
+	if (n <= 23) {
+		return (x0 - dx) + ((n - 14) / 3) * dx + BLOCK_WIDTH;
+	}
+	return (x0 - dx) + ((n - 26) / 3) * dx + 2 * BLOCK_WIDTH;
+}
+
+function createDozenBlock(opts) {
+	const offsetX = opts.offsetX || 0;
+	const offsetY = opts.offsetY || 0;
+	const skipLeftEdge = opts.skipLeftEdge || false;
+	const skipRightEdge = opts.skipRightEdge || false;
+	const skipRightCorner = opts.skipRightCorner || false;  /* стык справа: угол рисует левый блок */
+	const { numbers, label, red } = opts;
+	/* Ячейки */
+	centers.forEach(function (c, i) {
+		addCell(scene, c[0] + offsetX, c[1] + offsetY, numbers[i], red);
+	});
+	/* Сетка линий — вертикали только по полю чисел; зазор до дюжины (gridTop…dozenRectBottom) без вертикалей */
+	const stripZ = 0.002;
+	const vertLineH = gridTop - gridBottom;
+	const horzLineW = gridRight - gridLeft;
+	vertX.forEach(function (x, vi) {
+		/* Стык слева: левая дюжина уже рисует vertX[4], не дублировать линию */
+		if (skipLeftEdge && vi === 0) return;
+		const line = new THREE.Mesh(new THREE.BoxGeometry(gap, vertLineH, lineDepth), whiteStripMat);
+		line.name = 'split';
+		line.position.set(x + offsetX, (gridTop + gridBottom) / 2 + offsetY, stripZ);
+		scene.add(line);
+	});
+	/* Пропускаем верхнюю линию (gridTop) — иначе двойная линия с нижней границей дюжины */
+	const horzYFiltered = horzY.slice(0, -1);
+	horzYFiltered.forEach(function (y) {
+		const line = new THREE.Mesh(new THREE.BoxGeometry(horzLineW, gap, lineDepth), whiteStripMat);
+		line.name = 'split';
+		line.position.set((gridLeft + gridRight) / 2 + offsetX, y + offsetY, stripZ);
+		scene.add(line);
+	});
+	/* Прямоугольник дюжины */
+	const localTopRectBottom = dozenRectBottom;
+	const localTop = dozenRectTop;
+	const rectShape = new THREE.Shape();
+	rectShape.moveTo(offsetX, localTopRectBottom + offsetY);
+	rectShape.lineTo(offsetX + dozRight, localTopRectBottom + offsetY);
+	rectShape.lineTo(offsetX + dozRight, localTop + offsetY);
+	rectShape.lineTo(offsetX, localTop + offsetY);
+	rectShape.closePath();
+	const rect = new THREE.Mesh(new THREE.ShapeGeometry(rectShape), blueMat);
+	rect.name = 'blue-top-rect';
+	rect.position.set(0, 0, -0.01);
+	scene.add(rect);
+	/* Белая рамка дюжины — границы по gridLeft/gridRight (выровнено с сеткой) */
+	const leftOut = offsetX + gridLeft;  /* выровнено с ориентиром (линия трапеция/сетка под ней) */
+	const isRightmost = opts.isRightmost || false;
+	const rightOut = skipRightEdge ? (offsetX + gridRight) : (offsetX + gridRight + (isRightmost ? topRectBorderThickness : 0));
+	const topY = localTop + offsetY + (skipRightEdge ? 0 : topRectBorderThickness);
+	const botY = localTopRectBottom + offsetY;
+	const bw = rightOut - leftOut;
+	const bh = topY - botY;
+	const frameSideH = Math.max(0, bh - gap);
+	/* Нижняя граница — сегменты между вертикалями + углы (как у сетки чисел), без утолщения на пересечениях */
+	for (let vi = 0; vi < vertX.length - 1; vi++) {
+		const segLen = vertX[vi + 1] - vertX[vi] - gap;
+		if (segLen > 0) {
+			const seg = new THREE.Mesh(new THREE.BoxGeometry(segLen, gap, lineDepth), whiteStripMat);
+			seg.name = 'dozen-bottom-seg';
+			seg.position.set((vertX[vi] + vertX[vi + 1]) / 2 + offsetX, botY, stripZ);
+			scene.add(seg);
+		}
+	}
+	/* Угол на стыке: левый блок пропускает правый нижний угол (skipRightCorner), правый рисует левый — не skipLeftEdge */
+	vertX.forEach(function (x, vi) {
+		if (skipRightCorner && vi === vertX.length - 1) return;
+		const c = new THREE.Mesh(new THREE.BoxGeometry(cornerScale, cornerScale, lineDepth), whiteStripMat);
+		c.name = 'dozen-bottom-corner';
+		c.position.set(x + offsetX, botY, stripZ);
+		scene.add(c);
+	});
+	/* Верхняя граница — короче на толщину слева/справа; углы отдельно */
+	const topLine = new THREE.Mesh(new THREE.BoxGeometry(bw - gap, gap, lineDepth), whiteStripMat);
+	topLine.name = 'dozen-top';
+	topLine.position.set((leftOut + rightOut) / 2, topY, stripZ);
+	scene.add(topLine);
+	if (!skipLeftEdge) {
+		const leftLine = new THREE.Mesh(new THREE.BoxGeometry(gap, frameSideH, lineDepth), whiteStripMat);
+		leftLine.name = 'dozen-left';
+		leftLine.position.set(leftOut, (botY + topY) / 2, stripZ);
+		scene.add(leftLine);
+	}
+	if (!skipRightEdge) {
+		const rightLine = new THREE.Mesh(new THREE.BoxGeometry(gap, frameSideH, lineDepth), whiteStripMat);
+		rightLine.name = 'dozen-right';
+		rightLine.position.set(rightOut, (botY + topY) / 2, stripZ);
+		scene.add(rightLine);
+	}
+	[[leftOut, topY], [rightOut, topY]].forEach(function (pt) {
+		const c = new THREE.Mesh(new THREE.BoxGeometry(cornerScale, cornerScale, lineDepth), whiteStripMat);
+		c.name = 'dozen-top-corner';
+		c.position.set(pt[0], pt[1], stripZ);
+		scene.add(c);
+	});
+	/* Надпись дюжины */
+	const labelMesh = new THREE.Mesh(
+		new THREE.PlaneGeometry(12, 5),
+		new THREE.MeshBasicMaterial({
+			map: makeTextTexture(label, '#000000'),
+			transparent: true,
+			side: THREE.DoubleSide
+		})
+	);
+	labelMesh.position.set(offsetX + 16.45, (localTopRectBottom + localTop) / 2 + offsetY, 0.02);
+	labelMesh.name = 'label ' + label;
+	scene.add(labelMesh);
+	/* Углы сетки (без верхнего ряда — иначе двойная линия с рамкой дюжины) */
+	vertX.forEach(function (x) {
+		horzYFiltered.forEach(function (y) {
+			const corner = new THREE.Mesh(new THREE.BoxGeometry(cornerScale, cornerScale, lineDepth), whiteStripMat);
+			corner.name = 'corner';
+			corner.position.set(x + offsetX, y + offsetY, stripZ);
+			scene.add(corner);
+		});
+	});
+}
+
+/* Рисуем выбранные дюжины: 1-я по центру, 2-я и 3-я — справа по оси x */
+arVisibleDozens.forEach(function (dozIdx, idx) {
+	const cfg = DOZEN_CONFIG[dozIdx];
+	if (!cfg) return;
+	const offsetX = (dozIdx - 1) * BLOCK_WIDTH;  /* 2-я и 3-я дюжины справа */
+	const offsetY = 0;
+	/* На стыках: левый блок рисует границу, правый пропускает свою левую — иначе двойная толщина */
+	const skipLeftEdge = arVisibleDozens.indexOf(dozIdx - 1) !== -1;
+	const skipRightEdge = false;  /* всегда рисуем правую границу (стык между блоками) */
+	const skipRightCorner = arVisibleDozens.indexOf(dozIdx + 1) !== -1;
+	createDozenBlock({ offsetX, offsetY, skipLeftEdge, skipRightEdge, skipRightCorner, numbers: cfg.numbers, label: cfg.label, red: cfg.red });
+});
+/* Верхняя белая граница: от верхней правой точки 0 до верхней правой точки 36 */
+if (arVisibleDozens.length > 0) {
+	const maxDozIdx = Math.max.apply(null, arVisibleDozens);
+	const rightEdgeX = (maxDozIdx - 1) * BLOCK_WIDTH + dozRight + topRectBorderThickness;
+	addGrayStrip(-0.15, 30.75, rightEdgeX, 30.75, gap, 0.003);  /* горизонталь: y как у первой точки */
+}
+
+function addGrayStrip(x1, y1, x2, y2, thickness, z) {
+	const dx = x2 - x1;
+	const dy = y2 - y1;
+	const length = Math.hypot(dx, dy);
+	const strip = new THREE.Mesh(new THREE.BoxGeometry(length, thickness, lineDepth), whiteStripMat);
+	strip.name = 'white-strip';
+	strip.position.set((x1 + x2) / 2, (y1 + y2) / 2, z !== undefined ? z : 0);
+	strip.rotation.z = Math.atan2(dy, dx);
+	scene.add(strip);
+}
+addGrayStrip(-0.15, -0.15, -3.15, -0.15, gap);   /* горизонталь снизу: (-0.15,-0.15) → (-3.15,-0.15) */
+addGrayStrip(-3.15, -0.15, -8.15, 10.15, gap);   /* диагональ снизу от (-3.15,-0.15) к вершине */
+addGrayStrip(-0.15, 30.75, -3.15, 30.75, gap);
+addGrayStrip(-3.15, 30.75, -8.15, 20.75, gap);
+addGrayStrip(-8.15, 10.15, -8.15, 20.75, gap);
+/* Разделители между дюжинами убраны — рамки блоков уже дают границу, отдельные полоски вызывали наложение */
+const topRectBottom = dozenRectBottom;  /* нижний край зоны дюжины (как dozenRectBottom) */
+
+const trapezoidShape = new THREE.Shape();
+trapezoidShape.moveTo(-0.15, -0.15);
+trapezoidShape.lineTo(-3.15, -0.15);
+trapezoidShape.lineTo(-8.15, 10.15);
+trapezoidShape.lineTo(-8.15, 20.75);
+trapezoidShape.lineTo(-3.15, 30.75);
+trapezoidShape.lineTo(-0.15, 30.75);
+trapezoidShape.closePath();
+const trapezoid = new THREE.Mesh(new THREE.ShapeGeometry(trapezoidShape), blueMat);
+trapezoid.name = 'blue-trapezoid';
+trapezoid.position.set(0, 0, -0.01);
+scene.add(trapezoid);
+
+const zeroLabel = new THREE.Mesh(
+	new THREE.PlaneGeometry(7.2, 7.2),
+	new THREE.MeshBasicMaterial({
+		map: makeNumberTexture(0, '#16a34a'),
+		transparent: true,
+		side: THREE.DoubleSide
+	})
+);
+zeroLabel.position.set(-4.15, 15.3, 0.02);
+zeroLabel.rotation.z = Math.PI / 2;
+zeroLabel.name = 'label 0';
+scene.add(zeroLabel);
+
+const spawnZ = 0.175;
+const chipStep = 0.35;
+const spawnZ2 = spawnZ + chipStep;
+const spawnZ3 = spawnZ + chipStep * 2;
+const spawnZ4 = spawnZ + chipStep * 3;
+const spawnZ5 = spawnZ + chipStep * 4;
+const spawnZ6 = spawnZ + chipStep * 5;
+const spawnZ7 = spawnZ + chipStep * 6;
+const spawnZ8 = spawnZ + chipStep * 7;
+const spawnZ9 = spawnZ + chipStep * 8;
+const spawnZ10 = spawnZ + chipStep * 9;
+const spawnZ11 = spawnZ + chipStep * 10;
+const spawnZ12 = spawnZ + chipStep * 11;
+const spawnZ13 = spawnZ + chipStep * 12;
+const spawnZ14 = spawnZ + chipStep * 13;
+const spawnZ15 = spawnZ + chipStep * 14;
+const ladderStep = 0.3;       /* шаг лесенки (2–4 фишки) */
+const chip11OffsetX = 0.3;   /* смещение фишек 11–14 по x */
+const firstLadderOffset = 0.6; /* 6–10 от стопки 1–5; 15→16 по Y тоже 0.6 */
+const denomCacheGap = ladderStep * 2; /* зазор между кешами номиналов — чуть больше ступеньки лесенки */
+const zastavkiRotMin = 0.24;   /* подкрутка фишек — минимум, одна сторона (+Z) */
+const zastavkiRotRange = 0.56; /* разброс поверх минимума */
+const zeroCenter = { x: -4.15, y: 15.3 };
+const zeroSplitX = -0.15;
+const zeroCornerX = -0.15;
+const zeroTrioX = -0.15;
+const zeroTrioY01 = horzY[1];
+const zeroTrioY12 = horzY[2];
+const halfW = cellW / 2;
+const halfH = cellH / 2;
+const splitCenter = gap / 2;
+/**
+ * 0 — вручную. 1–36 строятся из DOZEN_CONFIG + геометрия (сплиты, углы, стрит колонки, шестилистии).
+ * Зона 0: сплит 0–n, стриты 0-1-2 / 0-2-3, угол 0-1-2-3 — только для 1–3 (первая дюжина, колонка 0).
+ */
+const CHIP_SPAWNS_BY_NUMBER = {
+	0: {
+		points: [
+			[zeroCenter.x, zeroCenter.y],
+			[zeroSplitX, cy0],
+			[zeroSplitX, cy1],
+			[zeroSplitX, cy2],
+			[zeroTrioX, zeroTrioY01],
+			[zeroTrioX, zeroTrioY12],
+			[zeroCornerX, horzY[3]]
+		],
+		names: [
+			'0',
+			'split 0-1',
+			'split 0-2',
+			'split 0-3',
+			'street 0-1-2',
+			'street 0-2-3',
+			'corner 0-1-2-3'
+		],
+		payouts: {
+			'0': 35,
+			'split 0-1': 17,
+			'split 0-2': 17,
+			'split 0-3': 17,
+			'street 0-1-2': 11,
+			'street 0-2-3': 11,
+			'corner 0-1-2-3': 8
+		}
+	}
+};
+
+(function initChipSpawns1to36() {
+	const colCX = [cx0, cx1, cx2, cx3];
+	const rowCY = [cy0, cy1, cy2];
+
+	function cellAt(doz, col, row) {
+		return DOZEN_CONFIG[doz].numbers[col + row * 4];
+	}
+	const layoutByNum = {};
+	for (let doz = 1; doz <= 3; doz++) {
+		const ox = (doz - 1) * BLOCK_WIDTH;
+		const nums = DOZEN_CONFIG[doz].numbers;
+		for (let idx = 0; idx < 12; idx++) {
+			const col = idx % 4;
+			const row = (idx / 4) | 0;
+			const num = nums[idx];
+			layoutByNum[num] = { doz: doz, col: col, row: row, offsetX: ox, cx: colCX[col] + ox, cy: rowCY[row] };
+		}
+	}
+
+	function cornerName(a, b, c, d) {
+		const arr = [a, b, c, d].sort(function (x, y) { return x - y; });
+		return 'corner ' + arr[0] + '-' + arr[1] + '-' + arr[2] + '-' + arr[3];
+	}
+	function streetName(doz, col) {
+		const arr = [cellAt(doz, col, 0), cellAt(doz, col, 1), cellAt(doz, col, 2)].sort(function (x, y) { return x - y; });
+		return 'street ' + arr[0] + '-' + arr[1] + '-' + arr[2];
+	}
+	function sixlineName(doz, leftCol) {
+		const nums = [];
+		for (let row = 0; row < 3; row++) {
+			nums.push(cellAt(doz, leftCol, row), cellAt(doz, leftCol + 1, row));
+		}
+		nums.sort(function (x, y) { return x - y; });
+		return 'sixline ' + nums[0] + '-' + nums[nums.length - 1];
+	}
+	function splitNm(p, q) {
+		return p < q ? ('split ' + p + '-' + q) : ('split ' + q + '-' + p);
+	}
+
+	function buildMain(n) {
+		const L = layoutByNum[n];
+		const pts = [];
+		const names = [];
+		const payouts = {};
+		const doz = L.doz;
+		const col = L.col;
+		const row = L.row;
+		const ox = L.offsetX;
+
+		function add(nm, xy, mult) {
+			if (Object.prototype.hasOwnProperty.call(payouts, nm)) return;
+			payouts[nm] = mult;
+			names.push(nm);
+			pts.push(xy);
+		}
+
+		add(String(n), [L.cx, L.cy], 35);
+
+		if (doz === 1 && col === 0) {
+			add('split 0-' + n, [zeroSplitX, rowCY[row]], 17);
+			if (n >= 1 && n <= 3) {
+				add('corner 0-1-2-3', [zeroCornerX, horzY[3]], 8);
+			}
+			if (n === 1 || n === 2) {
+				add('street 0-1-2', [zeroTrioX, zeroTrioY01], 11);
+			}
+			if (n === 2 || n === 3) {
+				add('street 0-2-3', [zeroTrioX, zeroTrioY12], 11);
+			}
+		}
+
+		if (col > 0) {
+			add(splitNm(n, cellAt(doz, col - 1, row)), [L.cx - halfW - splitCenter, L.cy], 17);
+		}
+		if (col < 3) {
+			add(splitNm(n, cellAt(doz, col + 1, row)), [L.cx + halfW + splitCenter, L.cy], 17);
+		}
+		if (row > 0) {
+			add(splitNm(n, cellAt(doz, col, row - 1)), [L.cx, L.cy - halfH - splitCenter], 17);
+		}
+		if (row < 2) {
+			add(splitNm(n, cellAt(doz, col, row + 1)), [L.cx, L.cy + halfH + splitCenter], 17);
+		}
+
+		for (let c = 0; c < 3; c++) {
+			for (let r = 0; r < 2; r++) {
+				const a = cellAt(doz, c, r);
+				const b = cellAt(doz, c + 1, r);
+				const c3 = cellAt(doz, c, r + 1);
+				const d = cellAt(doz, c + 1, r + 1);
+				if (a !== n && b !== n && c3 !== n && d !== n) continue;
+				add(cornerName(a, b, c3, d), [colCX[c] + halfW + splitCenter + ox, rowCY[r] + halfH + splitCenter], 8);
+			}
+		}
+
+		add(streetName(doz, col), [colCX[col] + ox, cy2 + halfH + splitCenter], 11);
+
+		for (let leftCol = 0; leftCol < 3; leftCol++) {
+			const sixNums = [
+				cellAt(doz, leftCol, 0), cellAt(doz, leftCol, 1), cellAt(doz, leftCol, 2),
+				cellAt(doz, leftCol + 1, 0), cellAt(doz, leftCol + 1, 1), cellAt(doz, leftCol + 1, 2)
+			];
+			if (sixNums.indexOf(n) === -1) continue;
+			add(sixlineName(doz, leftCol), [colCX[leftCol] + halfW + splitCenter + ox, cy2 + halfH + splitCenter], 5);
+		}
+
+		/* Стыки дюжин: split 10-13…24-27, corners, sixline 10-15 / 22-27 */
+		const sixLineY = cy2 + halfH + splitCenter;
+		const xBound12 = (colCX[3] + colCX[0] + BLOCK_WIDTH) / 2;
+		const xBound23 = (colCX[3] + colCX[0] + 3 * BLOCK_WIDTH) / 2;
+		if (doz === 1 && col === 3) {
+			add(splitNm(n, cellAt(2, 0, row)), [xBound12, rowCY[row]], 17);
+			const xyCorner1014 = [xBound12, rowCY[0] + halfH + splitCenter];
+			if (row === 0) {
+				add('corner 10-14', xyCorner1014, 8);
+			} else if (row === 1) {
+				add(cornerName(
+					cellAt(1, 3, 1), cellAt(1, 3, 2),
+					cellAt(2, 0, 1), cellAt(2, 0, 2)
+				), [xBound12, rowCY[1] + halfH + splitCenter], 8);
+				add('corner 10-14', xyCorner1014, 8);
+			} else if (row === 2) {
+				add(cornerName(
+					cellAt(1, 3, 1), cellAt(1, 3, 2),
+					cellAt(2, 0, 1), cellAt(2, 0, 2)
+				), [xBound12, rowCY[1] + halfH + splitCenter], 8);
+			}
+			if (n >= 10 && n <= 15) {
+				add('sixline 10-15', [xBound12, sixLineY], 5);
+			}
+		}
+		if (doz === 2 && col === 0) {
+			add(splitNm(n, cellAt(1, 3, row)), [xBound12, rowCY[row]], 17);
+			const xyCorner1014 = [xBound12, rowCY[0] + halfH + splitCenter];
+			if (row === 0) {
+				add('corner 10-14', xyCorner1014, 8);
+			} else if (row === 1) {
+				add(cornerName(
+					cellAt(1, 3, 1), cellAt(1, 3, 2),
+					cellAt(2, 0, 1), cellAt(2, 0, 2)
+				), [xBound12, rowCY[1] + halfH + splitCenter], 8);
+				add('corner 10-14', xyCorner1014, 8);
+			} else if (row === 2) {
+				add(cornerName(
+					cellAt(1, 3, 1), cellAt(1, 3, 2),
+					cellAt(2, 0, 1), cellAt(2, 0, 2)
+				), [xBound12, rowCY[1] + halfH + splitCenter], 8);
+			}
+			if (n >= 10 && n <= 15) {
+				add('sixline 10-15', [xBound12, sixLineY], 5);
+			}
+		}
+		if (doz === 2 && col === 3) {
+			add(splitNm(n, cellAt(3, 0, row)), [xBound23, rowCY[row]], 17);
+			const xyCorner2226 = [xBound23, rowCY[0] + halfH + splitCenter];
+			if (row === 0) {
+				add(cornerName(
+					cellAt(2, 3, 0), cellAt(2, 3, 1),
+					cellAt(3, 0, 0), cellAt(3, 0, 1)
+				), xyCorner2226, 8);
+			} else if (row === 1) {
+				add(cornerName(
+					cellAt(2, 3, 1), cellAt(2, 3, 2),
+					cellAt(3, 0, 1), cellAt(3, 0, 2)
+				), [xBound23, rowCY[1] + halfH + splitCenter], 8);
+				add(cornerName(
+					cellAt(2, 3, 0), cellAt(2, 3, 1),
+					cellAt(3, 0, 0), cellAt(3, 0, 1)
+				), xyCorner2226, 8);
+			} else if (row === 2) {
+				add(cornerName(
+					cellAt(2, 3, 1), cellAt(2, 3, 2),
+					cellAt(3, 0, 1), cellAt(3, 0, 2)
+				), [xBound23, rowCY[1] + halfH + splitCenter], 8);
+			}
+			if (n >= 22 && n <= 27) {
+				add('sixline 22-27', [xBound23, sixLineY], 5);
+			}
+		}
+		if (doz === 3 && col === 0) {
+			add(splitNm(n, cellAt(2, 3, row)), [xBound23, rowCY[row]], 17);
+			const xyCorner2226 = [xBound23, rowCY[0] + halfH + splitCenter];
+			if (row === 0) {
+				add(cornerName(
+					cellAt(2, 3, 0), cellAt(2, 3, 1),
+					cellAt(3, 0, 0), cellAt(3, 0, 1)
+				), xyCorner2226, 8);
+			} else if (row === 1) {
+				add(cornerName(
+					cellAt(2, 3, 1), cellAt(2, 3, 2),
+					cellAt(3, 0, 1), cellAt(3, 0, 2)
+				), [xBound23, rowCY[1] + halfH + splitCenter], 8);
+				add(cornerName(
+					cellAt(2, 3, 0), cellAt(2, 3, 1),
+					cellAt(3, 0, 0), cellAt(3, 0, 1)
+				), xyCorner2226, 8);
+			} else if (row === 2) {
+				add(cornerName(
+					cellAt(2, 3, 1), cellAt(2, 3, 2),
+					cellAt(3, 0, 1), cellAt(3, 0, 2)
+				), [xBound23, rowCY[1] + halfH + splitCenter], 8);
+			}
+			if (n >= 22 && n <= 27) {
+				add('sixline 22-27', [xBound23, sixLineY], 5);
+			}
+		}
+
+		return { points: pts, names: names, payouts: payouts };
+	}
+
+	for (let num = 1; num <= 36; num++) {
+		CHIP_SPAWNS_BY_NUMBER[num] = buildMain(num);
+	}
+})();
+
+function getChipSpawnSpec(rouletteNumber) {
+	const def = CHIP_SPAWNS_BY_NUMBER[rouletteNumber];
+	if (!def) {
+		return { points: [], nameByIndex: [], payouts: {}, indicesByName: {} };
+	}
+	const nameByIndex = def.names.slice();
+	const indicesByName = {};
+	for (let i = 0; i < nameByIndex.length; i++) {
+		const nm = nameByIndex[i];
+		if (!indicesByName[nm]) indicesByName[nm] = [];
+		indicesByName[nm].push(i);
+	}
+	return {
+		points: def.points,
+		nameByIndex: nameByIndex,
+		payouts: def.payouts,
+		indicesByName: indicesByName
+	};
+}
+
+const chipsGroup = new THREE.Group();
+chipsGroup.name = 'chips';
+scene.add(chipsGroup);
+
+const chipFactory = new TrackChipFactory(1.0);
+
+function equalDenomSplit(total, parts) {
+	const shares = new Array(parts).fill(0);
+	if (total <= 0 || parts <= 0) return shares;
+	const base = Math.floor(total / parts);
+	const extra = total % parts;
+	for (let i = 0; i < parts; i++) shares[i] = base + (i < extra ? 1 : 0);
+	return shares;
+}
+
+function getDenomsStackOrder() {
+	return arAllowedDenoms.slice().sort(function (a, b) { return b - a; });
+}
+
+function buildSequentialChipsForCount(count) {
+	if (count <= 0) return [];
+	const denoms = getDenomsStackOrder();
+	const shares = equalDenomSplit(count, denoms.length);
+	const result = [];
+	for (let d = 0; d < denoms.length; d++) {
+		for (let c = 0; c < shares[d]; c++) result.push(denoms[d]);
+	}
+	return result;
+}
+
+function fillPositionChipsSequentialStacks(nPts, allowedSpawnIdx) {
+	const chipCounts = generateChipCounts(nPts, allowedSpawnIdx);
+	const positionChips = new Array(nPts).fill(null).map(function () { return []; });
+	const total = chipCounts.reduce(function (a, b) { return a + b; }, 0);
+	if (total === 0) return positionChips;
+	const shares = equalDenomSplit(total, getDenomsStackOrder().length);
+	const denoms = getDenomsStackOrder();
+	for (let d = 0; d < denoms.length; d++) {
+		const denom = denoms[d];
+		for (let b = 0; b < shares[d]; b++) {
+			const candidates = [];
+			for (let i = 0; i < nPts; i++) {
+				if (positionChips[i].length < chipCounts[i]) candidates.push(i);
+			}
+			if (candidates.length === 0) break;
+			const pos = candidates[Math.floor(Math.random() * candidates.length)];
+			positionChips[pos].push(denom);
+		}
+	}
+	return positionChips;
+}
+
+function fillPositionChipsSequentialPerPosition(nPts, allowedSpawnIdx) {
+	const chipCounts = generateChipCounts(nPts, allowedSpawnIdx);
+	const positionChips = new Array(nPts).fill(null).map(function () { return []; });
+	for (let i = 0; i < nPts; i++) {
+		positionChips[i] = buildSequentialChipsForCount(chipCounts[i]);
+	}
+	return positionChips;
+}
+
+function generateChipCounts(nPts, allowedSpawnIdx) {
+	const chipCounts = new Array(nPts).fill(0);
+	if (arUseStacks) {
+		let chips = 20 * arStacksCount;
+		let available = allowedSpawnIdx.slice();
+		while (chips > 0 && available.length > 0) {
+			const idx = Math.floor(Math.random() * available.length);
+			const spawnIdx = available[idx];
+			chipCounts[spawnIdx] += 1;
+			chips -= 1;
+			if (chipCounts[spawnIdx] >= 20) available.splice(idx, 1);
+		}
+	} else {
+		const minChips = Math.min(arMinChips, arMaxChips);
+		const maxChips = Math.max(arMinChips, arMaxChips);
+		const range = maxChips - minChips + 1;
+		for (let i = 0; i < nPts; i++) {
+			if (allowedSpawnIdx.indexOf(i) === -1) continue;
+			chipCounts[i] = Math.min(20, range > 0 ? minChips + Math.floor(Math.random() * range) : minChips);
+		}
+	}
+	return chipCounts;
+}
+
+function generatePositionChips(nPts, allowedSpawnIdx) {
+	return arUseStacks
+		? fillPositionChipsSequentialStacks(nPts, allowedSpawnIdx)
+		: fillPositionChipsSequentialPerPosition(nPts, allowedSpawnIdx);
+}
+
+let correctAnswer = null;
+let arRoundStartedAt = null;
+
+function getArBets2PlusCameraStorageKey() {
+	const id = (typeof window.__AR_BETS_2PLUS_CAMERA_USER_ID__ === 'string' && window.__AR_BETS_2PLUS_CAMERA_USER_ID__)
+		? window.__AR_BETS_2PLUS_CAMERA_USER_ID__
+		: 'guest';
+	return 'ar_bets_2plus_camera_user_' + id;
+}
+function tryApplySavedUserCamera() {
+	var raw = localStorage.getItem(getArBets2PlusCameraStorageKey());
+	if (!raw) return;
+	try {
+		var o = JSON.parse(raw);
+		if (o && o.position && o.target &&
+			typeof o.position.x === 'number' && typeof o.target.x === 'number') {
+			camera.position.set(o.position.x, o.position.y, o.position.z);
+			controls.target.set(o.target.x, o.target.y, o.target.z);
+			controls.update();
+		}
+	} catch (_) {}
+}
+function saveUserCameraPose() {
+	var payload = {
+		position: { x: camera.position.x, y: camera.position.y, z: camera.position.z },
+		target: { x: controls.target.x, y: controls.target.y, z: controls.target.z }
+	};
+	localStorage.setItem(getArBets2PlusCameraStorageKey(), JSON.stringify(payload));
+	var toast = document.getElementById('ar-camera-save-toast');
+	if (toast) {
+		toast.textContent = 'Камера сохранена для вашего пользователя на этом устройстве.';
+		toast.style.display = 'block';
+		if (arCameraSaveToastTimer) clearTimeout(arCameraSaveToastTimer);
+		arCameraSaveToastTimer = setTimeout(function () {
+			toast.style.display = 'none';
+			arCameraSaveToastTimer = null;
+		}, 3200);
+	}
+}
+function doSpawn() {
+	focusCameraOnNumber();
+	tryApplySavedUserCamera();
+	correctAnswer = null;
+	var solveSmall = document.getElementById('ar-bets-solve-time');
+	if (solveSmall) {
+		solveSmall.hidden = true;
+		solveSmall.textContent = '';
+	}
+	var answerRow = document.querySelector('.ar-answer-row');
+	var answerDisplay = document.getElementById('answer-display');
+	if (answerRow) answerRow.style.display = 'flex';
+	if (answerDisplay) answerDisplay.style.display = '';
+	document.getElementById('answer-display').textContent = '';
+	document.getElementById('user-answer').value = '';
+	while (chipsGroup.children.length) {
+		chipsGroup.remove(chipsGroup.children[0]);
+	}
+	function addChipAt(denom, x, y, z, rotZ) {
+		const mesh = chipFactory.createMesh(denom);
+		if (rotZ !== undefined) {
+			const group = new THREE.Group();
+			group.position.set(x, y, z);
+			group.rotation.z = rotZ;
+			group.add(mesh);
+			chipsGroup.add(group);
+		} else {
+			mesh.position.set(x, y, z);
+			chipsGroup.add(mesh);
+		}
+	}
+	function splitDenomGroups(denomArray) {
+		const groups = [];
+		for (let i = 0; i < denomArray.length; ) {
+			const denom = denomArray[i];
+			let j = i + 1;
+			while (j < denomArray.length && denomArray[j] === denom) j++;
+			groups.push({ denom: denom, count: j - i });
+			i = j;
+		}
+		return groups;
+	}
+
+	function zastavkiRotZ() {
+		return zastavkiRotMin + Math.random() * zastavkiRotRange;
+	}
+
+	/** ySign/xSign: +1 = от себя, −1 = на себя (стопка до 5, боковые 11–14). Лесенка всегда от себя. */
+	function buildCachePlacements(count, bx, by, ySign, xSign, zStart) {
+		const placements = [];
+		let lastX = bx;
+		let lastY = by;
+		let lastZ = zStart;
+		let endDirY = ySign;
+		if (count <= 0) {
+			return { placements: placements, lastX: lastX, lastY: lastY, lastZ: lastZ, endDirY: endDirY };
+		}
+		let zIdx = 0;
+		function nextZ() {
+			const z = zStart + chipStep * zIdx;
+			zIdx += 1;
+			return z;
+		}
+		function place(x, y, rotZ, fixedZ) {
+			const z = fixedZ !== undefined ? fixedZ : nextZ();
+			placements.push({ x: x, y: y, z: z, rotZ: rotZ });
+			lastX = x;
+			lastY = y;
+			lastZ = z;
+		}
+		const rz = function () { return zastavkiRotZ(); };
+		const ladderYs = function (d) { return by + d; };
+		const ys = function (d) { return by + ySign * d; };
+		const n = count;
+		const col1 = Math.min(n, 10);
+		const isStack = col1 >= 5;
+		const isLadder = col1 >= 2 && col1 <= 4;
+		place(bx, by, rz());
+		if (col1 >= 2 && (isStack || isLadder)) {
+			if (isStack) place(bx, by, rz());
+			else place(bx, ladderYs(ladderStep), rz());
+		}
+		if (col1 >= 3 && (isStack || isLadder)) {
+			if (isStack) place(bx, by, rz());
+			else place(bx, ladderYs(ladderStep * 2), rz());
+		}
+		if (col1 >= 4 && (isStack || isLadder)) {
+			if (isStack) place(bx, by, rz());
+			else place(bx, ladderYs(ladderStep * 3), rz());
+		}
+		if (col1 >= 5) place(bx, by, rz());
+		if (col1 >= 6 && col1 < 10) place(bx, ladderYs(firstLadderOffset), rz());
+		if (col1 >= 7 && col1 < 10) place(bx, ladderYs(firstLadderOffset + ladderStep), rz());
+		if (col1 >= 8 && col1 < 10) place(bx, ladderYs(firstLadderOffset + ladderStep * 2), rz());
+		if (col1 >= 9 && col1 < 10) place(bx, ladderYs(firstLadderOffset + ladderStep * 3), rz());
+		if (col1 === 10) {
+			const yTen = ladderYs(firstLadderOffset);
+			for (let k = 0; k < 5; k++) place(bx, yTen, rz());
+		}
+		if (n >= 15) {
+			const zStack = [spawnZ11, spawnZ12, spawnZ13, spawnZ14, spawnZ15];
+			for (let k = 0; k < 5; k++) place(bx, by, rz(), zStack[k]);
+		} else {
+			if (n >= 11) place(bx + xSign * chip11OffsetX, by, rz());
+			if (n >= 12) place(bx + xSign * chip11OffsetX, ys(chipStep), rz());
+			if (n >= 13) place(bx + xSign * chip11OffsetX, ys(chipStep * 2), rz());
+			if (n >= 14) place(bx + xSign * chip11OffsetX, ys(chipStep * 3), rz());
+		}
+		if (n >= 16) {
+			if (n === 20) {
+				for (let j = 16; j <= 20; j++) {
+					place(bx, ladderYs(firstLadderOffset), rz());
+				}
+			} else {
+				for (let j = 16; j <= n; j++) {
+					const rung = j <= 19 ? j - 16 : 3;
+					const dy = firstLadderOffset + rung * ladderStep;
+					place(bx, ladderYs(dy), rz());
+				}
+			}
+		}
+		if (isLadder || (col1 >= 6 && col1 <= 9) || col1 === 10 || n >= 16) {
+			endDirY = 1;
+		} else if (n >= 11 && n <= 14) {
+			endDirY = ySign;
+		} else if (col1 <= 5) {
+			endDirY = ySign;
+		}
+		return { placements: placements, lastX: lastX, lastY: lastY, lastZ: lastZ, endDirY: endDirY };
+	}
+
+	/** Первый номинал ≤5: 2-й от себя, 3-й на себя, …; первый 6–10: 2-й на себя, дальше зеркало по endDirY. */
+	function resolveDenomCacheSigns(g, groups, lowerEndDirY) {
+		if (g === 0) return { ySign: 1, xSign: 1 };
+		const firstCount = groups[0].count;
+		if (firstCount <= 5) {
+			const away = g % 2 === 1;
+			if (away) {
+				return { ySign: 1, xSign: lowerEndDirY === -1 ? -1 : 1 };
+			}
+			return { ySign: -1, xSign: 1 };
+		}
+		if (g === 1) {
+			return { ySign: -1, xSign: 1 };
+		}
+		if (lowerEndDirY === 1) {
+			return { ySign: -1, xSign: 1 };
+		}
+		return { ySign: 1, xSign: -1 };
+	}
+
+	function drawPositionDenomCaches(denomArray, bx, by) {
+		const groups = splitDenomGroups(denomArray);
+		let anchorX = bx;
+		let anchorY = by;
+		let zBase = spawnZ;
+		let lowerEndDirY = 1;
+		for (let g = 0; g < groups.length; g++) {
+			const signs = resolveDenomCacheSigns(g, groups, lowerEndDirY);
+			const ySign = signs.ySign;
+			const xSign = signs.xSign;
+			if (g > 0) {
+				/* +ySign: от себя — продолжаем лесенку вперёд; на себя — сдвиг назад */
+				anchorY += ySign * denomCacheGap;
+			}
+			const plan = buildCachePlacements(groups[g].count, anchorX, anchorY, ySign, xSign, zBase);
+			for (let p = 0; p < plan.placements.length; p++) {
+				const pl = plan.placements[p];
+				addChipAt(groups[g].denom, pl.x, pl.y, pl.z, pl.rotZ);
+			}
+			lowerEndDirY = plan.endDirY;
+			anchorX = plan.lastX;
+			anchorY = plan.lastY;
+			zBase = plan.lastZ + chipStep;
+		}
+	}
+
+	const spec = getChipSpawnSpec(arSelectedNumber);
+	const nPts = spec.points.length;
+	const allowedSpawnIdx = [];
+	for (let i = 0; i < nPts; i++) allowedSpawnIdx.push(i);
+	const positionChips = generatePositionChips(nPts, allowedSpawnIdx);
+	for (var i = 0; i < nPts; i++) {
+		const denoms = positionChips[i];
+		if (denoms.length === 0) continue;
+		const x = spec.points[i][0], y = spec.points[i][1];
+		drawPositionDenomCaches(denoms, x, y);
+	}
+	const multipliers = new Array(nPts).fill(0);
+	Object.keys(spec.payouts).forEach(function (betName) {
+		const mult = spec.payouts[betName];
+		const idxList = spec.indicesByName[betName] || [];
+		idxList.forEach(function (idx) { multipliers[idx] = mult; });
+	});
+	correctAnswer = 0;
+	for (let i = 0; i < nPts; i++) {
+		let posSum = 0;
+		for (let j = 0; j < positionChips[i].length; j++) posSum += positionChips[i][j];
+		correctAnswer += posSum * multipliers[i];
+	}
+	document.getElementById('answer-display').textContent =
+		'Посчитайте полную сумму выплаты (номиналы × коэффициенты) и нажмите ↵';
+	arRoundStartedAt = Date.now();
+	if (typeof initFuseTimer === 'function') {
+		var timerCheckbox = document.querySelector('#ar-settings-overlay input[name="timer_enabled"]');
+		var secInput = document.querySelector('#ar-settings-overlay input[name="timer_seconds"]');
+		var sec = secInput ? parseInt(secInput.value, 10) : parseInt("{{ timer_seconds|default:10 }}", 10) || 10;
+		if (!timerCheckbox || timerCheckbox.checked) {
+			initFuseTimer({
+				prefix: 'ar-bets-2plus',
+				seconds: sec,
+				timeoutButton: '[data-ar-timeout-none]',
+				settingsOverlay: '#ar-settings-overlay',
+				clickOnTimeout: false,
+				onTimeout: showTimeUpOverlay
+			});
+		}
+	}
+}
+doSpawn();
+
+function doCheck() {
+	const el = document.getElementById('answer-display');
+	const input = document.getElementById('user-answer');
+	const userVal = input.value.trim() === '' ? NaN : parseInt(input.value, 10);
+	if (correctAnswer === null) {
+		el.textContent = 'Подождите загрузки фишек…';
+		el.style.color = '';
+		return;
+	}
+	if (!Number.isInteger(userVal) || userVal < 0) {
+		el.textContent = 'Введите целое неотрицательное число.';
+		el.style.color = '';
+		return;
+	}
+	if (userVal === correctAnswer) {
+		/* Останавливаем фитиль, чтобы по истечении времени не показалось «Время вышло!» */
+		window._fuseTimerGen = window._fuseTimerGen || {};
+		window._fuseTimerGen['ar-bets-2plus'] = (window._fuseTimerGen['ar-bets-2plus'] || 0) + 1;
+		input.blur();
+		var answerRow = document.querySelector('.ar-answer-row');
+		var answerDisplay = document.getElementById('answer-display');
+		if (answerRow) answerRow.style.display = 'none';
+		if (answerDisplay) answerDisplay.style.display = 'none';
+		var solveSmall = document.getElementById('ar-bets-solve-time');
+		if (solveSmall) {
+			solveSmall.hidden = true;
+			solveSmall.textContent = '';
+			var tcb = document.getElementById('ar-timer-enabled-cb');
+			var secIn = document.getElementById('ar-timer-seconds-input');
+			var lim = secIn ? parseInt(secIn.value, 10) : 10;
+			if (arRoundStartedAt !== null && !isNaN(lim) && lim > 0) {
+				var elapsed = (Date.now() - arRoundStartedAt) / 1000;
+				var showLine = false;
+				if (tcb && tcb.checked) {
+					if (elapsed <= lim) showLine = true;
+				} else {
+					showLine = true;
+				}
+				if (showLine) {
+					solveSmall.textContent = 'Считали: ' + (Math.round(elapsed * 10) / 10) + ' с';
+					solveSmall.hidden = false;
+				}
+			}
+		}
+		document.getElementById('ar-success-overlay').style.display = 'flex';
+		el.textContent = 'Верно!';
+		el.style.color = '';
+	} else {
+		showErrorOverlay(false);
+		el.textContent = '';
+	}
+}
+function showErrorOverlay(isPass) {
+	const hand = document.getElementById('ar-error-hand');
+	const text = document.getElementById('ar-error-text');
+	if (isPass && correctAnswer !== null) {
+		hand.style.display = 'none';
+		text.innerHTML = 'Пропущено.<br>Правильный ответ: ' + correctAnswer;
+	} else {
+		arErrorWasPass = false;
+		hand.style.display = '';
+		text.textContent = 'Стоп!';
+	}
+	document.getElementById('ar-error-overlay').style.display = 'flex';
+}
+function showTimeUpOverlay() {
+	var answerRow = document.querySelector('.ar-answer-row');
+	var answerDisplay = document.getElementById('answer-display');
+	if (answerRow) answerRow.style.display = 'none';
+	if (answerDisplay) answerDisplay.style.display = 'none';
+	var tou = document.getElementById('ar-timeup-overlay');
+	if (tou) {
+		tou.style.display = 'flex';
+		tou.setAttribute('aria-hidden', 'false');
+	}
+}
+document.getElementById('btn-check').addEventListener('click', doCheck);
+var arErrorWasPass = false;
+document.getElementById('btn-pass').addEventListener('click', function () {
+	if (correctAnswer === null) {
+		document.getElementById('answer-display').textContent = 'Подождите загрузки фишек…';
+		return;
+	}
+	arErrorWasPass = true;
+	showErrorOverlay(true);
+});
+document.getElementById('user-answer').addEventListener('keydown', function (e) {
+	if (e.key === 'Enter') doCheck();
+});
+document.getElementById('ar-success-close').addEventListener('click', function () {
+	document.getElementById('ar-success-overlay').style.display = 'none';
+	doSpawn();
+});
+document.getElementById('ar-error-close').addEventListener('click', function () {
+	document.getElementById('ar-error-overlay').style.display = 'none';
+	if (arErrorWasPass) {
+		arErrorWasPass = false;
+		doSpawn();
+	}
+});
+function hideArBetsTimeupOverlay() {
+	var tou = document.getElementById('ar-timeup-overlay');
+	if (tou) {
+		tou.style.display = 'none';
+		tou.setAttribute('aria-hidden', 'true');
+	}
+	var answerRow = document.querySelector('.ar-answer-row');
+	var answerDisplay = document.getElementById('answer-display');
+	if (answerRow) answerRow.style.display = 'flex';
+	if (answerDisplay) answerDisplay.style.display = '';
+}
+document.getElementById('ar-timeup-close').addEventListener('click', hideArBetsTimeupOverlay);
+document.addEventListener('keydown', function (e) {
+	if (e.key !== 'Enter') return;
+	var tou = document.getElementById('ar-timeup-overlay');
+	if (!tou || tou.style.display !== 'flex') return;
+	e.preventDefault();
+	hideArBetsTimeupOverlay();
+});
+
+function syncArBetsToggleBtn(btnId, isOn) {
+	var btn = document.getElementById(btnId);
+	if (!btn) return;
+	btn.classList.toggle('is-on', isOn);
+	btn.setAttribute('aria-checked', isOn ? 'true' : 'false');
+}
+function updateStacksUI() {
+	const useStacks = document.getElementById('ar-use-stacks').checked;
+	const minEl = document.getElementById('ar-min-chips');
+	const maxEl = document.getElementById('ar-max-chips');
+	const stacksSel = document.getElementById('ar-stacks-select');
+	minEl.disabled = useStacks;
+	maxEl.disabled = useStacks;
+	if (stacksSel) stacksSel.disabled = !useStacks;
+	syncArBetsToggleBtn('ar-bets-pool-switch', useStacks);
+}
+function loadArSettings() {
+	document.getElementById('ar-min-chips').value = arMinChips;
+	document.getElementById('ar-max-chips').value = arMaxChips;
+	document.getElementById('ar-use-stacks').checked = arUseStacks;
+	document.getElementById('ar-stacks-select').value = String(arStacksCount);
+	document.getElementById('ar-number-select').value = String(arSelectedNumber);
+	syncDenomSettingsUI();
+	syncArBetsToggleBtn('ar-bets-hints-switch', !arHintsDisabled);
+	var timerCheckbox = document.getElementById('ar-timer-enabled-cb');
+	var secInput = document.querySelector('#ar-settings-overlay input[name="timer_seconds"]');
+	if (timerCheckbox) syncArBetsToggleBtn('ar-bets-timer-switch', timerCheckbox.checked);
+	var fuseHidden = document.getElementById('ar-bets-fuse-anim-enabled');
+	if (fuseHidden) syncArBetsToggleBtn('ar-bets-fuse-anim-switch', fuseHidden.value === '1');
+	updateArBetsFuseAnimRow();
+	updateStacksUI();
+	updateRotateHint();
+	/* показ/скрытие фитиля по настройкам (разметка с сервера) */
+	var timerWrap = document.getElementById('ar-bets-2plus-fuse-wrap');
+	if (timerWrap && timerCheckbox) {
+		timerWrap.style.display = timerCheckbox.checked ? '' : 'none';
+	}
+}
+function updateArBetsFuseAnimRow() {
+	var row = document.getElementById('arBetsFuseAnimRow');
+	var fuseSw = document.getElementById('ar-bets-fuse-anim-switch');
+	var timerCb = document.getElementById('ar-timer-enabled-cb');
+	if (row && fuseSw && timerCb) {
+		row.classList.toggle('is-inactive', !timerCb.checked);
+		fuseSw.disabled = !timerCb.checked;
+		fuseSw.setAttribute('tabindex', timerCb.checked ? '0' : '-1');
+	}
+}
+function saveArSettings(done) {
+	const pickedDenoms = readDenomsFromSettingsUI();
+	if (pickedDenoms.length < 1) {
+		alert('Выберите хотя бы один номинал.');
+		return;
+	}
+	const minEl = document.getElementById('ar-min-chips');
+	const maxEl = document.getElementById('ar-max-chips');
+	const useStacks = document.getElementById('ar-use-stacks').checked;
+	const stacksVal = document.getElementById('ar-stacks-select').value;
+	const numberVal = document.getElementById('ar-number-select').value;
+	var hintsSw = document.getElementById('ar-bets-hints-switch');
+	var hintsOn = hintsSw && hintsSw.classList.contains('is-on');
+	arUseStacks = useStacks;
+	arStacksCount = Math.max(1, Math.min(8, parseInt(stacksVal, 10) || 1));
+	arHintsDisabled = !hintsOn;
+	localStorage.setItem('ar_bets_2plus_hints_disabled', arHintsDisabled ? '1' : '0');
+	setCookie('ar_bets_2plus_hints_disabled', arHintsDisabled ? '1' : '0', 365);
+	const parsedNumber = parseInt(numberVal, 10);
+	arSelectedNumber = (!isNaN(parsedNumber) && parsedNumber >= 0 && parsedNumber <= 36)
+		? parsedNumber
+		: 0;
+	var timerCheckbox = document.querySelector('#ar-settings-overlay input[name="timer_enabled"]');
+	var secInput = document.querySelector('#ar-settings-overlay input[name="timer_seconds"]');
+	var fuseHidden = document.getElementById('ar-bets-fuse-anim-enabled');
+	var timerWrap = document.getElementById('ar-bets-2plus-fuse-wrap');
+	if (timerWrap && timerCheckbox) {
+		timerWrap.style.display = timerCheckbox.checked ? '' : 'none';
+	}
+	var timerChanged = false;
+	if (window.__AR_BETS_2PLUS_TIMER_SNAPSHOT__ && timerCheckbox && secInput) {
+		var sn = window.__AR_BETS_2PLUS_TIMER_SNAPSHOT__;
+		var fv = fuseHidden ? fuseHidden.value : '1';
+		if (timerCheckbox.checked !== sn.enabled || String(secInput.value) !== String(sn.sec) || fv !== sn.fuse) {
+			timerChanged = true;
+		}
+	}
+	var finish = function () {
+		if (done) done(timerChanged);
+	};
+	if (minEl && maxEl && !useStacks) {
+		arMinChips = Math.max(0, Math.min(20, parseInt(minEl.value, 10) || 0));
+		arMaxChips = Math.max(0, Math.min(20, parseInt(maxEl.value, 10) || 0));
+		localStorage.setItem('ar_bets_2plus_chips_range', JSON.stringify({ min: arMinChips, max: arMaxChips }));
+		setCookie('ar_bets_2plus_chips_range', JSON.stringify({ min: arMinChips, max: arMaxChips }), 365);
+	}
+	arAllowedDenoms = pickedDenoms;
+	localStorage.setItem('ar_bets_2plus_denoms', JSON.stringify(arAllowedDenoms));
+	setCookie('ar_bets_2plus_denoms', JSON.stringify(arAllowedDenoms), 365);
+	localStorage.setItem('ar_bets_2plus_stacks_mode', JSON.stringify({ enabled: arUseStacks, stacks: arStacksCount }));
+	localStorage.setItem('ar_bets_2plus_number_select', String(arSelectedNumber));
+	setCookie('ar_bets_2plus_stacks_mode', JSON.stringify({ enabled: arUseStacks, stacks: arStacksCount }), 365);
+	setCookie('ar_bets_2plus_number_select', String(arSelectedNumber), 365);
+	updateRotateHint();
+	var fd = new FormData();
+	fd.append('action', 'ar_bets_2plus_timer');
+	fd.append('timer_enabled', timerCheckbox && timerCheckbox.checked ? '1' : '0');
+	fd.append('timer_seconds', secInput ? secInput.value : '10');
+	fd.append('timer_fuse_animation', fuseHidden ? fuseHidden.value : '1');
+	var csrfInp = document.querySelector('#ar-settings-overlay input[name="csrfmiddlewaretoken"]');
+	if (csrfInp) fd.append('csrfmiddlewaretoken', csrfInp.value);
+	var saveUrl = typeof window.__AR_BETS_2PLUS_TIMER_SAVE_URL__ === 'string' ? window.__AR_BETS_2PLUS_TIMER_SAVE_URL__ : '';
+	if (!saveUrl) {
+		finish();
+		return;
+	}
+	fetch(saveUrl, { method: 'POST', body: fd, credentials: 'same-origin' })
+		.then(function (r) { return r.json(); })
+		.then(function () {
+			if (window.__AR_BETS_2PLUS_TIMER_SNAPSHOT__ && timerCheckbox && secInput) {
+				window.__AR_BETS_2PLUS_TIMER_SNAPSHOT__.enabled = timerCheckbox.checked;
+				window.__AR_BETS_2PLUS_TIMER_SNAPSHOT__.sec = String(secInput.value);
+				if (fuseHidden) window.__AR_BETS_2PLUS_TIMER_SNAPSHOT__.fuse = fuseHidden.value;
+			}
+			finish();
+		})
+		.catch(function () { finish(); });
+}
+function updateRotateHint() {
+	var h = document.querySelector('.ar-rotate-hint');
+	if (!h) return;
+	if (arHintsDisabled) h.classList.add('ar-rotate-hint--hidden');
+	else h.classList.remove('ar-rotate-hint--hidden');
+}
+function focusCameraOnNumber() {
+	if (arSelectedNumber === 0) {
+		camera.position.set(4.095000000000001, 2.566, 20.605);
+		controls.target.set(4.281000000000001, 17.126, 4.1129999999999995);
+	} else if (arSelectedNumber >= 1 && arSelectedNumber <= 36) {
+		const dozIdx = arSelectedNumber <= 12 ? 0 : (arSelectedNumber <= 24 ? 1 : 2);
+		const shift = dozIdx * BLOCK_WIDTH;
+		if (arSelectedNumber === 2) {
+			camera.position.set(4, 3.2378, 17.3932);
+			controls.target.set(4, 18.4478, 0.4898);
+		} else if (arSelectedNumber >= 3 && arSelectedNumber <= 36 && (arSelectedNumber - 3) % 3 === 0) {
+			const k = (arSelectedNumber - 3) / 3;
+			const xCol = 4 + k * AR_CAM_STEP345_DX;
+			camera.position.set(xCol, AR_CAM_COL369_POS_Y, AR_CAM_COL369_POS_Z);
+			controls.target.set(xCol, AR_CAM_COL369_TGT_Y, AR_CAM_COL369_TGT_Z);
+		} else if (arSelectedNumber >= 5 && arSelectedNumber <= 35 && (arSelectedNumber - 5) % 3 === 0) {
+			const xStep3 = arCameraXForStep345Chain(arSelectedNumber);
+			camera.position.set(xStep3, 3.2378, 17.3932);
+			controls.target.set(xStep3, 18.4478, 0.4898);
+		} else {
+			camera.position.set(4 + shift, 6, 18.105);
+			controls.target.set(4 + shift, 15.3, 0);
+		}
+	} else {
+		camera.position.set(cameraHomePos.x, cameraHomePos.y, cameraHomePos.z);
+		controls.target.set(cameraHomeTarget.x, cameraHomeTarget.y, cameraHomeTarget.z);
+	}
+}
+loadArSettings();
+(function setupArBetsSettingSwitches() {
+	var poolBtn = document.getElementById('ar-bets-pool-switch');
+	var poolCb = document.getElementById('ar-use-stacks');
+	if (poolBtn && poolCb) {
+		poolBtn.addEventListener('click', function () {
+			poolCb.checked = !poolCb.checked;
+			updateStacksUI();
+		});
+	}
+	var timBtn = document.getElementById('ar-bets-timer-switch');
+	var timCb = document.getElementById('ar-timer-enabled-cb');
+	if (timBtn && timCb) {
+		timBtn.addEventListener('click', function () {
+			timCb.checked = !timCb.checked;
+			syncArBetsToggleBtn('ar-bets-timer-switch', timCb.checked);
+			updateArBetsFuseAnimRow();
+		});
+	}
+	var fuseAnimBtn = document.getElementById('ar-bets-fuse-anim-switch');
+	var fuseAnimHidden = document.getElementById('ar-bets-fuse-anim-enabled');
+	if (fuseAnimBtn && fuseAnimHidden) {
+		fuseAnimBtn.addEventListener('click', function () {
+			if (fuseAnimBtn.disabled) return;
+			fuseAnimHidden.value = fuseAnimHidden.value === '1' ? '0' : '1';
+			syncArBetsToggleBtn('ar-bets-fuse-anim-switch', fuseAnimHidden.value === '1');
+		});
+	}
+	var hiBtn = document.getElementById('ar-bets-hints-switch');
+	if (hiBtn) {
+		hiBtn.addEventListener('click', function () {
+			var on = !this.classList.contains('is-on');
+			syncArBetsToggleBtn('ar-bets-hints-switch', on);
+		});
+	}
+	var denomGrid = document.getElementById('ar-denom-grid');
+	if (denomGrid) {
+		denomGrid.addEventListener('change', updateDenomSelectAllBtn);
+	}
+	var denomSelectAllBtn = document.getElementById('arDenomSelectAll');
+	if (denomSelectAllBtn) {
+		denomSelectAllBtn.addEventListener('click', function () {
+			var allOn = readDenomsFromSettingsUI().length === ALL_DENOM_OPTIONS.length;
+			for (let i = 0; i < ALL_DENOM_OPTIONS.length; i++) {
+				const d = ALL_DENOM_OPTIONS[i];
+				const cb = document.querySelector('#ar-denom-grid input[data-denom="' + d + '"]');
+				if (cb) cb.checked = !allOn;
+			}
+			updateDenomSelectAllBtn();
+		});
+	}
+})();
+document.getElementById('arCameraResetBtn').addEventListener('click', function () {
+	focusCameraOnNumber();
+});
+(function setupArCameraSaveButton() {
+	var btn = document.getElementById('arCameraSaveBtn');
+	if (!btn) return;
+	btn.addEventListener('click', function () {
+		saveUserCameraPose();
+	});
+})();
+document.getElementById('arSettingsBtn').addEventListener('click', function () {
+	loadArSettings();
+	document.getElementById('ar-settings-overlay').classList.add('is-open');
+});
+document.getElementById('arSettingsClose').addEventListener('click', function () {
+	document.getElementById('ar-settings-overlay').classList.remove('is-open');
+});
+document.getElementById('arSettingsSave').addEventListener('click', function () {
+	saveArSettings(function (timerChanged) {
+		document.getElementById('ar-settings-overlay').classList.remove('is-open');
+		if (timerChanged) {
+			window.location.reload();
+			return;
+		}
+		doSpawn();
+	});
+});
+document.getElementById('ar-settings-overlay').addEventListener('click', function (e) {
+	if (e.target === this) this.classList.remove('is-open');
+});
+
+function animate() {
+	requestAnimationFrame(animate);
+	controls.update();
+	renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', function () {
+	containerW = canvas.parentElement.clientWidth || 640;
+	containerH = canvas.parentElement.clientHeight || Math.min(480, Math.floor(containerW * 0.75));
+	if (containerW < 100) containerW = 640;
+	if (containerH < 100) containerH = 360;
+	w = containerW;
+	h = containerH;
+	camera.aspect = (h > 0) ? w / h : 16 / 9;
+	camera.updateProjectionMatrix();
+	renderer.setSize(w, h);
+});
+</script>
+{% endblock %}

@@ -24,6 +24,7 @@ urlpatterns = [
     path('completes-intersection/', views.ar_completes_intersection, name='ar_completes_intersection'),
     path('series-stake/', views.ar_series_stake, name='ar_series_stake'),
     path('ar_bets/', views.ar_bets, name='ar_bets'),
+    path('bets-2plus/', views.ar_bets_2plus, name='ar_bets_2plus'),
     path('roulette/', views.ar_roulette, name='ar_roulette'),
     path('color_in_cash/', views.ar_roulette, name='ar_color_in_cash'),
     path('payout_through_cash/', views.ar_payout_through_cash, name='ar_payout_through_cash'),

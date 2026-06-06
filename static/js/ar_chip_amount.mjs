@@ -1,5 +1,5 @@
 /** Номиналы по убыванию — жадная разбивка суммы на фишки. */
-export const CHIP_VALUES_DESC = [5000, 1000, 500, 100, 25, 5, 1];
+export const CHIP_VALUES_DESC = [5000, 1000, 500, 100, 25, 5, 2, 1];
 
 /** Тот же набор по возрастанию (удобно для перебора / UI). */
 export const CHIP_VALUES_ASC = [...CHIP_VALUES_DESC].reverse();

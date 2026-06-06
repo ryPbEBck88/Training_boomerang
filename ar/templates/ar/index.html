@@ -6,6 +6,7 @@
 {% block extra_head %}
 <style>
 .ar-hub__tile-img--bets { background-image: url('{% static "images/ar/zastavki.png" %}'); }
+.ar-hub__tile-img--bets-2plus { background: linear-gradient(135deg, #92400e 0%, #d4af37 45%, #78350f 100%); }
 .ar-hub__tile-img--color { background-image: url('{% static "images/ar/color_in_cash.png" %}'); }
 .ar-hub__tile-img--payout { background-image: url('{% static "images/ar/payout_through_cash.png" %}'); }
 .ar-hub__tile-img--neighbors { background-image: url('{% static "images/ar/neighbors.png" %}'); }
@@ -29,6 +30,10 @@
 			<a href="{% url 'ar_bets' %}" class="ar-hub__tile">
 				<span class="ar-hub__tile-img ar-hub__tile-img--bets" role="img" aria-hidden="true"></span>
 				<span class="ar-hub__tile-label">Заставки</span>
+			</a>
+			<a href="{% url 'ar_bets_2plus' %}" class="ar-hub__tile">
+				<span class="ar-hub__tile-img ar-hub__tile-img--bets-2plus" role="img" aria-hidden="true"></span>
+				<span class="ar-hub__tile-label">Заставки 2+</span>
 			</a>
 			<a href="{% url 'ar_color_in_cash' %}" class="ar-hub__tile">
 				<span class="ar-hub__tile-img ar-hub__tile-img--color" role="img" aria-hidden="true"></span>

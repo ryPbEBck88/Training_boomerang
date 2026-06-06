@@ -25,6 +25,7 @@ User = get_user_model()
 ATTEMPT_SOLVE_SECONDS_MAX = 120.0
 TRAINER_TITLES = {
     "ar_bets": "Заставки",
+    "ar_bets_2plus": "Заставки 2+",
     "ar_roulette": "Цвет в cash",
     "ar_payout_through_cash": "Выплата через cash",
     "ar_neighbors": "Соседи",
@@ -34,6 +35,7 @@ TRAINER_TITLES = {
 }
 TRAINER_ORDER = [
     "ar_bets",
+    "ar_bets_2plus",
     "ar_roulette",
     "ar_payout_through_cash",
     "ar_neighbors",
@@ -1025,6 +1027,36 @@ def _get_ar_bets_timer(request):
     return enabled, sec, fuse_anim
 
 
+def _get_ar_bets_2plus_timer(request):
+    raw_en = request.session.get('ar_bets_2plus_timer_enabled')
+    if raw_en is None:
+        raw_en = request.session.get('ar_bets_timer_enabled', True)
+    if isinstance(raw_en, str):
+        enabled = raw_en.strip().lower() in ('1', 'true', 'on', 'yes')
+    else:
+        enabled = bool(raw_en)
+    sec = request.session.get('ar_bets_2plus_timer_seconds')
+    if sec is None:
+        sec = request.session.get('ar_bets_timer_seconds', AR_BETS_TIMER_DEFAULT_SECONDS)
+    sec = _clamp_int(
+        sec,
+        1,
+        AR_BETS_TIMER_SECONDS_MAX,
+        AR_BETS_TIMER_DEFAULT_SECONDS,
+    )
+    raw_fa = request.session.get('ar_bets_2plus_timer_fuse_animation')
+    if raw_fa is None:
+        fuse_anim = request.session.get(
+            'ar_bets_timer_fuse_animation',
+            AR_BETS_TIMER_FUSE_ANIM_DEFAULT,
+        )
+    elif isinstance(raw_fa, str):
+        fuse_anim = raw_fa.strip().lower() in ('1', 'true', 'on', 'yes')
+    else:
+        fuse_anim = bool(raw_fa)
+    return enabled, sec, fuse_anim
+
+
 def ar_bet_reveal(request):
     """Тренажёр: стопки на поле — клик в порядке раскрытия (напр. выигрышное число 5)."""
     t_en, t_sec, _ = _get_ar_bets_timer(request)
@@ -1068,6 +1100,40 @@ def ar_bets(request):
         'mix_mode': mix_mode,
         'pvp_preview': pvp_preview,
         'pvp_room_code': pvp_room_code,
+        'timer_enabled': t_en,
+        'timer_seconds': t_sec,
+        'timer_fuse_animation': t_fuse,
+    })
+
+
+@xframe_options_sameorigin
+def ar_bets_2plus(request):
+    if request.method == 'POST' and request.POST.get('action') == 'ar_bets_2plus_timer':
+        raw_te = request.POST.get('timer_enabled', '0')
+        request.session['ar_bets_2plus_timer_enabled'] = str(raw_te).strip() in (
+            '1',
+            'on',
+            'true',
+            'True',
+            'yes',
+        )
+        request.session['ar_bets_2plus_timer_seconds'] = _clamp_int(
+            request.POST.get('timer_seconds'),
+            1,
+            AR_BETS_TIMER_SECONDS_MAX,
+            AR_BETS_TIMER_DEFAULT_SECONDS,
+        )
+        raw_fa = request.POST.get('timer_fuse_animation', '0')
+        request.session['ar_bets_2plus_timer_fuse_animation'] = str(raw_fa).strip() in (
+            '1',
+            'on',
+            'true',
+            'True',
+            'yes',
+        )
+        return JsonResponse({'ok': True})
+    t_en, t_sec, t_fuse = _get_ar_bets_2plus_timer(request)
+    return render(request, 'ar/ar_bets_2plus.html', {
         'timer_enabled': t_en,
         'timer_seconds': t_sec,
         'timer_fuse_animation': t_fuse,

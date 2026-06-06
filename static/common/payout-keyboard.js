@@ -1,10 +1,8 @@
 /**
  * Два способа ввода:
- * 1) Системная клавиатура — тап по полю (на таче клавиатура только так).
- * 2) Кастомная сетка — подсветка активного поля (payout-keyboard-target). На экранах с
- *    pointer: coarse не вызываем programmatic focus при загрузке и после цифр/⌫, чтобы не
- *    всплывала ОС-клавиатура; на pointer: fine — фокус и каретка сразу и после каждой цифры.
- *    «>|»: на fine — фокус в следующем поле; на coarse — только смена подсветки (без клавиатуры).
+ * 1) Десктоп — системная клавиатура + фокус в поле.
+ * 2) Тач / iOS — только кастомная сетка: поля readOnly, без ОС-клавиатуры;
+ *    активное поле подсвечивается (payout-keyboard-target).
  */
 (function() {
 	function initPayoutKeyboard(container) {
@@ -25,6 +23,9 @@
 		var lastHandledTime = 0;
 
 		var coarsePointer = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
+		var isiOS = /iP(ad|hone|od)/.test(window.navigator.userAgent || '')
+			|| ((window.navigator.platform || '') === 'MacIntel' && (window.navigator.maxTouchPoints || 0) > 1);
+		var useCustomKeyboardOnly = coarsePointer || isiOS;
 
 		function syncKeyboardTarget() {
 			inputs.forEach(function(inp) {
@@ -33,6 +34,12 @@
 			if (lastActiveInput && !lastActiveInput.disabled) {
 				lastActiveInput.classList.add('payout-keyboard-target');
 			}
+		}
+
+		function activateInput(inp) {
+			if (!inp || inp.disabled) return;
+			lastActiveInput = inp;
+			syncKeyboardTarget();
 		}
 
 		function caretAtEnd(inp) {
@@ -47,13 +54,27 @@
 		}
 
 		inputs.forEach(function(inp) {
-			inp.addEventListener('focus', function() {
-				if (!this.disabled) {
-					lastActiveInput = this;
-					syncKeyboardTarget();
-					if (this.readOnly) this.blur();
-				}
-			});
+			if (useCustomKeyboardOnly) {
+				inp.readOnly = true;
+				inp.setAttribute('inputmode', 'none');
+				inp.classList.add('payout-input--custom-kb');
+				inp.addEventListener('pointerdown', function() {
+					if (!this.disabled) activateInput(this);
+				});
+				inp.addEventListener('focus', function() {
+					if (!this.disabled) {
+						activateInput(this);
+						this.blur();
+					}
+				});
+			} else {
+				inp.addEventListener('focus', function() {
+					if (!this.disabled) {
+						lastActiveInput = this;
+						syncKeyboardTarget();
+					}
+				});
+			}
 			inp.addEventListener('keydown', function(e) {
 				if (e.key === 'Enter') {
 					e.preventDefault();
@@ -65,7 +86,7 @@
 
 		function afterValueChangeFromKeyboard() {
 			syncKeyboardTarget();
-			if (!coarsePointer) {
+			if (!useCustomKeyboardOnly) {
 				requestAnimationFrame(function() {
 					caretAtEnd(lastActiveInput);
 				});
@@ -98,10 +119,10 @@
 					}
 				});
 				syncKeyboardTarget();
-				if (nextInput.scrollIntoView) {
+				if (!useCustomKeyboardOnly && nextInput.scrollIntoView) {
 					nextInput.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 				}
-				if (!coarsePointer) {
+				if (!useCustomKeyboardOnly) {
 					requestAnimationFrame(function() {
 						caretAtEnd(nextInput);
 					});
@@ -129,7 +150,7 @@
 		});
 
 		syncKeyboardTarget();
-		if (!coarsePointer) {
+		if (!useCustomKeyboardOnly) {
 			requestAnimationFrame(function() {
 				caretAtEnd(lastActiveInput);
 			});

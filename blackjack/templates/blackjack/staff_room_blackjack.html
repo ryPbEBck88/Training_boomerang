@@ -7,6 +7,9 @@
 <style>
 main.bj-main.auth-main--wide {
     max-width: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 10px 14px 20px !important;
 }
 main.bj-main.auth-main--wide .main-card {
     max-width: none !important;
@@ -15,21 +18,143 @@ main.bj-main.auth-main--wide .main-card {
     box-shadow: none !important;
     border: none !important;
     padding: 16px 14px 28px !important;
+    min-height: calc(100vh - 120px) !important;
 }
-@media (min-width: 1024px) {
-    main.bj-main.auth-main--wide {
-        width: 100vw !important;
-        max-width: none !important;
-        margin-left: calc(50% - 50vw) !important;
-        margin-right: 0 !important;
-        margin-top: 0 !important;
-        padding: 10px 14px 20px !important;
-    }
+@supports (height: 100dvh) {
     main.bj-main.auth-main--wide .main-card {
-        width: 100% !important;
-        max-width: none !important;
-        min-height: calc(100vh - 120px) !important;
+        min-height: calc(100dvh - 120px) !important;
     }
+}
+/* Сцена стола: в развороте оставляем только дилера и боксы. */
+.staff-bj-table-stage {
+    margin-top: 12px;
+    border-radius: 16px;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    background: rgba(15, 23, 42, 0.2);
+    overflow: hidden;
+    position: relative;
+}
+.staff-bj-exit-fullscreen {
+    display: none;
+    position: absolute;
+    top: max(8px, env(safe-area-inset-top, 0px));
+    right: max(8px, env(safe-area-inset-right, 0px));
+    z-index: 2600;
+    min-height: 36px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    background: rgba(15, 23, 42, 0.78);
+    color: #e2e8f0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+.staff-bj-table-stage.staff-bj-table-stage--viewport-fill .staff-bj-exit-fullscreen,
+.staff-bj-table-stage:fullscreen .staff-bj-exit-fullscreen {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.staff-bj-exit-fullscreen:hover {
+    border-color: rgba(191, 219, 254, 0.75);
+    background: rgba(30, 41, 59, 0.92);
+}
+.staff-bj-table-stage:fullscreen,
+.staff-bj-table-stage.staff-bj-table-stage--viewport-fill {
+    display: flex;
+    flex-direction: column;
+    margin-top: 0;
+    border-radius: 0;
+    border: none;
+    min-height: 100vh;
+    min-height: 100svh;
+    min-height: 100dvh;
+    height: 100vh;
+    height: 100svh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100svh;
+    max-height: 100dvh;
+    overflow: hidden;
+    background:
+        radial-gradient(ellipse 90% 70% at 50% 18%, rgba(15, 23, 42, 0.5) 0%, transparent 55%),
+        linear-gradient(180deg, #0f172a 0%, #020617 100%);
+    z-index: 2500;
+}
+.staff-bj-table-stage.staff-bj-table-stage--viewport-fill {
+    position: fixed;
+    inset: 0;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+}
+.staff-bj-table-stage:fullscreen {
+    width: 100%;
+    height: 100%;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+}
+.staff-bj-table-stage:fullscreen #staff-bj-gesture-zone,
+.staff-bj-table-stage.staff-bj-table-stage--viewport-fill #staff-bj-gesture-zone {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
+.staff-bj-table-stage:fullscreen #staff-bj-gesture-zone > :not(.bj-dealer-zone):not(.bj-boxes-row):not(.staff-bj-stage-control),
+.staff-bj-table-stage.staff-bj-table-stage--viewport-fill #staff-bj-gesture-zone > :not(.bj-dealer-zone):not(.bj-boxes-row):not(.staff-bj-stage-control) {
+    display: none !important;
+}
+html.staff-bj-stage-viewport-fill,
+body.staff-bj-stage-viewport-fill {
+    overflow: hidden;
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100svh;
+    min-height: 100dvh;
+    height: 100vh;
+    height: 100svh;
+    height: 100dvh;
+    overscroll-behavior: none;
+}
+body.staff-bj-stage-viewport-fill .site-header,
+body.staff-bj-stage-viewport-fill .site-footer,
+body.staff-bj-stage-viewport-fill .back-to-top {
+    display: none !important;
+}
+body.staff-bj-stage-viewport-fill main.bj-main.auth-main--wide {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+    width: 100% !important;
+}
+body.staff-bj-stage-viewport-fill main.bj-main.auth-main--wide .main-card {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+    width: 100% !important;
+    min-height: 100vh !important;
+    min-height: 100svh !important;
+    min-height: 100dvh !important;
+}
+body.staff-bj-stage-viewport-fill {
+    width: 100%;
+}
+html.staff-bj-stage-viewport-fill #staff-bj-table-stage {
+    position: fixed;
+    inset: 0;
+    z-index: 2500;
+}
+/* Жест «вниз — карту»: не отдаём вертикальный pan странице (при включённых жестах). */
+.bj-screen[data-staff-bj-gestures="1"] #staff-bj-gesture-zone[data-bj-phase="player_turn"] {
+    touch-action: pan-x;
+    overscroll-behavior: contain;
 }
 .bj-screen {
     overflow-x: hidden;
@@ -170,8 +295,15 @@ main.bj-main.auth-main--wide .main-card {
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
     filter: drop-shadow(0 0 5px rgba(220, 38, 38, 0.45));
 }
-.bj-payout-toggle {
+.bj-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 10px 14px;
     margin: 6px 0 10px;
+}
+.bj-payout-toggle {
+    margin: 0;
     padding: 8px 12px;
     border-radius: 10px;
     border: 1px solid rgba(148, 163, 184, 0.35);
@@ -181,6 +313,48 @@ main.bj-main.auth-main--wide .main-card {
     gap: 8px;
     color: #e2e8f0;
     font-size: 0.9rem;
+}
+.bj-settings-details {
+    border-radius: 10px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: rgba(15, 23, 42, 0.45);
+    color: #e2e8f0;
+    font-size: 0.9rem;
+    min-width: 0;
+}
+.bj-settings-details > summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 8px 12px;
+    font-weight: 600;
+    user-select: none;
+}
+.bj-settings-details > summary::-webkit-details-marker {
+    display: none;
+}
+.bj-settings-details > summary::after {
+    content: ' ▾';
+    font-size: 0.75em;
+    opacity: 0.75;
+}
+.bj-settings-details[open] > summary::after {
+    content: ' ▴';
+}
+.bj-settings-body {
+    padding: 0 12px 10px;
+    border-top: 1px solid rgba(148, 163, 184, 0.22);
+    max-width: min(100vw - 32px, 320px);
+}
+.bj-gestures-toggle {
+    margin: 8px 0 6px;
+    display: block;
+}
+.bj-gestures-hint {
+    margin: 0 0 4px;
+    padding-left: 1.1em;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: #cbd5e1;
 }
 .bj-callout {
     margin: 0 0 10px;
@@ -259,7 +433,7 @@ main.bj-main.auth-main--wide .main-card {
     -webkit-overflow-scrolling: touch;
     cursor: grab;
     user-select: none;
-    touch-action: auto;
+    touch-action: pan-x;
 }
 .bj-boxes-row.is-dragging {
     cursor: grabbing;
@@ -616,6 +790,9 @@ main.bj-main.auth-main--wide .main-card {
     align-items: center;
     flex-wrap: wrap;
 }
+.bj-actions--gesture-hidden {
+    display: none;
+}
 .bj-action-btn {
     min-width: 112px;
     min-height: 42px;
@@ -761,12 +938,33 @@ main.bj-main.auth-main--wide .main-card {
     .bj-boxes-row::after {
         flex-basis: calc(50% - 85px);
     }
+
+    /*
+     * Мобилка: меньше "окон/вкладок" визуально.
+     * Показываем стопку карт и score только в активном боксе,
+     * остальные боксы оставляем как "карточки-навигацию".
+     */
+    .bj-box:not(.is-active) .bj-card-stack,
+    .bj-box:not(.is-active) .bj-dealer-score {
+        display: none !important;
+    }
 }
 </style>
+<script>
+(function() {
+    try {
+        sessionStorage.setItem('staff_bj_stage_expanded', '1');
+    } catch (_err) {
+        // noop
+    }
+    document.documentElement.classList.add('staff-bj-stage-viewport-fill');
+    document.body.classList.add('staff-bj-stage-viewport-fill');
+})();
+</script>
 {% endblock %}
 
 {% block content %}
-<div class="bj-screen">
+<div class="bj-screen" data-staff-bj-gestures="1">
     <div class="bj-topbar">
         <h1 class="bj-title" id="staff-bj-heading">
             <span class="bj-title__inner">
@@ -787,15 +985,38 @@ main.bj-main.auth-main--wide .main-card {
             {% endif %}
         </div>
     </div>
-    <form method="post" class="bj-payout-toggle">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="toggle_payout_anim">
-        <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;">
-            <input type="hidden" name="enabled" value="0">
-            <input type="checkbox" name="enabled" value="1" onchange="this.form.submit()" {% if payout_anim_enabled %}checked{% endif %}>
-            Анимация выплат
-        </label>
-    </form>
+    <div class="bj-toolbar">
+        <form method="post" class="bj-payout-toggle">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="toggle_payout_anim">
+            <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;">
+                <input type="hidden" name="enabled" value="0">
+                <input type="checkbox" name="enabled" value="1" onchange="this.form.submit()" {% if payout_anim_enabled %}checked{% endif %}>
+                Анимация выплат
+            </label>
+        </form>
+        <details class="bj-settings-details">
+            <summary>Настройки</summary>
+            <div class="bj-settings-body">
+                <form method="post" class="bj-gestures-toggle">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="toggle_staff_bj_gestures">
+                    <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;">
+                        <input type="hidden" name="gestures_enabled" value="0">
+                        <input type="checkbox" name="gestures_enabled" value="1" onchange="this.form.submit()" {% if gestures_enabled %}checked{% endif %}>
+                        Жесты на столе
+                    </label>
+                </form>
+                <ul class="bj-gestures-hint">
+                    <li>Вверх — 1/2 (сдача)</li>
+                    <li>Вниз — карту</li>
+                    <li>Вправо — сплит</li>
+                    <li>Влево — стоп или «дальше»</li>
+                    <li>Двойной тап / двойной клик — дабл (макс.)</li>
+                </ul>
+            </div>
+        </details>
+    </div>
     {% if not state %}
     <p class="bj-callout">Делайте Ваши ставки!</p>
     {% elif state and state.phase == 'settled' %}
@@ -806,7 +1027,13 @@ main.bj-main.auth-main--wide .main-card {
     <p class="auth-error">{{ message }}</p>
     {% endif %}
 
-    <div class="bj-table">
+    <div id="staff-bj-table-stage" class="staff-bj-table-stage">
+        <button type="button" class="staff-bj-exit-fullscreen" id="staff-bj-exit-fullscreen">Свернуть</button>
+        <div
+            class="bj-table"
+            id="staff-bj-gesture-zone"
+            data-bj-phase="{% if state %}{{ state.phase }}{% else %}idle{% endif %}"
+        >
         <div class="bj-dealer-zone">
             {% if state %}
                 <div class="bj-dealer-cards">
@@ -900,12 +1127,6 @@ main.bj-main.auth-main--wide .main-card {
                     </span>
                 </div>
                 {% endif %}
-                {% if state and state.phase == 'settled' and box.is_active_bet and box.result %}
-                <p class="bj-box-result">{{ box.result }}</p>
-                {% endif %}
-                {% if state %}
-                    <p>{% if box.status and box.status != "idle" and box.status != "playing" and state.phase != "settled" %}{{ box.status }}{% endif %}</p>
-                {% endif %}
             </span>
             {% endfor %}
         </div>
@@ -947,7 +1168,7 @@ main.bj-main.auth-main--wide .main-card {
         {% endif %}
 
         {% if state and state.phase == 'player_turn' and state.current_box != None %}
-        <form method="post" class="bj-actions">
+        <form method="post" class="bj-actions{% if gestures_enabled %} bj-actions--gesture-hidden{% endif %}" id="staff-bj-player-actions-form">
             {% csrf_token %}
             <button type="submit" name="action" value="hit" class="btn bj-action-btn bj-action-btn--primary">Карту</button>
             <button type="submit" name="action" value="stand" class="btn bj-action-btn">Стоп</button>
@@ -991,7 +1212,7 @@ main.bj-main.auth-main--wide .main-card {
         {% endif %}
 
         {% if state and state.phase == 'settled' %}
-        <form method="post" class="bj-actions">
+        <form method="post" class="bj-actions staff-bj-stage-control">
             {% csrf_token %}
             <input type="hidden" name="action" value="finish_round">
             <button type="submit" class="btn bj-action-btn bj-action-btn--primary" style="min-width:220px;">Завершить раунд</button>
@@ -1030,6 +1251,7 @@ main.bj-main.auth-main--wide .main-card {
         </div>
         {% endif %}
 
+    </div>
     </div>
 </div>
 <script>
@@ -1478,6 +1700,299 @@ document.addEventListener('DOMContentLoaded', function() {
         sessionStorage.setItem('bj_prev_box_statuses', JSON.stringify(nextStatuses));
     } catch (_err) {
         // Безопасный fallback без анимации.
+    }
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var screenEl = document.querySelector('.bj-screen');
+    if (!screenEl || screenEl.getAttribute('data-staff-bj-gestures') !== '1') return;
+    var zone = document.getElementById('staff-bj-gesture-zone');
+    if (!zone) return;
+
+    var SWIPE_MIN = 52;
+    var SWIPE_MAX_MS = 780;
+    var TAP_MAX = 20;
+    var DOUBLE_TAP_MS = 340;
+    var DOUBLE_TAP_DIST = 30;
+
+    function phase() {
+        return zone.getAttribute('data-bj-phase') || 'idle';
+    }
+
+    function activeActionForm() {
+        return zone.querySelector('form.bj-actions[method="post"]');
+    }
+
+    function submitAction(actionValue) {
+        var form = activeActionForm();
+        if (!form) return false;
+        var btn = form.querySelector('button[type="submit"][name="action"][value="' + actionValue + '"]');
+        if (!btn) return false;
+        if (typeof form.requestSubmit === 'function') {
+            form.requestSubmit(btn);
+        } else {
+            btn.click();
+        }
+        return true;
+    }
+
+    function syncMaxDoubleAmount() {
+        var rangeEl = document.getElementById('bj-double-range');
+        var amountEl = document.getElementById('bj-double-amount-input');
+        if (!rangeEl || !amountEl) return false;
+        var raw = (rangeEl.dataset.options || '').split(',');
+        var opts = raw.map(function(s) { return s.trim(); }).filter(Boolean);
+        if (!opts.length) return false;
+        var last = opts[opts.length - 1];
+        amountEl.value = last;
+        rangeEl.value = String(opts.length - 1);
+        var dv = document.getElementById('bj-double-value');
+        if (dv) dv.textContent = last;
+        return true;
+    }
+
+    function tryDouble() {
+        if (phase() !== 'player_turn') return;
+        if (!document.getElementById('staff-bj-player-actions-form')) return;
+        if (!document.getElementById('bj-double-amount-input')) return;
+        syncMaxDoubleAmount();
+        submitAction('double');
+    }
+
+    function handleSwipe(dx, dy) {
+        var adx = Math.abs(dx);
+        var ady = Math.abs(dy);
+        if (adx < SWIPE_MIN && ady < SWIPE_MIN) return false;
+        var ph = phase();
+        if (ph === 'player_turn') {
+            if (adx > ady * 1.15) {
+                if (dx > 0) return submitAction('split');
+                return submitAction('stand');
+            }
+            if (ady > adx * 1.15) {
+                if (dy < 0) return submitAction('surrender');
+                return submitAction('hit');
+            }
+            return false;
+        }
+        if (ph === 'equal_money_offer') {
+            if (adx > SWIPE_MIN && adx > ady && dx < 0) return submitAction('equal_money_continue');
+            return false;
+        }
+        if (ph === 'insurance_offer') {
+            if (adx > SWIPE_MIN && adx > ady && dx < 0) return submitAction('insurance_skip');
+            return false;
+        }
+        return false;
+    }
+
+    var startX;
+    var startY;
+    var startT;
+    var gestureStartOk = false;
+    var lastTapT = 0;
+    var lastTapX = 0;
+    var lastTapY = 0;
+
+    function isInteractiveTarget(el) {
+        return !!(el && el.closest && el.closest('button, a, input, textarea, select, label'));
+    }
+
+    zone.addEventListener('touchstart', function(e) {
+        gestureStartOk = false;
+        if (e.touches.length !== 1) return;
+        if (isInteractiveTarget(e.target)) return;
+        var t = e.touches[0];
+        startX = t.clientX;
+        startY = t.clientY;
+        startT = Date.now();
+        gestureStartOk = true;
+    }, { passive: true });
+
+    zone.addEventListener('touchmove', function(e) {
+        if (screenEl.getAttribute('data-staff-bj-gestures') !== '1') return;
+        if (phase() !== 'player_turn') return;
+        if (!gestureStartOk) return;
+        if (e.touches.length !== 1) return;
+        var t = e.touches[0];
+        var dy = t.clientY - startY;
+        var dx = t.clientX - startX;
+        if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 8) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+    zone.addEventListener('touchend', function(e) {
+        if (!gestureStartOk) return;
+        gestureStartOk = false;
+        var t = e.changedTouches[0];
+        var dx = t.clientX - startX;
+        var dy = t.clientY - startY;
+        var dt = Date.now() - startT;
+        if (dt > SWIPE_MAX_MS) return;
+
+        var adx = Math.abs(dx);
+        var ady = Math.abs(dy);
+
+        if (adx >= SWIPE_MIN || ady >= SWIPE_MIN) {
+            handleSwipe(dx, dy);
+            return;
+        }
+
+        if (adx < TAP_MAX && ady < TAP_MAX && dt < 500) {
+            var now = Date.now();
+            if (now - lastTapT < DOUBLE_TAP_MS) {
+                var dist = Math.hypot(t.clientX - lastTapX, t.clientY - lastTapY);
+                if (dist < DOUBLE_TAP_DIST) {
+                    lastTapT = 0;
+                    tryDouble();
+                    return;
+                }
+            }
+            lastTapT = now;
+            lastTapX = t.clientX;
+            lastTapY = t.clientY;
+        }
+    }, { passive: true });
+
+    zone.addEventListener('dblclick', function(e) {
+        if (isInteractiveTarget(e.target)) return;
+        tryDouble();
+    });
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var stage = document.getElementById('staff-bj-table-stage');
+    if (!stage) return;
+    var exitBtn = document.getElementById('staff-bj-exit-fullscreen');
+
+    var fillClass = 'staff-bj-table-stage--viewport-fill';
+    var bodyClass = 'staff-bj-stage-viewport-fill';
+    var persistKey = 'staff_bj_stage_expanded';
+
+    function isNativeFs() {
+        return document.fullscreenElement === stage || document.webkitFullscreenElement === stage;
+    }
+
+    function isFill() {
+        return stage.classList.contains(fillClass);
+    }
+
+    function saveExpandedState(on) {
+        try {
+            if (on) sessionStorage.setItem(persistKey, '1');
+            else sessionStorage.removeItem(persistKey);
+        } catch (_err) {
+            // noop
+        }
+    }
+
+    function exitFill() {
+        stage.classList.remove(fillClass);
+        document.documentElement.classList.remove(bodyClass);
+        document.body.classList.remove(bodyClass);
+    }
+
+    function exitAll() {
+        if (isNativeFs()) {
+            if (document.exitFullscreen) {
+                document.exitFullscreen().catch(function() {});
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+        }
+        exitFill();
+        saveExpandedState(false);
+    }
+
+    function scrollStageTableTop() {
+        var z = document.getElementById('staff-bj-gesture-zone');
+        if (z) z.scrollTop = 0;
+    }
+
+    function enterFill() {
+        stage.classList.add(fillClass);
+        document.documentElement.classList.add(bodyClass);
+        document.body.classList.add(bodyClass);
+        scrollStageTableTop();
+        saveExpandedState(true);
+    }
+
+    function enterExpanded() {
+        var req = stage.requestFullscreen || stage.webkitRequestFullscreen;
+        if (req) {
+            try {
+                var p = req.call(stage);
+                if (p && typeof p.then === 'function') {
+                    p.then(function() {
+                        scrollStageTableTop();
+                        saveExpandedState(true);
+                    }).catch(function() { enterFill(); });
+                } else {
+                    scrollStageTableTop();
+                    saveExpandedState(true);
+                }
+            } catch (_err) {
+                enterFill();
+            }
+        } else {
+            enterFill();
+        }
+    }
+
+    Array.from(stage.querySelectorAll('form[method="post"]')).forEach(function(form) {
+        form.addEventListener('submit', function() {
+            if (isNativeFs() || isFill()) saveExpandedState(true);
+        });
+    });
+
+    function onFullscreenChange() {
+        if (!isNativeFs()) {
+            exitFill();
+        }
+    }
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && (isNativeFs() || isFill())) exitAll();
+    });
+    if (exitBtn) {
+        exitBtn.addEventListener('click', function() {
+            exitAll();
+        });
+    }
+
+    // Нативный fullscreen возможен только после user gesture:
+    // пробуем один раз на первом тапе/клике, иначе остаёмся в viewport-fill.
+    var fsPrimed = false;
+    function primeNativeFullscreenOnce() {
+        if (fsPrimed) return;
+        fsPrimed = true;
+        if (!isNativeFs() && !isFill()) enterFill();
+        var req = stage.requestFullscreen || stage.webkitRequestFullscreen;
+        if (!req) return;
+        try {
+            var p = req.call(stage);
+            if (p && typeof p.then === 'function') {
+                p.then(function() {
+                    saveExpandedState(true);
+                }).catch(function() {});
+            }
+        } catch (_err) {
+            // noop
+        }
+    }
+    stage.addEventListener('pointerdown', primeNativeFullscreenOnce, { passive: true, once: true });
+    stage.addEventListener('touchstart', primeNativeFullscreenOnce, { passive: true, once: true });
+
+    try {
+        sessionStorage.setItem(persistKey, '1');
+        enterFill();
+    } catch (_err) {
+        enterFill();
     }
 });
 </script>
