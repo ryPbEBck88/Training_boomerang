@@ -87,3 +87,33 @@ class HoldemCompareTests(TestCase):
             self._c('3', 'd'),
         ]
         self.assertEqual(best_strength_from_7(cards)[0], 8)
+
+
+class BonusPayoutTests(TestCase):
+    def test_flush_bonus_payout(self):
+        from poker.utils.bonus import get_bonus_payout, check_user_bonus_payout
+
+        self.assertEqual(get_bonus_payout(25, 'Флеш'), 1250)
+        ok, correct = check_user_bonus_payout('1250', 25, 'Флеш')
+        self.assertTrue(ok)
+        self.assertEqual(correct, 1250)
+
+    def test_two_pairs_bonus_payout(self):
+        from poker.utils.bonus import get_bonus_payout
+
+        self.assertEqual(get_bonus_payout(50, 'Две пары'), 100)
+
+    def test_no_bonus_for_pair(self):
+        from poker.utils.bonus import get_bonus_payout
+
+        self.assertEqual(get_bonus_payout(50, 'Пара'), 0)
+        self.assertEqual(get_bonus_payout(50, 'Нет игры'), 0)
+
+    def test_bonus_queue_never_contains_pair(self):
+        from poker.utils.combo import make_bonus_combo_queue, hand_to_combo, is_bonus_qualifying_combo
+
+        disallowed = {'Пара', 'Туз и король', 'Нет игры'}
+        for hand in make_bonus_combo_queue():
+            combo = hand_to_combo(hand)
+            self.assertNotIn(combo, disallowed)
+            self.assertTrue(is_bonus_qualifying_combo(combo))

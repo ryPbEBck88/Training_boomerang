@@ -2,9 +2,20 @@ from django.shortcuts import render, redirect
 from data.cards import get_shuffled_shoe
 from blackjack.utils.payout import get_random_bet
 from training.utils.timer import process_timer_settings
-from .utils.combo import make_combo_queue, make_holdem_combo_queue, hand_to_combo, best_combo_from_7, COMBO_CHOICES, COMBO_CHOICES_HOLDEM
+from .utils.combo import (
+    make_combo_queue,
+    make_bonus_combo_queue,
+    make_holdem_combo_queue,
+    hand_to_combo,
+    best_combo_from_7,
+    COMBO_CHOICES,
+    COMBO_CHOICES_HOLDEM,
+    is_bonus_qualifying_combo,
+    BONUS_QUEUE_VERSION,
+)
 from .utils.holdem_compare import comparison_answer
 from .utils.payout import check_user_payout
+from .utils.bonus import check_user_bonus_payout
 
 
 def _parse_int(val, default, min_val=None, max_val=None):
@@ -255,6 +266,118 @@ def payout_view(request):
 
     return render(request, 'poker/payout.html', {
         'bet': bet,
+        'hand': hand,
+        'combo': combo,
+        'min_bet': min_bet,
+        'max_bet': max_bet,
+        'step': step,
+        'message': message,
+        'success': success,
+        'skipped': skipped,
+    })
+
+
+def _ensure_bonus_queue(request):
+    version = request.session.get('poker_bonus_queue_version')
+    queue = request.session.get('poker_bonus_queue')
+    if version != BONUS_QUEUE_VERSION or not queue:
+        queue = make_bonus_combo_queue()
+        request.session['poker_bonus_queue'] = queue
+        request.session['poker_bonus_queue_version'] = BONUS_QUEUE_VERSION
+    return queue
+
+
+def _next_bonus_hand(request):
+    queue = _ensure_bonus_queue(request)
+    while queue:
+        hand = queue.pop(0)
+        if is_bonus_qualifying_combo(hand_to_combo(hand)):
+            request.session['poker_bonus_queue'] = queue
+            return hand
+    queue = make_bonus_combo_queue()
+    request.session['poker_bonus_queue'] = queue
+    request.session['poker_bonus_queue_version'] = BONUS_QUEUE_VERSION
+    hand = queue.pop(0)
+    request.session['poker_bonus_queue'] = queue
+    return hand
+
+
+def bonus_view(request):
+    """Oasis Poker: выплата side bet Bonus. Bet / Ante / Bonus на синем сукне."""
+    min_bet = request.session.get('poker_bonus_min_bet', 25)
+    max_bet = request.session.get('poker_bonus_max_bet', 500)
+    step = request.session.get('poker_bonus_step', 5)
+
+    if request.method == 'POST' and request.POST.get('action') == 'settings':
+        min_bet = _parse_int(request.POST.get('min_bet'), min_bet, 1, 10000)
+        max_bet = _parse_int(request.POST.get('max_bet'), max_bet, 1, 10000)
+        step = _parse_int(request.POST.get('step'), step, 1, 1000)
+        if min_bet >= max_bet:
+            max_bet = min_bet + step
+        if step > max_bet - min_bet:
+            step = max(1, max_bet - min_bet)
+        request.session['poker_bonus_min_bet'] = min_bet
+        request.session['poker_bonus_max_bet'] = max_bet
+        request.session['poker_bonus_step'] = step
+        return redirect('poker_bonus')
+
+    hand = request.session.get('poker_bonus_current_hand')
+    ante = request.session.get('poker_bonus_current_ante')
+    bet = request.session.get('poker_bonus_current_bet')
+    bonus_bet = request.session.get('poker_bonus_current_bonus_bet')
+
+    if request.method == 'GET' or (request.method == 'POST' and request.POST.get('action') == 'next'):
+        hand = _next_bonus_hand(request)
+        request.session['poker_bonus_current_hand'] = hand
+        ante = get_random_bet(min_bet, max_bet, step)
+        bet = ante * 2
+        bonus_bet = get_random_bet(min_bet, max_bet, step)
+        request.session['poker_bonus_current_ante'] = ante
+        request.session['poker_bonus_current_bet'] = bet
+        request.session['poker_bonus_current_bonus_bet'] = bonus_bet
+        return render(request, 'poker/bonus.html', {
+            'ante': ante,
+            'bet': bet,
+            'bonus_bet': bonus_bet,
+            'hand': hand,
+            'combo': hand_to_combo(hand),
+            'min_bet': min_bet,
+            'max_bet': max_bet,
+            'step': step,
+            'message': '',
+            'success': None,
+            'skipped': False,
+        })
+
+    message = ''
+    success = None
+    skipped = False
+    action = request.POST.get('action')
+    user_payout = request.POST.get('user_payout', '')
+    combo = hand_to_combo(hand)
+    if not is_bonus_qualifying_combo(combo):
+        hand = _next_bonus_hand(request)
+        request.session['poker_bonus_current_hand'] = hand
+        combo = hand_to_combo(hand)
+
+    if action == 'skip':
+        _, correct = check_user_bonus_payout(0, bonus_bet, combo)
+        message = f"Пропущено. Правильный ответ: {correct}"
+        success = None
+        skipped = True
+    elif action == 'check':
+        is_correct, correct = check_user_bonus_payout(user_payout, bonus_bet, combo)
+        if is_correct:
+            message = "Правильно!"
+            success = True
+        else:
+            message = "Неправильно!"
+            success = False
+
+    return render(request, 'poker/bonus.html', {
+        'ante': ante,
+        'bet': bet,
+        'bonus_bet': bonus_bet,
         'hand': hand,
         'combo': combo,
         'min_bet': min_bet,

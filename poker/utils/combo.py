@@ -237,3 +237,42 @@ def make_combo_queue():
     queue += [get_hand_royal_flush() for _ in range(1)]
     random.shuffle(queue)
     return queue
+
+
+def make_bonus_combo_queue():
+    """Очередь для Bonus: только две пары и сильнее."""
+    builders = [
+        (get_hand_two_pairs, 3),
+        (get_hand_set, 3),
+        (get_hand_straight, 3),
+        (get_hand_flush, 3),
+        (get_hand_full_house, 3),
+        (get_hand_quads, 2),
+        (get_hand_straight_flush, 1),
+        (get_hand_royal_flush, 1),
+    ]
+    queue = []
+    for builder, count in builders:
+        for _ in range(count):
+            queue.append(_require_bonus_combo(builder))
+    random.shuffle(queue)
+    return queue
+
+
+BONUS_QUALIFYING_COMBOS = frozenset({
+    'Две пары', 'Сет', 'Стрит', 'Флеш', 'Фул-хаус', 'Каре', 'Стрит-флеш', 'Роял-флеш',
+})
+
+BONUS_QUEUE_VERSION = 1
+
+
+def is_bonus_qualifying_combo(combo):
+    return combo in BONUS_QUALIFYING_COMBOS
+
+
+def _require_bonus_combo(builder, attempts=200):
+    for _ in range(attempts):
+        hand = builder()
+        if is_bonus_qualifying_combo(hand_to_combo(hand)):
+            return hand
+    raise RuntimeError(f'Не удалось собрать руку Bonus для {builder.__name__}')

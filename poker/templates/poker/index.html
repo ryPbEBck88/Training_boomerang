@@ -11,6 +11,14 @@
 	background-size: cover;
 	background-position: center;
 }
+.poker-hub__tile-img--bonus {
+	background-color: #243d6b;
+	background-image:
+		radial-gradient(circle at 50% 85%, rgba(212, 175, 55, 0.35) 0%, transparent 45%),
+		linear-gradient(165deg, #2a4a7a 0%, #1a2f4f 100%);
+	background-size: cover;
+	background-position: center;
+}
 .poker-hub__tile-img--combo {
 	background-color: #8b2942;
 	background-image: url('{% static "images/poker/oasis_combo.png" %}');
@@ -40,6 +48,10 @@
 				<a href="{% url 'poker_payout' %}" class="poker-hub__tile">
 					<span class="poker-hub__tile-img poker-hub__tile-img--payout" role="img" aria-hidden="true"></span>
 					<span class="poker-hub__tile-label">Выплата</span>
+				</a>
+				<a href="{% url 'poker_bonus' %}" class="poker-hub__tile">
+					<span class="poker-hub__tile-img poker-hub__tile-img--bonus" role="img" aria-hidden="true"></span>
+					<span class="poker-hub__tile-label">Bonus</span>
 				</a>
 				<a href="{% url 'poker_combo' %}" class="poker-hub__tile">
 					<span class="poker-hub__tile-img poker-hub__tile-img--combo" role="img" aria-hidden="true"></span>

@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 
-/** Цвета по номиналу. 2 — коричневая (как в «Сериях» / заставках). */
+/** Цвета по номиналу. 2 — золотая (заставки). 2.5 — фиолетовая (BJ Bonus: Pair). */
 export const CHIP_COLORS = {
 	2: 0xd4af37,
+	2.5: 0x9333ea,
 	1: 0x9ca3af,
 	5: 0xc41e3a,
 	25: 0x15803d,
@@ -97,6 +98,9 @@ function badgeTextColor(label) {
 	if (String(label) === '1000') {
 		return '#ffffff';
 	}
+	if (String(label) === '2.5') {
+		return '#000000';
+	}
 	return '#000000';
 }
 
@@ -149,7 +153,7 @@ function makeChipTopFaceBadgeTexture(label, baseColorCss) {
 	return tex;
 }
 
-const STRIPED_DENOMS = new Set([2, 5, 25, 100, 500, 1000, 5000]);
+const STRIPED_DENOMS = new Set([1, 2, 2.5, 5, 25, 100, 500, 1000, 5000]);
 
 export class TrackChipFactory {
 	constructor(chipScaleK) {
@@ -176,7 +180,7 @@ export class TrackChipFactory {
 	}
 
 	getMaterial(denomination) {
-		if (!Object.prototype.hasOwnProperty.call(CHIP_COLORS, denomination)) {
+		if (!(denomination in CHIP_COLORS)) {
 			throw new Error(`Unknown chip denomination: ${denomination}`);
 		}
 		if (!this._materials.has(denomination)) {
@@ -211,7 +215,12 @@ export class TrackChipFactory {
 		let material = this.getMaterial(denomination);
 		if (STRIPED_DENOMS.has(denomination)) {
 			if (!this._materialTriples.has(denomination)) {
-				const isWhiteStripe = denomination === 100 || denomination === 25 || denomination === 5 || denomination === 2;
+				const isWhiteStripe =
+					denomination === 1 ||
+					denomination === 100 ||
+					denomination === 25 ||
+					denomination === 5 ||
+					denomination === 2;
 				const stripeColorCss = isWhiteStripe ? '#ffffff' : '#0a0a0a';
 				const emissiveColor = isWhiteStripe ? 0xffffff : 0x000000;
 				const capEmissiveIntensity = isWhiteStripe ? 0.45 : 0.0;

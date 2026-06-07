@@ -19,6 +19,16 @@
 	background-size: cover;
 	background-position: center;
 }
+.bj-hub__tile-img--bonus {
+	background-color: #243d6b;
+	background-image:
+		radial-gradient(circle at 30% 70%, rgba(212, 175, 55, 0.35) 0%, transparent 45%),
+		radial-gradient(circle at 70% 70%, rgba(212, 175, 55, 0.35) 0%, transparent 45%),
+		radial-gradient(circle at 50% 70%, rgba(212, 175, 55, 0.35) 0%, transparent 45%),
+		linear-gradient(180deg, rgba(212, 175, 55, 0.25) 35%, transparent 55%);
+	background-size: cover;
+	background-position: center;
+}
 </style>
 {% endblock %}
 
@@ -36,6 +46,14 @@
 			<a href="{% url 'blackjack_payout' %}" class="bj-hub__tile">
 				<span class="bj-hub__tile-img bj-hub__tile-img--payout" role="img" aria-hidden="true"></span>
 				<span class="bj-hub__tile-label">Выплата BJ</span>
+			</a>
+			<a href="{% url 'blackjack_bonus' %}" class="bj-hub__tile">
+				<span class="bj-hub__tile-img bj-hub__tile-img--bonus" role="img" aria-hidden="true"></span>
+				<span class="bj-hub__tile-label">Bonus: Pair</span>
+			</a>
+			<a href="{% url 'blackjack_bonus_super20' %}" class="bj-hub__tile">
+				<span class="bj-hub__tile-img bj-hub__tile-img--bonus" role="img" aria-hidden="true"></span>
+				<span class="bj-hub__tile-label">Bonus: Super 20</span>
 			</a>
 		</div>
 	</nav>

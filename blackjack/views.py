@@ -3,9 +3,12 @@ from decimal import Decimal, InvalidOperation
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import render, redirect
+from django.templatetags.static import static
 from data.cards import get_shuffled_shoe, draw_card
 from blackjack.utils.self_draw import update_hand_value, check_action
-from .utils.payout import get_random_bet, check_user_payout
+from .utils.bonus_side_bets import check_user_side_bets_payout, draw_pair_hand_from_shoe
+from .utils.super_20 import check_user_super20_payout, draw_super20_hand_from_shoe
+from .utils.payout import get_random_bet, get_random_bonus_bet, check_user_payout
 from staffroom.services import get_user_wallet
 from training.utils.timer import process_timer_settings
 
@@ -17,6 +20,18 @@ STAFF_BJ_BET_STEP = Decimal('5.00')
 def _parse_int(val, default, min_val=None, max_val=None):
     try:
         n = int(float(val))
+        if min_val is not None and n < min_val:
+            n = min_val
+        if max_val is not None and n > max_val:
+            n = max_val
+        return n
+    except (TypeError, ValueError):
+        return default
+
+
+def _parse_float(val, default, min_val=None, max_val=None):
+    try:
+        n = float(val)
         if min_val is not None and n < min_val:
             n = min_val
         if max_val is not None and n > max_val:
@@ -1063,6 +1078,202 @@ def staff_room_blackjack(request):
             'staff_bj_table_stake_display': _staff_bj_table_stake_display(state),
         },
     )
+
+
+def _bonus_scene_config(
+    player_hand, dealer_up, main_bet, pp_bet, s_bet, d_bet,
+    *, chip_zone='P', camera_storage_key='bj_bonus_camera',
+):
+    return {
+        'mainBet': float(main_bet or 0),
+        'ppBet': float(pp_bet or 0),
+        'sBet': float(s_bet or 0),
+        'dBet': float(d_bet or 0),
+        'cardsBaseUrl': static('cards/'),
+        'dealerUp': dealer_up,
+        'playerHand': player_hand or [],
+        'chipZone': chip_zone,
+        'cameraStorageKey': camera_storage_key,
+    }
+
+
+def _bonus_template_context(
+    player_hand, dealer_up, main_bet, pp_bet, s_bet, d_bet,
+    min_bet, max_bet, step, message='', success=None, skipped=False,
+    *, chip_zone='P', camera_storage_key='bj_bonus_camera',
+):
+    return {
+        'player_hand': player_hand,
+        'dealer_up': dealer_up,
+        'main_bet': main_bet,
+        'pp_bet': pp_bet,
+        's_bet': s_bet,
+        'd_bet': d_bet,
+        'min_bet': min_bet,
+        'max_bet': max_bet,
+        'step': step,
+        'message': message,
+        'success': success,
+        'skipped': skipped,
+        'bj_bonus_scene': _bonus_scene_config(
+            player_hand, dealer_up, main_bet, pp_bet, s_bet, d_bet,
+            chip_zone=chip_zone,
+            camera_storage_key=camera_storage_key,
+        ),
+    }
+
+
+def _bonus_settings_from_session(request):
+    min_bet = _parse_float(request.session.get('bj_bonus_min_bet'), 1, 0.5, 10000)
+    max_bet = _parse_float(request.session.get('bj_bonus_max_bet'), 200, 0.5, 10000)
+    step = _parse_float(request.session.get('bj_bonus_step'), 0.5, 0.5, 1000)
+    if min_bet >= max_bet:
+        max_bet = min_bet + step
+    return min_bet, max_bet, step
+
+
+def bonus_view(request):
+    """BJ: выплата side bets P / S / D на 3D-сукне."""
+    min_bet, max_bet, step = _bonus_settings_from_session(request)
+
+    if request.method == 'POST' and request.POST.get('action') == 'settings':
+        min_bet = _parse_float(request.POST.get('min_bet'), min_bet, 0.5, 10000)
+        max_bet = _parse_float(request.POST.get('max_bet'), max_bet, 0.5, 10000)
+        step = _parse_float(request.POST.get('step'), step, 0.5, 1000)
+        if min_bet >= max_bet:
+            max_bet = min_bet + step
+        if step > max_bet - min_bet:
+            step = max(0.5, max_bet - min_bet)
+        request.session['bj_bonus_min_bet'] = min_bet
+        request.session['bj_bonus_max_bet'] = max_bet
+        request.session['bj_bonus_step'] = step
+        return redirect('blackjack_bonus')
+
+    player_hand = request.session.get('bj_bonus_player_hand')
+    dealer_up = request.session.get('bj_bonus_dealer_up')
+    main_bet = request.session.get('bj_bonus_main_bet')
+    pp_bet = request.session.get('bj_bonus_pp_bet')
+    s_bet = request.session.get('bj_bonus_s_bet')
+    d_bet = request.session.get('bj_bonus_d_bet')
+
+    if request.method == 'GET' or (request.method == 'POST' and request.POST.get('action') == 'next'):
+        shoe = get_shuffled_shoe(num_decks=6)
+        player_hand, shoe = draw_pair_hand_from_shoe(shoe)
+        dealer_up, shoe = draw_card(shoe)
+        main_bet = get_random_bet(min_bet, max_bet, step)
+        pp_bet = get_random_bonus_bet(min_bet, max_bet, step)
+        s_bet = 0
+        d_bet = 0
+        request.session['bj_bonus_player_hand'] = player_hand
+        request.session['bj_bonus_dealer_up'] = dealer_up
+        request.session['bj_bonus_main_bet'] = main_bet
+        request.session['bj_bonus_pp_bet'] = pp_bet
+        request.session['bj_bonus_s_bet'] = s_bet
+        request.session['bj_bonus_d_bet'] = d_bet
+        return render(request, 'blackjack/bonus.html', _bonus_template_context(
+            player_hand, dealer_up, main_bet, pp_bet, s_bet, d_bet,
+            min_bet, max_bet, step,
+            chip_zone='P',
+        ))
+
+    message = ''
+    success = None
+    skipped = False
+    action = request.POST.get('action')
+    user_payout = request.POST.get('user_payout', '')
+
+    if action == 'skip':
+        _, correct = check_user_side_bets_payout(0, pp_bet, s_bet, d_bet, player_hand, dealer_up)
+        message = f'Пропущено. Правильный ответ: {correct}'
+        skipped = True
+    elif action == 'check':
+        is_correct, correct = check_user_side_bets_payout(
+            user_payout, pp_bet, s_bet, d_bet, player_hand, dealer_up
+        )
+        if is_correct:
+            message = 'Правильно!'
+            success = True
+        else:
+            message = 'Неправильно!'
+            success = False
+
+    return render(request, 'blackjack/bonus.html', _bonus_template_context(
+        player_hand, dealer_up, main_bet, pp_bet, s_bet, d_bet,
+        min_bet, max_bet, step, message, success, skipped,
+        chip_zone='P',
+    ))
+
+
+def bonus_super20_view(request):
+    """BJ: Super 20 — выплата side bet S (две карты = 20)."""
+    min_bet, max_bet, step = _bonus_settings_from_session(request)
+
+    if request.method == 'POST' and request.POST.get('action') == 'settings':
+        min_bet = _parse_float(request.POST.get('min_bet'), min_bet, 0.5, 10000)
+        max_bet = _parse_float(request.POST.get('max_bet'), max_bet, 0.5, 10000)
+        step = _parse_float(request.POST.get('step'), step, 0.5, 1000)
+        if min_bet >= max_bet:
+            max_bet = min_bet + step
+        if step > max_bet - min_bet:
+            step = max(0.5, max_bet - min_bet)
+        request.session['bj_bonus_min_bet'] = min_bet
+        request.session['bj_bonus_max_bet'] = max_bet
+        request.session['bj_bonus_step'] = step
+        return redirect('blackjack_bonus_super20')
+
+    player_hand = request.session.get('bj_super20_player_hand')
+    dealer_up = request.session.get('bj_super20_dealer_up')
+    main_bet = request.session.get('bj_super20_main_bet')
+    pp_bet = request.session.get('bj_super20_pp_bet')
+    s_bet = request.session.get('bj_super20_s_bet')
+    d_bet = request.session.get('bj_super20_d_bet')
+
+    if request.method == 'GET' or (request.method == 'POST' and request.POST.get('action') == 'next'):
+        shoe = get_shuffled_shoe(num_decks=6)
+        player_hand, shoe = draw_super20_hand_from_shoe(shoe)
+        dealer_up, shoe = draw_card(shoe)
+        main_bet = get_random_bet(min_bet, max_bet, step)
+        pp_bet = 0
+        s_bet = get_random_bonus_bet(min_bet, max_bet, step)
+        d_bet = 0
+        request.session['bj_super20_player_hand'] = player_hand
+        request.session['bj_super20_dealer_up'] = dealer_up
+        request.session['bj_super20_main_bet'] = main_bet
+        request.session['bj_super20_pp_bet'] = pp_bet
+        request.session['bj_super20_s_bet'] = s_bet
+        request.session['bj_super20_d_bet'] = d_bet
+        return render(request, 'blackjack/bonus_super20.html', _bonus_template_context(
+            player_hand, dealer_up, main_bet, pp_bet, s_bet, d_bet,
+            min_bet, max_bet, step,
+            chip_zone='S',
+            camera_storage_key='bj_super20_camera',
+        ))
+
+    message = ''
+    success = None
+    skipped = False
+    action = request.POST.get('action')
+    user_payout = request.POST.get('user_payout', '')
+
+    if action == 'skip':
+        _, correct = check_user_super20_payout(0, s_bet, player_hand)
+        message = f'Пропущено. Правильный ответ: {correct}'
+        skipped = True
+    elif action == 'check':
+        is_correct, correct = check_user_super20_payout(user_payout, s_bet, player_hand)
+        if is_correct:
+            message = 'Правильно!'
+            success = True
+        else:
+            message = 'Неправильно!'
+            success = False
+
+    return render(request, 'blackjack/bonus_super20.html', _bonus_template_context(
+        player_hand, dealer_up, main_bet, pp_bet, s_bet, d_bet,
+        min_bet, max_bet, step, message, success, skipped,
+        chip_zone='S',
+        camera_storage_key='bj_super20_camera',
+    ))
 
 
 def index(request):
