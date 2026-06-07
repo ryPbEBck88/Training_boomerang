@@ -2,10 +2,63 @@
 
 {% block title %}Вопрос {{ progress }} / {{ total }} — {{ test.title }}{% endblock %}
 
+{% block extra_head %}
+<style>
+.sop-quiz__option.sop-quiz__option--wrong {
+  border: 2px solid #dc2626 !important;
+  background: rgba(220, 38, 38, 0.18) !important;
+  box-shadow: inset 4px 0 0 #dc2626;
+  color: #991b1b;
+  font-weight: 600;
+}
+.sop-quiz__option.sop-quiz__option--correct {
+  border: 2px solid #16a34a !important;
+  background: rgba(22, 163, 74, 0.18) !important;
+  box-shadow: inset 4px 0 0 #16a34a;
+  color: #166534;
+  font-weight: 600;
+}
+.sop-quiz__option.sop-quiz__option--wrong:hover,
+.sop-quiz__option.sop-quiz__option--correct:hover {
+  border-color: inherit !important;
+  background: inherit !important;
+}
+.sop-quiz__feedback-note {
+  margin: 0 0 1rem;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.35);
+  color: #991b1b;
+  font-weight: 600;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <p class="sop-quiz__back"><a href="{% url 'boomerang_test' %}">Список тестов</a> · {{ test.title }}</p>
 <p class="sop-quiz__progress">Вопрос {{ progress }} из {{ total }}</p>
 <h1 class="sop-quiz__question">{{ question.text }}</h1>
+
+{% if show_feedback %}
+<p class="sop-quiz__feedback-note">Неверно. Верный ответ выделен зелёным.</p>
+<div class="sop-quiz__options sop-quiz__options--revealed" role="list">
+	{% for a in answers %}
+	<div class="sop-quiz__option sop-quiz__option--static{% if a.pk == chosen_id %} sop-quiz__option--wrong{% elif a.pk == correct_id %} sop-quiz__option--correct{% endif %}" role="listitem">
+		<span>{{ a.text }}</span>
+	</div>
+	{% endfor %}
+</div>
+<form method="post" action="{% url 'boomerang_sop_play' slug=test.slug %}" class="sop-quiz__form sop-quiz__form--next">
+	{% csrf_token %}
+	<input type="hidden" name="action" value="next">
+	<button type="submit" class="sop-quiz__next" aria-label="Следующий вопрос">
+		<svg class="sop-quiz__next-icon" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" focusable="false">
+			<path fill="currentColor" d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z"/>
+		</svg>
+	</button>
+</form>
+{% else %}
 <form method="post" action="{% url 'boomerang_sop_play' slug=test.slug %}" class="sop-quiz__form">
 	{% csrf_token %}
 	<fieldset class="sop-quiz__options">
@@ -18,4 +71,5 @@
 	</fieldset>
 	<button type="submit" class="btn btn-primary">Ответить</button>
 </form>
+{% endif %}
 {% endblock %}

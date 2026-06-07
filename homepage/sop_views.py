@@ -31,7 +31,27 @@ def _build_quiz_payload(test):
         aids = [a.pk for a in q.answers.all()]
         random.shuffle(aids)
         perm[str(q.pk)] = aids
-    return {'order': order, 'perm': perm, 'idx': 0, 'picked': {}}
+    return {'order': order, 'perm': perm, 'idx': 0, 'picked': {}, 'show_feedback': False}
+
+
+def _ordered_answers(question, aid_order):
+    answers = list(SopAnswer.objects.filter(pk__in=aid_order, question=question))
+    by_id = {a.pk: a for a in answers}
+    return [by_id[i] for i in aid_order if i in by_id]
+
+
+def _play_context(test, data, *, question, answers, progress, total, show_feedback=False,
+                  chosen_id=None, correct_id=None):
+    return {
+        'test': test,
+        'question': question,
+        'answers': answers,
+        'progress': progress,
+        'total': total,
+        'show_feedback': show_feedback,
+        'chosen_id': chosen_id,
+        'correct_id': correct_id,
+    }
 
 
 def boomerang_sop_hub(request):
@@ -86,10 +106,29 @@ def boomerang_sop_play(request, slug):
     order = data['order']
     idx = data['idx']
     picked = data['picked']
+    show_feedback = data.get('show_feedback', False)
+    total = len(order)
 
     if request.method == 'POST':
-        if idx >= len(order):
+        action = request.POST.get('action', 'answer')
+
+        if action == 'next':
+            if not show_feedback or idx >= total:
+                return redirect('boomerang_sop_play', slug=slug)
+            data['idx'] = idx + 1
+            data['show_feedback'] = False
+            request.session[sk] = data
+            request.session.modified = True
+            if data['idx'] >= total:
+                return redirect('boomerang_sop_results', slug=slug)
+            return redirect('boomerang_sop_play', slug=slug)
+
+        if show_feedback:
+            return redirect('boomerang_sop_play', slug=slug)
+
+        if idx >= total:
             return redirect('boomerang_sop_results', slug=slug)
+
         qid = order[idx]
         try:
             aid = int(request.POST.get('answer', ''))
@@ -98,37 +137,80 @@ def boomerang_sop_play(request, slug):
         valid_ids = set(int(x) for x in data['perm'][str(qid)])
         if aid not in valid_ids:
             return redirect('boomerang_sop_play', slug=slug)
+
         picked[str(qid)] = aid
-        data['idx'] = idx + 1
+        data['picked'] = picked
+        chosen = SopAnswer.objects.filter(pk=aid, question_id=qid).first()
+        if chosen and chosen.is_correct:
+            data['idx'] = idx + 1
+            data['show_feedback'] = False
+            request.session[sk] = data
+            request.session.modified = True
+            if data['idx'] >= total:
+                return redirect('boomerang_sop_results', slug=slug)
+            return redirect('boomerang_sop_play', slug=slug)
+
+        data['show_feedback'] = True
         request.session[sk] = data
         request.session.modified = True
-        if data['idx'] >= len(order):
-            return redirect('boomerang_sop_results', slug=slug)
-        return redirect('boomerang_sop_play', slug=slug)
+        question = get_object_or_404(SopQuestion, pk=qid, test=test)
+        aid_order = [int(x) for x in data['perm'][str(qid)]]
+        ordered_answers = _ordered_answers(question, aid_order)
+        correct = SopAnswer.objects.filter(question=question, is_correct=True).first()
+        correct_id = correct.pk if correct else None
+        return render(
+            request,
+            'homepage/boomerang_sop_play.html',
+            _play_context(
+                test, data,
+                question=question,
+                answers=ordered_answers,
+                progress=idx + 1,
+                total=total,
+                show_feedback=True,
+                chosen_id=aid,
+                correct_id=correct_id,
+            ),
+        )
 
-    # GET
-    if idx >= len(order):
+    if idx >= total:
         return redirect('boomerang_sop_results', slug=slug)
 
     qid = order[idx]
     question = get_object_or_404(SopQuestion, pk=qid, test=test)
     aid_order = [int(x) for x in data['perm'][str(qid)]]
-    answers = list(SopAnswer.objects.filter(pk__in=aid_order, question=question))
-    by_id = {a.pk: a for a in answers}
-    ordered_answers = [by_id[i] for i in aid_order if i in by_id]
-
+    ordered_answers = _ordered_answers(question, aid_order)
     progress = idx + 1
-    total = len(order)
+
+    if show_feedback:
+        chosen_id = picked.get(str(qid))
+        correct = SopAnswer.objects.filter(question=question, is_correct=True).first()
+        correct_id = correct.pk if correct else None
+        return render(
+            request,
+            'homepage/boomerang_sop_play.html',
+            _play_context(
+                test, data,
+                question=question,
+                answers=ordered_answers,
+                progress=progress,
+                total=total,
+                show_feedback=True,
+                chosen_id=int(chosen_id) if chosen_id else None,
+                correct_id=correct_id,
+            ),
+        )
+
     return render(
         request,
         'homepage/boomerang_sop_play.html',
-        {
-            'test': test,
-            'question': question,
-            'answers': ordered_answers,
-            'progress': progress,
-            'total': total,
-        },
+        _play_context(
+            test, data,
+            question=question,
+            answers=ordered_answers,
+            progress=progress,
+            total=total,
+        ),
     )
 
 
