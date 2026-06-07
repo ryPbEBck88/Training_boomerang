@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static l10n %}
 {% block title %}Oasis Poker: Bonus{% endblock %}
 {% block main_class %}payout-main{% endblock %}
 {% block extra_head %}
@@ -37,9 +37,9 @@
 				{% csrf_token %}
 				<input type="hidden" name="action" value="settings">
 				<div class="payout-settings-fields">
-					<label>min: <input type="number" name="min_bet" value="{{ min_bet }}" min="1" max="10000"></label>
-					<label>max: <input type="number" name="max_bet" value="{{ max_bet }}" min="1" max="10000"></label>
-					<label>step: <input type="number" name="step" value="{{ step }}" min="1" max="1000"></label>
+					<label>min: <input type="number" name="min_bet" value="{{ min_bet|unlocalize }}" min="1" max="10000"></label>
+					<label>max: <input type="number" name="max_bet" value="{{ max_bet|unlocalize }}" min="1" max="10000"></label>
+					<label>step: <input type="number" name="step" value="{{ step|unlocalize }}" min="1" max="1000"></label>
 				</div>
 				<div class="payout-settings-actions">
 					<button type="submit" class="btn btn-primary">Сохранить</button>
@@ -127,28 +127,37 @@
 </div>
 </div>
 
-<script>
-window.__POKER_BONUS_SCENE__ = {
-	ante: {{ ante }},
-	bet: {{ bet }},
-	bonusBet: {{ bonus_bet }},
-	combo: "{{ combo|escapejs }}",
-	cardsBaseUrl: "{% static 'cards/' %}",
-	hand: [
-		{% for card in hand %}
-		{ img: "{{ card.img|escapejs }}", name: "{{ card.name|escapejs }}", rank: "{{ card.rank|escapejs }}", suit: "{{ card.suit|escapejs }}" }{% if not forloop.last %},{% endif %}
-		{% endfor %}
-	]
-};
-</script>
+{{ poker_bonus_scene|json_script:"poker-bonus-scene-data" }}
 <script type="importmap">
-{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}
+{"imports":{
+	"three":"https://unpkg.com/three@0.160.0/build/three.module.js",
+	"three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/",
+	"poker-oasis-bonus-scene":"{% static 'js/poker_oasis_bonus_scene.mjs' %}?v=1"
+}}
 </script>
 <script type="module">
-import { initOasisBonusScene } from '{% static "js/poker_oasis_bonus_scene.mjs" %}';
+import { initOasisBonusScene } from 'poker-oasis-bonus-scene';
+const sceneDataEl = document.getElementById('poker-bonus-scene-data');
 const canvas = document.getElementById('poker-bonus-canvas');
-if (canvas && window.__POKER_BONUS_SCENE__) {
-	initOasisBonusScene(canvas, window.__POKER_BONUS_SCENE__);
+
+function showSceneError(message) {
+	if (!canvas?.parentElement) return;
+	canvas.parentElement.insertAdjacentHTML(
+		'beforeend',
+		`<p style="color:#e11;padding:16px;margin:0;">${message}</p>`
+	);
+}
+
+if (canvas && sceneDataEl) {
+	try {
+		const config = JSON.parse(sceneDataEl.textContent);
+		window.__POKER_BONUS_SCENE__ = config;
+		const scene = initOasisBonusScene(canvas, config);
+		if (!scene) showSceneError('WebGL не доступен.');
+	} catch (err) {
+		console.error('Poker bonus scene failed:', err);
+		showSceneError('Не удалось загрузить 3D-сцену. Обновите страницу.');
+	}
 }
 </script>
 <script>

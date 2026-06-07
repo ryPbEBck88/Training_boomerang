@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.templatetags.static import static
 from data.cards import get_shuffled_shoe
 from blackjack.utils.payout import get_random_bet
 from training.utils.timer import process_timer_settings
@@ -302,6 +303,39 @@ def _next_bonus_hand(request):
     return hand
 
 
+def _poker_bonus_scene_config(ante, bet, bonus_bet, hand, combo):
+    return {
+        'ante': float(ante or 0),
+        'bet': float(bet or 0),
+        'bonusBet': float(bonus_bet or 0),
+        'combo': combo or '',
+        'cardsBaseUrl': static('cards/'),
+        'hand': hand or [],
+    }
+
+
+def _poker_bonus_template_context(
+    ante, bet, bonus_bet, hand, combo,
+    min_bet, max_bet, step, message='', success=None, skipped=False,
+):
+    return {
+        'ante': ante,
+        'bet': bet,
+        'bonus_bet': bonus_bet,
+        'hand': hand,
+        'combo': combo,
+        'min_bet': min_bet,
+        'max_bet': max_bet,
+        'step': step,
+        'message': message,
+        'success': success,
+        'skipped': skipped,
+        'poker_bonus_scene': _poker_bonus_scene_config(
+            ante, bet, bonus_bet, hand, combo,
+        ),
+    }
+
+
 def bonus_view(request):
     """Oasis Poker: выплата side bet Bonus. Bet / Ante / Bonus на синем сукне."""
     min_bet = request.session.get('poker_bonus_min_bet', 25)
@@ -335,19 +369,10 @@ def bonus_view(request):
         request.session['poker_bonus_current_ante'] = ante
         request.session['poker_bonus_current_bet'] = bet
         request.session['poker_bonus_current_bonus_bet'] = bonus_bet
-        return render(request, 'poker/bonus.html', {
-            'ante': ante,
-            'bet': bet,
-            'bonus_bet': bonus_bet,
-            'hand': hand,
-            'combo': hand_to_combo(hand),
-            'min_bet': min_bet,
-            'max_bet': max_bet,
-            'step': step,
-            'message': '',
-            'success': None,
-            'skipped': False,
-        })
+        return render(request, 'poker/bonus.html', _poker_bonus_template_context(
+            ante, bet, bonus_bet, hand, hand_to_combo(hand),
+            min_bet, max_bet, step,
+        ))
 
     message = ''
     success = None
@@ -374,19 +399,10 @@ def bonus_view(request):
             message = "Неправильно!"
             success = False
 
-    return render(request, 'poker/bonus.html', {
-        'ante': ante,
-        'bet': bet,
-        'bonus_bet': bonus_bet,
-        'hand': hand,
-        'combo': combo,
-        'min_bet': min_bet,
-        'max_bet': max_bet,
-        'step': step,
-        'message': message,
-        'success': success,
-        'skipped': skipped,
-    })
+    return render(request, 'poker/bonus.html', _poker_bonus_template_context(
+        ante, bet, bonus_bet, hand, combo,
+        min_bet, max_bet, step, message, success, skipped,
+    ))
 
 
 def index(request):

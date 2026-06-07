@@ -45,7 +45,10 @@ _load_local_env()
 SECRET_KEY = 'django-insecure-7-w20()bd^0@mypm7b%*f=)f9!1juy#yn%b-+l-pzluf*%%75='
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', '1').strip().lower() in ('1', 'true', 'yes', 'on')
+
+# За nginx/прокси: HTTPS в request.scheme (canonical, og:url).
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 ALLOWED_HOSTS = [
     h.strip()
