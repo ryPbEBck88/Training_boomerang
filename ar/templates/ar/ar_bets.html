@@ -171,9 +171,21 @@ controls.maxPolarAngle = Math.PI * 0.95;
 controls.minAzimuthAngle = -Math.PI / 2;
 controls.maxAzimuthAngle = Math.PI / 2;
 
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-renderer.setSize(w, h);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+const renderer = new THREE.WebGLRenderer({
+	canvas,
+	antialias: true,
+	alpha: false,
+	powerPreference: 'default',
+	logarithmicDepthBuffer: true
+});
+renderer.setSize(w, h, false);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+
+let renderRequested = true;
+function requestRender() {
+	renderRequested = true;
+}
+controls.addEventListener('change', requestRender);
 
 scene.add(new THREE.AmbientLight(0xffffff, 0.6));
 const dir = new THREE.DirectionalLight(0xffffff, 0.9);
@@ -181,8 +193,18 @@ dir.position.set(20, 25, 20);
 scene.add(dir);
 
 const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
-const whiteStripMat = new THREE.MeshBasicMaterial({ color: 0xffffff }); /* полоски — всегда белые */
-const blueMat = new THREE.MeshStandardMaterial({ color: 0x2563eb });
+const whiteStripMat = new THREE.MeshBasicMaterial({
+	color: 0xffffff,
+	polygonOffset: true,
+	polygonOffsetFactor: -1,
+	polygonOffsetUnits: -1
+}); /* полоски — всегда белые, чуть выше синих ячеек */
+const blueMat = new THREE.MeshStandardMaterial({
+	color: 0x2563eb,
+	polygonOffset: true,
+	polygonOffsetFactor: 1,
+	polygonOffsetUnits: 1
+});
 const cellW = 8, cellH = 10;
 const gap = 0.3;
 const edge = 0.15;
@@ -800,6 +822,7 @@ function doSpawn() {
 			correctAnswer += chipCounts[i] * multipliers[i];
 		}
 		document.getElementById('answer-display').textContent = 'Введите ответ и нажмите ↵';
+		requestRender();
 	}
 	if (texUrl) {
 		loader.load(texUrl, function (tex) {
@@ -948,8 +971,7 @@ function focusCameraOnNumber() {
 		camera.position.set(cameraHomePos.x, cameraHomePos.y, cameraHomePos.z);
 		controls.target.set(cameraHomeTarget.x, cameraHomeTarget.y, cameraHomeTarget.z);
 	}
-	console.log('camera position', camera.position.x, camera.position.y, camera.position.z);
-	console.log('camera target', controls.target.x, controls.target.y, controls.target.z);
+	requestRender();
 }
 loadArSettings();
 document.getElementById('ar-use-stacks').addEventListener('change', updateStacksUI);
@@ -975,12 +997,16 @@ document.getElementById('ar-settings-overlay').addEventListener('click', functio
 
 function animate() {
 	requestAnimationFrame(animate);
-	controls.update();
+	if (document.hidden) return;
+	const controlsChanged = controls.update();
+	if (controlsChanged) renderRequested = true;
+	if (!renderRequested) return;
+	renderRequested = false;
 	renderer.render(scene, camera);
 }
 animate();
 
-window.addEventListener('resize', function () {
+function resizeCanvas() {
 	containerW = canvas.parentElement.clientWidth || 640;
 	containerH = canvas.parentElement.clientHeight || Math.min(480, Math.floor(containerW * 0.75));
 	if (containerW < 100) containerW = 640;
@@ -989,7 +1015,20 @@ window.addEventListener('resize', function () {
 	h = containerH;
 	camera.aspect = w / h;
 	camera.updateProjectionMatrix();
-	renderer.setSize(w, h);
+	renderer.setSize(w, h, false);
+	requestRender();
+}
+var resizeTimer;
+function scheduleResize() {
+	clearTimeout(resizeTimer);
+	resizeTimer = setTimeout(resizeCanvas, 100);
+}
+window.addEventListener('resize', scheduleResize);
+if (typeof ResizeObserver !== 'undefined' && canvas.parentElement) {
+	new ResizeObserver(scheduleResize).observe(canvas.parentElement);
+}
+document.addEventListener('visibilitychange', function () {
+	if (!document.hidden) requestRender();
 });
 </script>
 {% endblock %}
