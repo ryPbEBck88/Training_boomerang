@@ -1,0 +1,17 @@
+{
+  "name": "i-croupier Django trainer",
+  "user": "ubuntu",
+  "install": "./.cursor/install.sh",
+  "terminals": [
+    {
+      "name": "web",
+      "command": ".venv/bin/python manage.py runserver 0.0.0.0:8000"
+    }
+  ],
+  "ports": [
+    {
+      "name": "web",
+      "port": 8000
+    }
+  ]
+}
