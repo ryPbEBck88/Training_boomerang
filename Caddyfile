@@ -1,6 +1,6 @@
-# Домашний reverse-proxy с авто-HTTPS (Let's Encrypt).
-# SITE_ADDRESS — одно или несколько имён через запятую, без пробелов.
-# Пример: i-croupier.quiethouse.crazedns.ru
+# Shared reverse proxy: trainers + transfer on one PC (ports 80/443).
+# SITE_ADDRESS     -> Django trainers (service web:8000)
+# TRANSFER_ADDRESS -> transfer site (TRANSFER_UPSTREAM), optional
 
 {
 	email {$ACME_EMAIL}
@@ -9,6 +9,14 @@
 {$SITE_ADDRESS} {
 	encode gzip
 	reverse_proxy web:8000
+	header {
+		-Server
+	}
+}
+
+{$TRANSFER_ADDRESS} {
+	encode gzip
+	reverse_proxy {$TRANSFER_UPSTREAM}
 	header {
 		-Server
 	}

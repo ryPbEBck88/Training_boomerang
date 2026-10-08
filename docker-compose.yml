@@ -1,10 +1,13 @@
-# Имя проекта в Docker Desktop (Windows): i-croupier
+# Docker Desktop project name
 name: i-croupier
 
 services:
   web:
     build: .
     restart: unless-stopped
+    # Local access without touching transfer's ports
+    ports:
+      - "8000:8000"
     expose:
       - "8000"
     env_file:
@@ -12,7 +15,6 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=training.settings
     volumes:
-      # Код + db.sqlite3 на диске ПК (не теряются при recreate)
       - .:/app
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/', timeout=5)"]
@@ -33,16 +35,18 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
-      - SITE_ADDRESS=${SITE_ADDRESS:-localhost}
+      - SITE_ADDRESS=${SITE_ADDRESS:-i-croupier.quiethouse.crazedns.ru}
+      - TRANSFER_ADDRESS=${TRANSFER_ADDRESS:-transfer.quiethouse.crazedns.ru}
+      - TRANSFER_UPSTREAM=${TRANSFER_UPSTREAM:-host.docker.internal:8080}
       - ACME_EMAIL=${ACME_EMAIL:-admin@localhost}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
 
-  # Локальный доступ без HTTPS: docker compose --profile local up
-  # Открывает http://localhost:8000 напрямую к gunicorn.
   web-local:
     profiles: ["local"]
     build: .
