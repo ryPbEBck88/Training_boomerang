@@ -62,9 +62,15 @@ ALLOWED_HOSTS = [
 if DEBUG and '*' not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append('*')
 
+# CSRF: через env (прод / домашний DDNS). Пример:
+# CSRF_TRUSTED_ORIGINS=https://i-croupier.ru,https://www.i-croupier.ru,https://i-croupier.quiethouse.crazydns.ru
 CSRF_TRUSTED_ORIGINS = [
-    'https://i-croupier.ru',
-    'https://www.i-croupier.ru',
+    o.strip()
+    for o in os.environ.get(
+        'CSRF_TRUSTED_ORIGINS',
+        'https://i-croupier.ru,https://www.i-croupier.ru',
+    ).split(',')
+    if o.strip()
 ]
 if DEBUG:
     _dev_port = os.environ.get('DEV_SERVER_PORT', '8000').strip() or '8000'

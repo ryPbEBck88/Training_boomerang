@@ -1,0 +1,16 @@
+# Домашний reverse-proxy с авто-HTTPS (Let's Encrypt).
+# SITE_ADDRESS — одно или несколько имён через запятую, без пробелов.
+# Пример: i-croupier.ru,www.i-croupier.ru
+# Или DDNS: i-croupier.quiethouse.crazydns.ru
+
+{
+	email {$ACME_EMAIL}
+}
+
+{$SITE_ADDRESS} {
+	encode gzip
+	reverse_proxy web:8000
+	header {
+		-Server
+	}
+}
