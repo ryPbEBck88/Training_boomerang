@@ -52,9 +52,26 @@ ACME_EMAIL=ваш@email.ru
 
 ## 4. Запуск
 
+### Вариант A — Docker Desktop (графика, Windows)
+
+1. Сначала обновите код ветки (раздел 2–3), чтобы были `docker-compose.yml`, `Caddyfile`, `.env`.
+2. Откройте **Docker Desktop**.
+3. Слева: **Containers** (Контейнеры) или **Projects**.
+4. Кнопка **Add** / **Open** / **Create** → **Compose** / открыть папку проекта.
+5. Укажите папку: `D:\Alex\Dev\Training_boomerang`
+6. Выберите файл `docker-compose.yml`.
+7. Запуск (▶️ Start / Run).
+
+В списке проект должен называться **`i-croupier`**, внутри сервисы `web` и `caddy`.
+
+Если кнопки Add нет: в Docker Desktop → шестерёнка → убедитесь, что Docker Engine запущен, затем в проводнике в папке проекта ПКМ по `docker-compose.yml` → Open with Docker Desktop (если есть), либо выполните вариант B один раз — стек появится в GUI.
+
+### Вариант B — PowerShell (тоже появится в Docker Desktop)
+
 Только локально (без домена, порт 8000):
 
 ```powershell
+cd D:\Alex\Dev\Training_boomerang
 docker compose --profile local up -d --build
 ```
 
@@ -63,8 +80,11 @@ docker compose --profile local up -d --build
 С интернетом через Caddy (HTTPS на 80/443):
 
 ```powershell
+cd D:\Alex\Dev\Training_boomerang
 docker compose up -d --build
 ```
+
+После этого в Docker Desktop появится стек **`i-croupier`**.
 
 Логи:
 
@@ -77,6 +97,7 @@ docker compose logs -f web caddy
 ```powershell
 docker compose down
 ```
+# или Stop в Docker Desktop на проекте i-croupier
 
 ## 5. Проверка
 
