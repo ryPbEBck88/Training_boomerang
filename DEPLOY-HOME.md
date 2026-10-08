@@ -1,6 +1,8 @@
 # Запуск Training Boomerang на домашнем ПК (Docker)
 
-Сайт поднимается в Docker на вашем компьютере и отдаётся наружу по домену **i-croupier** (и/или DDNS).
+Сайт поднимается в Docker на вашем компьютере и отдаётся наружу по адресу:
+
+**https://i-croupier.quiethouse.crazedns.ru**
 
 > Последний коммит на `main` сейчас от **июня 2026** — это нормально: более новых коммитов в репозитории нет. Скачивание «4 месяца назад» = актуальный код.
 
@@ -36,25 +38,17 @@ copy .env.example .env
 notepad .env
 ```
 
-Минимум для `i-croupier.ru`:
+Минимум для QuietHouse DDNS:
 
 ```env
 DEBUG=0
-ALLOWED_HOSTS=i-croupier.ru,www.i-croupier.ru,localhost,127.0.0.1
-CSRF_TRUSTED_ORIGINS=https://i-croupier.ru,https://www.i-croupier.ru
-SITE_ADDRESS=i-croupier.ru,www.i-croupier.ru
+ALLOWED_HOSTS=i-croupier.quiethouse.crazedns.ru,localhost,127.0.0.1
+CSRF_TRUSTED_ORIGINS=https://i-croupier.quiethouse.crazedns.ru
+SITE_ADDRESS=i-croupier.quiethouse.crazedns.ru
 ACME_EMAIL=ваш@email.ru
 ```
 
-Если у вас DDNS вида `i-croupier.…crazydns…` / QuietHouse — **добавьте полное имя** во все три поля:
-
-```env
-ALLOWED_HOSTS=i-croupier.ru,www.i-croupier.ru,i-croupier.ВАШ-DDNS-ХОСТ,localhost,127.0.0.1
-CSRF_TRUSTED_ORIGINS=https://i-croupier.ru,https://www.i-croupier.ru,https://i-croupier.ВАШ-DDNS-ХОСТ
-SITE_ADDRESS=i-croupier.ru,www.i-croupier.ru,i-croupier.ВАШ-DDNS-ХОСТ
-```
-
-DNS A-запись (или DDNS-клиент) должна указывать на **белый IP** домашнего интернета.
+В панели QuietHouse / CrazyDNS создайте (или проверьте) хост **`i-croupier`** в зоне **`quiethouse.crazedns.ru`**, чтобы A-запись указывала на **белый IP** дома.
 
 ## 4. Запуск
 
@@ -86,7 +80,7 @@ docker compose down
 
 ## 5. Проверка
 
-1. С телефона (мобильный интернет, не Wi‑Fi дома): https://i-croupier.ru  
+1. С телефона (мобильный интернет, не Wi‑Fi дома): https://i-croupier.quiethouse.crazedns.ru  
 2. Если сертификат не выдался — смотрите `docker compose logs caddy` (часто не открыты 80/443 или DNS ещё не указывает на дом)  
 3. База SQLite лежит в папке проекта (`db.sqlite3`) — не удаляйте её при обновлении  
 
