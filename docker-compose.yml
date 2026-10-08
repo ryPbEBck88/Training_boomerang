@@ -1,3 +1,6 @@
+# Имя проекта в Docker Desktop (Windows): i-croupier
+name: i-croupier
+
 services:
   web:
     build: .
