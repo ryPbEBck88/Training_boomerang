@@ -75,8 +75,8 @@ services:
       - CHECK_INTERVAL_SECONDS=30
       - REQUEST_TIMEOUT_SECONDS=5
       - MONITORED_SERVICE_NAME=web
-      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
     volumes:
       - .:/app:ro
     working_dir: /app
