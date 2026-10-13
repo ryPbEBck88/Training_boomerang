@@ -4,20 +4,27 @@ import json
 from urllib import parse, request as urlrequest
 
 from django.conf import settings
-from django.contrib.auth import get_user_model
+from django.contrib.auth import authenticate, get_user_model, login
 from django.contrib.auth.tokens import default_token_generator
 from django.core.cache import cache
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
-
 from .constants import TIP_THANK_YOU_MESSAGES
 from .email_activation import send_activation_email
-from .forms import SignUpForm
+from .forms import (
+    EmailContinueForm,
+    LoginIdentifierForm,
+    LoginPasswordForm,
+    SignUpDetailsForm,
+)
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
+
+SESSION_REGISTER_EMAIL = 'register_email'
+SESSION_LOGIN_ID = 'login_identifier'
 
 
 def _get_client_ip(request):
@@ -72,6 +79,10 @@ def _verify_turnstile(request):
 
 
 def index(request):
+    # Яндекс Redirect URI = корень сайта → сюда приходит ?code=…
+    if request.GET.get('code') or request.GET.get('error'):
+        qs = request.GET.urlencode()
+        return redirect(f'/oauth/complete/yandex-oauth2/?{qs}')
     return render(request, 'homepage/index.html')
 
 
@@ -98,33 +109,90 @@ def authors_page(request):
 def register(request):
     if request.user.is_authenticated:
         return redirect('homepage_index')
+    if request.GET.get('restart') == '1':
+        request.session.pop(SESSION_REGISTER_EMAIL, None)
+        return redirect('register')
+
+    email = (request.session.get(SESSION_REGISTER_EMAIL) or '').strip().lower()
     turnstile_site_key = (getattr(settings, 'TURNSTILE_SITE_KEY', '') or '').strip()
-    if request.method == 'POST':
-        form = SignUpForm(request.POST)
-        if _register_rate_limited(request):
-            form.add_error(None, 'Слишком много попыток регистрации. Подождите несколько минут и попробуйте снова.')
-        elif turnstile_site_key and not _verify_turnstile(request):
-            form.add_error(None, 'Проверка защиты не пройдена. Обновите страницу и попробуйте снова.')
-        elif form.is_valid():
-            user = form.save()
-            try:
-                send_activation_email(request, user)
-            except Exception:
-                logger.exception('activation email failed for user_id=%s', user.pk)
+    social_error = request.GET.get('social_error') == '1'
+
+    # Шаг 2: логин + пароль
+    if email:
+        if request.method == 'POST':
+            form = SignUpDetailsForm(request.POST, email=email)
+            if _register_rate_limited(request):
                 form.add_error(
                     None,
-                    'Аккаунт создан, но письмо не отправилось. '
-                    'Проверьте почту и попробуйте отправить письмо ещё раз.',
+                    'Слишком много попыток регистрации. Подождите несколько минут и попробуйте снова.',
+                )
+            elif turnstile_site_key and not _verify_turnstile(request):
+                form.add_error(None, 'Проверка защиты не пройдена. Обновите страницу и попробуйте снова.')
+            elif form.is_valid():
+                user = form.save()
+                try:
+                    send_activation_email(request, user)
+                except Exception:
+                    logger.exception('activation email failed for user_id=%s', user.pk)
+                    form.add_error(
+                        None,
+                        'Аккаунт создан, но письмо не отправилось. '
+                        'Проверьте почту и попробуйте отправить письмо ещё раз.',
+                    )
+                    request.session['register_pending_user_id'] = user.pk
+                    request.session.pop(SESSION_REGISTER_EMAIL, None)
+                    return render(
+                        request,
+                        'registration/register.html',
+                        {
+                            'step': 'details',
+                            'form': form,
+                            'email': email,
+                            'turnstile_site_key': turnstile_site_key,
+                            'social_error': social_error,
+                        },
+                    )
+                request.session['register_pending_user_id'] = user.pk
+                request.session.pop(SESSION_REGISTER_EMAIL, None)
+                return redirect('register_verify_sent')
+        else:
+            form = SignUpDetailsForm(email=email)
+        return render(
+            request,
+            'registration/register.html',
+            {
+                'step': 'details',
+                'form': form,
+                'email': email,
+                'turnstile_site_key': turnstile_site_key,
+                'social_error': social_error,
+            },
+        )
+
+    # Шаг 1: email
+    if request.method == 'POST':
+        form = EmailContinueForm(request.POST)
+        if form.is_valid():
+            email_val = form.cleaned_data['email']
+            if User.objects.filter(email__iexact=email_val).exists():
+                form.add_error(
+                    'email',
+                    'Этот адрес уже используется. Войдите или укажите другую почту.',
                 )
             else:
-                request.session['register_pending_user_id'] = user.pk
-                return redirect('register_verify_sent')
+                request.session[SESSION_REGISTER_EMAIL] = email_val
+                return redirect('register')
     else:
-        form = SignUpForm()
+        form = EmailContinueForm()
     return render(
         request,
         'registration/register.html',
-        {'form': form, 'turnstile_site_key': turnstile_site_key},
+        {
+            'step': 'email',
+            'form': form,
+            'turnstile_site_key': '',
+            'social_error': social_error,
+        },
     )
 
 
@@ -192,3 +260,71 @@ def activate_account(request, uidb64, token):
         user.save(update_fields=['is_active'])
         return redirect(f'{reverse("login")}?confirmed=1')
     return render(request, 'registration/activation_invalid.html')
+
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('homepage_index')
+    # Старый ярлык ?signup=1 → отдельная страница регистрации
+    if request.GET.get('signup') == '1':
+        return redirect('register')
+    if request.GET.get('restart') == '1':
+        request.session.pop(SESSION_LOGIN_ID, None)
+        return redirect('login')
+
+    identifier = (request.session.get(SESSION_LOGIN_ID) or '').strip()
+    confirmed = request.GET.get('confirmed') == '1'
+    social_error = request.GET.get('social_error') == '1'
+
+    # Шаг 2: пароль
+    if identifier:
+        if request.method == 'POST':
+            form = LoginPasswordForm(request.POST)
+            if form.is_valid():
+                user = authenticate(
+                    request,
+                    username=identifier,
+                    password=form.cleaned_data['password'],
+                )
+                if user is not None:
+                    login(request, user)
+                    request.session.pop(SESSION_LOGIN_ID, None)
+                    next_url = request.GET.get('next') or request.POST.get('next') or '/'
+                    if next_url.startswith('/'):
+                        return redirect(next_url)
+                    return redirect('homepage_index')
+                form.add_error(None, 'Неверный пароль. Проверьте ввод или подтвердите почту после регистрации.')
+        else:
+            form = LoginPasswordForm()
+        return render(
+            request,
+            'registration/login.html',
+            {
+                'step': 'password',
+                'form': form,
+                'identifier': identifier,
+                'confirmed': confirmed,
+                'social_error': social_error,
+                'next': request.GET.get('next', ''),
+            },
+        )
+
+    # Шаг 1: идентификатор
+    if request.method == 'POST':
+        form = LoginIdentifierForm(request.POST)
+        if form.is_valid():
+            request.session[SESSION_LOGIN_ID] = form.cleaned_data['identifier']
+            return redirect('login')
+    else:
+        form = LoginIdentifierForm()
+    return render(
+        request,
+        'registration/login.html',
+        {
+            'step': 'identifier',
+            'form': form,
+            'confirmed': confirmed,
+            'social_error': social_error,
+            'next': request.GET.get('next', ''),
+        },
+    )

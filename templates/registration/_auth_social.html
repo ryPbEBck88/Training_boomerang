@@ -1,0 +1,17 @@
+{% if social_oauth_any %}
+<div class="auth-gate-or" role="separator"><span>или</span></div>
+<div class="auth-gate-social">
+	{% if vk_oauth_enabled %}
+	<a class="auth-gate-social-btn auth-gate-social-btn--vk" href="{% url 'social:begin' 'vk-oauth2' %}{% if next %}?next={{ next|urlencode }}{% endif %}">
+		<span class="auth-gate-social-btn__icon" aria-hidden="true">VK</span>
+		Продолжить с VK
+	</a>
+	{% endif %}
+	{% if yandex_oauth_enabled %}
+	<a class="auth-gate-social-btn auth-gate-social-btn--ya" href="{% url 'social:begin' 'yandex-oauth2' %}{% if next %}?next={{ next|urlencode }}{% endif %}">
+		<span class="auth-gate-social-btn__icon" aria-hidden="true">Я</span>
+		Продолжить с Яндекс
+	</a>
+	{% endif %}
+</div>
+{% endif %}

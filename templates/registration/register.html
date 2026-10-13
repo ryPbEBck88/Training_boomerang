@@ -2,45 +2,68 @@
 
 {% block title %}Регистрация{% endblock %}
 
-{% block main_class %}auth-main{% endblock %}
+{% block main_class %}auth-main auth-main--gate{% endblock %}
 
 {% block content %}
-<div class="auth-shell site-shell">
-	<h1 class="auth-shell__title">Регистрация</h1>
-	<p class="auth-shell__lead">Укажите логин, почту и пароль. На почту придёт ссылка — без неё войти не получится.</p>
-	<div class="site-shell__panel site-shell__panel--narrow">
-	<form method="post" action="{% url 'register' %}" novalidate>
-		{% csrf_token %}
-		{% if form.non_field_errors %}
-			<div class="auth-nonfield">{{ form.non_field_errors|join:' ' }}</div>
-		{% endif %}
-		{% for field in form %}
-			{% if field.is_hidden %}
-				{{ field }}
-			{% else %}
-			<div class="auth-field">
-				{{ field.label_tag }}
-				{{ field }}
-				{% if field.help_text %}
-					<span class="helptext">{{ field.help_text|safe }}</span>
-				{% endif %}
-				{% if field.errors %}
-					<ul class="auth-errors">
-						{% for err in field.errors %}<li>{{ err }}</li>{% endfor %}
-					</ul>
-				{% endif %}
-			</div>
+<div class="auth-gate">
+	<div class="auth-gate-card">
+		<p class="auth-gate-brand">Я крупье</p>
+		{% if step == 'details' %}
+		<h1 class="auth-gate-title">Создайте аккаунт</h1>
+		<p class="auth-gate-lead">Почта: <strong>{{ email }}</strong>. Придумайте логин и пароль — на почту придёт ссылка подтверждения.</p>
+		<form method="post" action="{% url 'register' %}" novalidate class="auth-gate-form">
+			{% csrf_token %}
+			{% if form.non_field_errors %}
+				<div class="auth-gate-error">{{ form.non_field_errors|join:' ' }}</div>
 			{% endif %}
-		{% endfor %}
-		{% if turnstile_site_key %}
-			<div class="auth-field">
+			{{ form.hp_field }}
+			{% for field in form %}
+				{% if not field.is_hidden %}
+				<div class="auth-gate-field">
+					{{ field }}
+					{% if field.errors %}
+						<ul class="auth-gate-field-errors">{% for err in field.errors %}<li>{{ err }}</li>{% endfor %}</ul>
+					{% endif %}
+					{% if field.help_text %}<span class="auth-gate-hint">{{ field.help_text|safe }}</span>{% endif %}
+				</div>
+				{% endif %}
+			{% endfor %}
+			{% if turnstile_site_key %}
+			<div class="auth-gate-field">
 				<div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}"></div>
 			</div>
 			<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+			{% endif %}
+			<button type="submit" class="auth-gate-primary">Создать аккаунт</button>
+		</form>
+		<p class="auth-gate-footer">
+			<a href="{% url 'register' %}?restart=1">Указать другую почту</a>
+			·
+			<a href="{% url 'login' %}">Войти</a>
+		</p>
+		{% else %}
+		<h1 class="auth-gate-title">Регистрация</h1>
+		<p class="auth-gate-lead">Укажите почту или продолжите через соцсеть</p>
+		{% if social_error %}
+			<p class="auth-gate-error">Не удалось войти через соцсеть. Попробуйте ещё раз или укажите почту.</p>
 		{% endif %}
-		<button type="submit" class="auth-btn">Создать аккаунт</button>
-	</form>
+		<form method="post" action="{% url 'register' %}" novalidate class="auth-gate-form">
+			{% csrf_token %}
+			{% if form.non_field_errors %}
+				<div class="auth-gate-error">{{ form.non_field_errors|join:' ' }}</div>
+			{% endif %}
+			{{ form.hp_field }}
+			<div class="auth-gate-field">
+				{{ form.email }}
+				{% if form.email.errors %}
+					<ul class="auth-gate-field-errors">{% for err in form.email.errors %}<li>{{ err }}</li>{% endfor %}</ul>
+				{% endif %}
+			</div>
+			<button type="submit" class="auth-gate-primary">Продолжить</button>
+		</form>
+		{% include "registration/_auth_social.html" with next="" %}
+		<p class="auth-gate-footer">Уже есть аккаунт? <a href="{% url 'login' %}">Войти</a></p>
+		{% endif %}
 	</div>
-	<p class="auth-footer site-shell__footer">Уже есть аккаунт? <a href="{% url 'login' %}">Войти</a></p>
 </div>
 {% endblock %}

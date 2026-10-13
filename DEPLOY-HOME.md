@@ -1,0 +1,129 @@
+# Запуск Training Boomerang на домашнем ПК (Docker)
+
+Сайт тренажёров поднимается в Docker на вашем ПК:
+
+**https://i-croupier.quiethouse.crazedns.ru**
+
+Трансфер (А-ТУР) может работать **параллельно** в другом Docker-проекте. Один Caddy в стеке `i-croupier` слушает 80/443 и разводит сайты по имени хоста:
+- `i-croupier.quiethouse.crazedns.ru` → тренажёры
+- `TRANSFER_ADDRESS` (по умолчанию `transfer.quiethouse.crazedns.ru`) → трансфер на `TRANSFER_UPSTREAM` (по умолчанию `host.docker.internal:8080`)
+
+Важно: порты **80/443** может занять только один процесс. Если у трансфера в compose тоже проброшены `80:80` / `443:443`, снимите их и оставьте у трансфера только порт приложения (например `8080:80`). Тогда оба сайта останутся в Docker, а снаружи оба откроются через Caddy.
+
+> Последний коммит на `main` — **июнь 2026**; это актуальный код репозитория.
+
+## 1. Что поставить на ПК
+
+1. [Docker Desktop](https://www.docker.com/products/docker-desktop/) для Windows  
+2. Git  
+3. На роутере: **проброс портов 80 и 443** на IP вашего ПК в локальной сети  
+
+## 2. Скачать свежий код
+
+```powershell
+cd %USERPROFILE%\Documents
+git clone https://github.com/ryPbEBck88/Training_boomerang.git
+cd Training_boomerang
+git checkout main
+git pull origin main
+```
+
+Если папка уже есть и «старая»:
+
+```powershell
+cd Training_boomerang
+git fetch origin
+git checkout main
+git reset --hard origin/main
+```
+
+## 3. Настроить `.env`
+
+```powershell
+copy .env.example .env
+notepad .env
+```
+
+Минимум для QuietHouse DDNS:
+
+```env
+DEBUG=0
+ALLOWED_HOSTS=i-croupier.quiethouse.crazedns.ru,localhost,127.0.0.1
+CSRF_TRUSTED_ORIGINS=https://i-croupier.quiethouse.crazedns.ru
+SITE_ADDRESS=i-croupier.quiethouse.crazedns.ru
+ACME_EMAIL=ваш@email.ru
+```
+
+В панели QuietHouse / CrazyDNS создайте (или проверьте) хост **`i-croupier`** в зоне **`quiethouse.crazedns.ru`**, чтобы A-запись указывала на **белый IP** дома.
+
+## 4. Запуск
+
+### Вариант A — Docker Desktop (графика, Windows)
+
+1. Сначала обновите код ветки (раздел 2–3), чтобы были `docker-compose.yml`, `Caddyfile`, `.env`.
+2. Откройте **Docker Desktop**.
+3. Слева: **Containers** (Контейнеры) или **Projects**.
+4. Кнопка **Add** / **Open** / **Create** → **Compose** / открыть папку проекта.
+5. Укажите папку: `D:\Alex\Dev\Training_boomerang`
+6. Выберите файл `docker-compose.yml`.
+7. Запуск (▶️ Start / Run).
+
+В списке проект должен называться **`i-croupier`**, внутри сервисы `web` и `caddy`.
+
+Если кнопки Add нет: в Docker Desktop → шестерёнка → убедитесь, что Docker Engine запущен, затем в проводнике в папке проекта ПКМ по `docker-compose.yml` → Open with Docker Desktop (если есть), либо выполните вариант B один раз — стек появится в GUI.
+
+### Вариант B — PowerShell (тоже появится в Docker Desktop)
+
+Только локально (без домена, порт 8000):
+
+```powershell
+cd D:\Alex\Dev\Training_boomerang
+docker compose --profile local up -d --build
+```
+
+Открыть: http://localhost:8000
+
+С интернетом через Caddy (HTTPS на 80/443):
+
+```powershell
+cd D:\Alex\Dev\Training_boomerang
+docker compose up -d --build
+```
+
+После этого в Docker Desktop появится стек **`i-croupier`**.
+
+Логи:
+
+```powershell
+docker compose logs -f web caddy
+```
+
+Остановка:
+
+```powershell
+docker compose down
+```
+# или Stop в Docker Desktop на проекте i-croupier
+
+## 5. Проверка
+
+1. С телефона (мобильный интернет, не Wi‑Fi дома): https://i-croupier.quiethouse.crazedns.ru  
+2. Если сертификат не выдался — смотрите `docker compose logs caddy` (часто не открыты 80/443 или DNS ещё не указывает на дом)  
+3. База SQLite лежит в папке проекта (`db.sqlite3`) — не удаляйте её при обновлении  
+
+## 6. Обновление сайта с GitHub
+
+```powershell
+cd Training_boomerang
+git pull origin main
+docker compose up -d --build
+```
+
+## Частые проблемы
+
+| Симптом | Что проверить |
+|---|---|
+| `DisallowedHost` | Имя в браузере есть в `ALLOWED_HOSTS` |
+| CSRF / 403 на формах | То же имя с `https://` в `CSRF_TRUSTED_ORIGINS` |
+| Сайт не открывается с улицы | Проброс 80/443, белый IP, DDNS обновил IP |
+| «Старый код» | `git log -1` — на main последний коммит June 2026 |

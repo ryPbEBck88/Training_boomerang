@@ -2,7 +2,6 @@ from django.urls import path
 from django.contrib.auth import views as auth_views
 
 from . import sop_views, views
-from .forms import SiteLoginForm
 
 
 urlpatterns = [
@@ -39,15 +38,6 @@ urlpatterns = [
         views.activate_account,
         name="activate_account",
     ),
-    path(
-        "login/",
-        auth_views.LoginView.as_view(
-            template_name="registration/login.html",
-            authentication_form=SiteLoginForm,
-            redirect_authenticated_user=True,
-            next_page="homepage_index",
-        ),
-        name="login",
-    ),
+    path("login/", views.login_view, name="login"),
     path("logout/", auth_views.LogoutView.as_view(next_page="homepage_index"), name="logout"),
 ]

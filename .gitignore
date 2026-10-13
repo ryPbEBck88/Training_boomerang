@@ -27,6 +27,7 @@ deploy/
 # Environments
 .env
 .env.*
+!.env.example
 *.local
 
 # macOS
