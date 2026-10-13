@@ -51,6 +51,7 @@ urlpatterns = [
     path('.well-known/appspecific/com.chrome.devtools.json', chrome_devtools_json),
     path('yandex_70c1c5ce1a91d4b2.html', TemplateView.as_view(template_name='yandex_70c1c5ce1a91d4b2.html', content_type='text/html')),
     path('admin/', admin.site.urls),
+    path('oauth/', include('social_django.urls', namespace='social')),
     path('', include('homepage.urls')),
     path('staff-room/', include('staffroom.urls')),
     path('blackjack/', include('blackjack.urls')),

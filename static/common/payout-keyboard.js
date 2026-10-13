@@ -1,8 +1,17 @@
 /**
- * Ввод: системная клавиатура (в т.ч. на телефоне) + кастомная сетка цифр.
+ * Ввод: на телефоне — только кастомная сетка (без системной клавиатуры iOS).
+ * На десктопе — системная клавиатура + сетка цифр.
  * Активное поле подсвечивается (payout-keyboard-target).
  */
 (function() {
+	function isTouchPrimary() {
+		if (typeof window.matchMedia !== 'function') {
+			return 'ontouchstart' in window;
+		}
+		return window.matchMedia('(pointer: coarse)').matches
+			|| window.matchMedia('(hover: none)').matches;
+	}
+
 	function initPayoutKeyboard(container) {
 		var form = container.closest && container.closest('form');
 		if (!form) form = container;
@@ -19,8 +28,7 @@
 		var lastActiveInput = enabledInputs[0];
 		var lastHandledKey = null;
 		var lastHandledTime = 0;
-
-		var coarsePointer = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
+		var touchPrimary = isTouchPrimary();
 
 		function syncKeyboardTarget() {
 			inputs.forEach(function(inp) {
@@ -32,7 +40,7 @@
 		}
 
 		function caretAtEnd(inp) {
-			if (!inp || inp.disabled) return;
+			if (!inp || inp.disabled || touchPrimary) return;
 			try {
 				inp.focus({ preventScroll: true });
 				var len = inp.value.length;
@@ -42,16 +50,47 @@
 			} catch (e) { /* старые браузеры */ }
 		}
 
-		inputs.forEach(function(inp) {
-			if (!inp.getAttribute('inputmode')) {
-				inp.setAttribute('inputmode', 'decimal');
+		function selectTarget(inp, ev) {
+			if (!inp || inp.disabled) return;
+			lastActiveInput = inp;
+			syncKeyboardTarget();
+			if (touchPrimary) {
+				if (ev) ev.preventDefault();
+				try {
+					inp.blur();
+				} catch (e) { /* ignore */ }
 			}
-			inp.addEventListener('focus', function() {
-				if (!this.disabled) {
+		}
+
+		inputs.forEach(function(inp) {
+			if (touchPrimary) {
+				/* readonly: iOS не открывает системную клавиатуру */
+				inp.readOnly = true;
+				inp.setAttribute('inputmode', 'none');
+				inp.classList.add('payout-input--custom-kb');
+				inp.addEventListener('pointerdown', function(e) {
+					selectTarget(this, e);
+				});
+				inp.addEventListener('focus', function() {
+					if (this.disabled) return;
 					lastActiveInput = this;
 					syncKeyboardTarget();
+					var self = this;
+					requestAnimationFrame(function() {
+						try { self.blur(); } catch (e) { /* ignore */ }
+					});
+				});
+			} else {
+				if (!inp.getAttribute('inputmode')) {
+					inp.setAttribute('inputmode', 'decimal');
 				}
-			});
+				inp.addEventListener('focus', function() {
+					if (!this.disabled) {
+						lastActiveInput = this;
+						syncKeyboardTarget();
+					}
+				});
+			}
 			inp.addEventListener('input', function() {
 				if (!this.disabled) {
 					lastActiveInput = this;
@@ -70,9 +109,11 @@
 
 		function afterValueChangeFromKeyboard() {
 			syncKeyboardTarget();
-			requestAnimationFrame(function() {
-				caretAtEnd(lastActiveInput);
-			});
+			if (!touchPrimary) {
+				requestAnimationFrame(function() {
+					caretAtEnd(lastActiveInput);
+				});
+			}
 		}
 
 		function handleKeyPress(keyEl) {
@@ -99,9 +140,11 @@
 				if (nextInput.scrollIntoView) {
 					nextInput.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 				}
-				requestAnimationFrame(function() {
-					caretAtEnd(nextInput);
-				});
+				if (!touchPrimary) {
+					requestAnimationFrame(function() {
+						caretAtEnd(nextInput);
+					});
+				}
 			} else {
 				var val = keyEl.getAttribute('data-val');
 				if (val != null) {
@@ -117,7 +160,8 @@
 			k.addEventListener('pointerdown', function(e) {
 				if (isSubmit) return;
 				e.preventDefault();
-				if (lastActiveInput && !lastActiveInput.disabled) {
+				/* На телефоне не вызываем focus — иначе всплывает системная клавиатура */
+				if (!touchPrimary && lastActiveInput && !lastActiveInput.disabled) {
 					lastActiveInput.focus({ preventScroll: true });
 				}
 				handleKeyPress(k);
@@ -128,7 +172,7 @@
 		});
 
 		syncKeyboardTarget();
-		if (!coarsePointer) {
+		if (!touchPrimary) {
 			requestAnimationFrame(function() {
 				caretAtEnd(lastActiveInput);
 			});

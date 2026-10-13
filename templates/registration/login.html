@@ -2,35 +2,63 @@
 
 {% block title %}Вход{% endblock %}
 
-{% block main_class %}auth-main{% endblock %}
+{% block main_class %}auth-main auth-main--gate{% endblock %}
 
 {% block content %}
-<div class="auth-shell site-shell">
-	<h1 class="auth-shell__title">Вход</h1>
-	<p class="auth-shell__lead">Введите логин и пароль. Если вы недавно регистрировались — сначала подтвердите почту по ссылке из письма.</p>
-	<div class="site-shell__panel site-shell__panel--narrow">
-	{% if request.GET.confirmed == '1' %}
-		<p class="auth-banner auth-banner--ok">Почта подтверждена. Теперь можно войти.</p>
-	{% endif %}
-	<form method="post" action="{% url 'login' %}" novalidate>
-		{% csrf_token %}
-		{% if form.non_field_errors %}
-			<div class="auth-nonfield">{{ form.non_field_errors|join:' ' }}</div>
+<div class="auth-gate">
+	<div class="auth-gate-card">
+		<p class="auth-gate-brand">Я крупье</p>
+		{% if step == 'password' %}
+		<h1 class="auth-gate-title">Введите пароль</h1>
+		<p class="auth-gate-lead">Аккаунт: <strong>{{ identifier }}</strong></p>
+		{% if confirmed %}
+			<p class="auth-gate-banner auth-gate-banner--ok">Почта подтверждена. Теперь можно войти.</p>
 		{% endif %}
-		{% for field in form %}
-			<div class="auth-field">
-				{{ field.label_tag }}
-				{{ field }}
-				{% if field.errors %}
-					<ul class="auth-errors">
-						{% for err in field.errors %}<li>{{ err }}</li>{% endfor %}
-					</ul>
+		<form method="post" action="{% url 'login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" novalidate class="auth-gate-form">
+			{% csrf_token %}
+			{% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+			{% if form.non_field_errors %}
+				<div class="auth-gate-error">{{ form.non_field_errors|join:' ' }}</div>
+			{% endif %}
+			<div class="auth-gate-field">
+				{{ form.password }}
+				{% if form.password.errors %}
+					<ul class="auth-gate-field-errors">{% for err in form.password.errors %}<li>{{ err }}</li>{% endfor %}</ul>
 				{% endif %}
 			</div>
-		{% endfor %}
-		<button type="submit" class="auth-btn">Войти</button>
-	</form>
+			<button type="submit" class="auth-gate-primary">Войти</button>
+		</form>
+		<p class="auth-gate-footer">
+			<a href="{% url 'login' %}?restart=1">Другой логин или почта</a>
+			·
+			<a href="{% url 'register' %}">Регистрация</a>
+		</p>
+		{% else %}
+		<h1 class="auth-gate-title">Войти</h1>
+		<p class="auth-gate-lead">Используйте аккаунт сайта или соцсеть</p>
+		{% if confirmed %}
+			<p class="auth-gate-banner auth-gate-banner--ok">Почта подтверждена. Теперь можно войти.</p>
+		{% endif %}
+		{% if social_error %}
+			<p class="auth-gate-error">Не удалось войти через соцсеть. Проверьте Callback URI в кабинете Яндекса и попробуйте снова.</p>
+		{% endif %}
+		<form method="post" action="{% url 'login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" novalidate class="auth-gate-form">
+			{% csrf_token %}
+			{{ form.hp_field }}
+			{% if form.non_field_errors %}
+				<div class="auth-gate-error">{{ form.non_field_errors|join:' ' }}</div>
+			{% endif %}
+			<div class="auth-gate-field">
+				{{ form.identifier }}
+				{% if form.identifier.errors %}
+					<ul class="auth-gate-field-errors">{% for err in form.identifier.errors %}<li>{{ err }}</li>{% endfor %}</ul>
+				{% endif %}
+			</div>
+			<button type="submit" class="auth-gate-primary">Продолжить</button>
+		</form>
+		{% include "registration/_auth_social.html" %}
+		<p class="auth-gate-footer">Нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a></p>
+		{% endif %}
 	</div>
-	<p class="auth-footer site-shell__footer">Нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a></p>
 </div>
 {% endblock %}

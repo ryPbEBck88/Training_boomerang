@@ -2631,6 +2631,234 @@ main.auth-main .main-card {
   box-shadow: none;
 }
 
+/* Gate (стиль карточки: email → Продолжить / соцсети) */
+main.auth-main--gate {
+  background: #eef1f5;
+  min-height: calc(100vh - 64px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 28px 16px 48px;
+  box-sizing: border-box;
+}
+
+main.auth-main--gate .main-card {
+  max-width: 420px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.auth-gate {
+  width: 100%;
+}
+
+.auth-gate-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px 24px 22px;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.auth-gate-brand {
+  margin: 0 0 18px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #0f172a;
+}
+
+.auth-gate-title {
+  margin: 0 0 8px;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.auth-gate-lead {
+  margin: 0 0 22px;
+  font-size: 0.95rem;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.auth-gate-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.auth-gate-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth-gate-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 16px;
+  font-size: 1rem;
+  font-family: var(--font);
+  border: 1px solid #d0d7e2;
+  border-radius: 12px;
+  background: #fff;
+  color: #0f172a;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.auth-gate-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+}
+
+.auth-gate-input::placeholder {
+  color: #94a3b8;
+}
+
+.auth-gate-primary {
+  width: 100%;
+  margin-top: 4px;
+  padding: 14px 18px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  font-family: var(--font);
+  color: #fff;
+  background: #3b82f6;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.08s;
+}
+
+.auth-gate-primary:hover {
+  background: #2563eb;
+}
+
+.auth-gate-primary:active {
+  transform: translateY(1px);
+}
+
+.auth-gate-or {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 14px;
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.auth-gate-or::before,
+.auth-gate-or::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.auth-gate-social {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auth-gate-social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px 16px;
+  font-size: 0.98rem;
+  font-weight: 600;
+  font-family: var(--font);
+  text-decoration: none;
+  color: #0f172a;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.auth-gate-social-btn:hover {
+  background: #e8eef5;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.auth-gate-social-btn__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+.auth-gate-social-btn--vk .auth-gate-social-btn__icon {
+  color: #0077ff;
+}
+
+.auth-gate-social-btn--ya .auth-gate-social-btn__icon {
+  color: #fc3f1d;
+}
+
+.auth-gate-footer {
+  margin: 18px 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.auth-gate-footer a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.auth-gate-footer a:hover {
+  text-decoration: underline;
+}
+
+.auth-gate-error {
+  margin: 0 0 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.auth-gate-field-errors {
+  margin: 0;
+  padding: 0 0 0 1.1rem;
+  color: #b91c1c;
+  font-size: 0.85rem;
+}
+
+.auth-gate-hint {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  line-height: 1.35;
+}
+
+.auth-gate-banner {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+
+.auth-gate-banner--ok {
+  background: #ecfdf5;
+  color: #047857;
+}
+
 /* Главная (стихи): та же схема, что у чаевых, но шире под текст */
 main.auth-main--wide .main-card {
   max-width: 640px;

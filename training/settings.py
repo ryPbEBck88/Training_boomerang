@@ -100,6 +100,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'social_django',
 ]
 
 MIDDLEWARE = [
@@ -128,7 +129,10 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
                 'training.context_processors.timer',
+                'homepage.context_processors.auth_social',
             ],
         },
     },
@@ -197,6 +201,50 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
+AUTHENTICATION_BACKENDS = [
+    'social_core.backends.vk.VKOAuth2',
+    'homepage.social_backends.YandexRuOAuth2',
+    'homepage.auth_backends.EmailOrUsernameModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+# OAuth: VK / Яндекс (ключи в .env; без ключей кнопки на сайте скрыты).
+SOCIAL_AUTH_VK_OAUTH2_KEY = os.environ.get('VK_APP_ID', '').strip()
+SOCIAL_AUTH_VK_OAUTH2_SECRET = os.environ.get('VK_APP_SECRET', '').strip()
+SOCIAL_AUTH_YANDEX_OAUTH2_KEY = os.environ.get('YANDEX_CLIENT_ID', '').strip()
+SOCIAL_AUTH_YANDEX_OAUTH2_SECRET = os.environ.get('YANDEX_CLIENT_SECRET', '').strip()
+# Должен совпадать с Redirect URI в кабинете Яндекса (часто только корень сайта).
+YANDEX_OAUTH_REDIRECT_URI = os.environ.get(
+    'YANDEX_OAUTH_REDIRECT_URI',
+    'https://i-croupier.quiethouse.crazedns.ru',
+).strip().rstrip('/')
+SOCIAL_AUTH_YANDEX_OAUTH2_FIXED_REDIRECT_URI = YANDEX_OAUTH_REDIRECT_URI
+SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/'
+SOCIAL_AUTH_LOGIN_ERROR_URL = '/login/?social_error=1'
+SOCIAL_AUTH_RAISE_EXCEPTIONS = False
+SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
+SOCIAL_AUTH_URL_NAMESPACE = 'social'
+SOCIAL_AUTH_JSONFIELD = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+SOCIAL_AUTH_PIPELINE = (
+    'social_core.pipeline.social_auth.social_details',
+    'social_core.pipeline.social_auth.social_uid',
+    'social_core.pipeline.social_auth.auth_allowed',
+    'social_core.pipeline.social_auth.social_user',
+    'social_core.pipeline.user.get_username',
+    'homepage.pipeline.associate_by_email',
+    'social_core.pipeline.user.create_user',
+    'social_core.pipeline.social_auth.associate_user',
+    'social_core.pipeline.social_auth.load_extra_data',
+    'social_core.pipeline.user.user_details',
+    'homepage.pipeline.activate_social_user',
+)
 
 # Учёт HTTP-запросов к сайту (homepage.middleware.SiteVisitLogMiddleware).
 SITE_VISIT_LOG_ENABLED = os.environ.get('SITE_VISIT_LOG_ENABLED', '1').strip().lower() in (
